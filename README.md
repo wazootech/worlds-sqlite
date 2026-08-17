@@ -6,7 +6,10 @@ Part of the Worlds durable-backend family per the provider-seam design ([worlds-
 
 ## Status
 
-Scaffold only — **parked (post-beta / backlog)** as of 2026-08-17 per the provider-seam decision ([worlds-sdk-ts#164](https://github.com/wazootech/worlds-sdk-ts/issues/164)): the beta runs single-backend on Turso (`@worlds/libsql`), and alternative durable backends are deferred. Do not start implementation until the beta ships.
+Two layers, two statuses (plan: [worlds-sqlite#1](https://github.com/wazootech/worlds-sqlite/issues/1)):
+
+- **Layer 1 — RDF/JS quad primitive (`SqliteStore`): active plan.** The store moves here from `@wazoo/sparql-engine/sqlite` (packaged with the worlds impl per the ecosystem pattern — `LibsqlRdfjsStore` lives in `@worlds/libsql`, `PostgresRdfjsStore` in `@worlds/postgres`), re-based on `@worlds/sdk`'s shared quad-store/term pieces.
+- **Layer 2 — Worlds impl (search + `createSqliteClient`): parked (post-beta).** Per the provider-seam decision ([worlds-sdk-ts#164](https://github.com/wazootech/worlds-sdk-ts/issues/164)) the beta runs single-backend on Turso (`@worlds/libsql`); the search layer here is spec'd in #1, implemented when unparked.
 
 The `SqliteStore` quad primitive already exists in [`@wazoo/sparql-engine`](https://jsr.io/@wazoo/sparql-engine) behind the `./sqlite` subpath (v0.3.0+, graduated via [sparql-engine#56](https://github.com/wazootech/sparql-engine/issues/56)) — this backend consumes it and composes the search layer on top.
 
