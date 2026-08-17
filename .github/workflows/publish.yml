@@ -1,0 +1,26 @@
+name: Publish
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - uses: actions/checkout@v6
+      - uses: denoland/setup-deno@v2
+        with:
+          cache: true
+          deno-version-file: .tool-versions
+      - name: Install dependencies
+        run: deno ci
+      - name: Run CI checks
+        run: deno task ci
+      - name: Publish dry run (smoke)
+        run: deno task publish:dry
+      - name: Publish package
+        run: deno publish
