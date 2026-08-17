@@ -6,9 +6,9 @@
  * worlds backend: `LibsqlRdfjsStore` in `@worlds/libsql`, `PostgresRdfjsStore`
  * in `@worlds/postgres`, `SqliteStore` here). Extracted from
  * `@wazoo/sparql-engine/sqlite` (v0.3.x) and re-based on the shared Worlds
- * stack: `n3`'s DataFactory (the same one `@worlds/sdk` uses) and the term
- * identity in `src/sqlite/term/term-key.ts` (parity-tested against the
- * engine).
+ * stack: the engine's zero-dependency `DataFactory` (the same one
+ * `@worlds/sdk` uses) and the term identity in
+ * `src/sqlite/term/term-key.ts` (parity-tested against the engine).
  *
  * The engine remains store-agnostic and consumes this store through its
  * `createTransaction` hook:
@@ -37,7 +37,7 @@
  */
 import type * as rdfjs from "@rdfjs/types";
 import { DatabaseSync } from "node:sqlite";
-import { DataFactory } from "n3";
+import { DataFactory } from "@wazoo/sparql-engine";
 import { termKey } from "@/sqlite/term/term-key.ts";
 import { MemoryStream } from "@/sqlite/rdfjs-store/memory-stream.ts";
 
@@ -120,9 +120,9 @@ function fromTermRecord(rec: TermRecord): rdfjs.Term {
         ? DataFactory.literal(rec.v, rec.lang)
         : DataFactory.literal(rec.v, DataFactory.namedNode(rec.dt));
     case "Q":
-      // n3's quad() types are strict about positions, but RDF 1.2 triple
-      // terms allow any term in any position (literal subjects included) —
-      // cast to the position types, which is always sound here.
+      // The engine's quad() types are strict about positions, but RDF 1.2
+      // triple terms allow any term in any position (literal subjects
+      // included) — cast to the position types, which is always sound here.
       return DataFactory.quad(
         fromTermRecord(rec.s) as rdfjs.Quad_Subject,
         fromTermRecord(rec.p) as rdfjs.Quad_Predicate,
@@ -142,7 +142,7 @@ function toQuadRecord(quad: rdfjs.Quad): QuadRecord {
 
 function fromQuadRecord(rec: QuadRecord): rdfjs.Quad {
   // Reconstructed positions may be any term (RDF 1.2 quoted triples allow
-  // literal subjects); n3's position types are narrower, so cast.
+  // literal subjects); the engine's position types are narrower, so cast.
   return DataFactory.quad(
     fromTermRecord(rec.s) as rdfjs.Quad_Subject,
     fromTermRecord(rec.p) as rdfjs.Quad_Predicate,
@@ -271,7 +271,7 @@ export class SqliteStore implements rdfjs.Store<rdfjs.Quad> {
     const quad = predicate !== undefined && object !== undefined
       ? DataFactory.quad(
         // RDF 1.2 allows any term in any position (literal subjects in
-        // quoted triples); n3's position types are narrower, so cast.
+        // quoted triples); the engine's position types are narrower, so cast.
         quadOrSubject as rdfjs.Quad_Subject,
         predicate as rdfjs.Quad_Predicate,
         object as rdfjs.Quad_Object,

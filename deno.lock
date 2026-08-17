@@ -7,7 +7,7 @@
     "jsr:@std/internal@^1.0.14": "1.0.14",
     "jsr:@std/path@1": "1.1.6",
     "jsr:@std/path@^1.1.5": "1.1.6",
-    "jsr:@wazoo/sparql-engine@~0.3.1": "0.3.1",
+    "jsr:@wazoo/sparql-engine@0.3": "0.3.0",
     "jsr:@worlds/sdk@~0.1.1": "0.1.1",
     "npm:@rdfjs/types@^2.0.1": "2.0.1",
     "npm:@tensorflow/tfjs-backend-wasm@^4.22.0": "4.22.0_@tensorflow+tfjs-core@4.22.0",
@@ -37,8 +37,8 @@
         "jsr:@std/internal@^1.0.14"
       ]
     },
-    "@wazoo/sparql-engine@0.3.1": {
-      "integrity": "4a6d8c939ae1906c1cdfa1875e50c9702986dc96b756306d1626e3aaa00ce99f",
+    "@wazoo/sparql-engine@0.3.0": {
+      "integrity": "fc0c11ea0569c318baf5ded1f43a7a02b27d2f43466d29feb67294877bb7430a",
       "dependencies": [
         "npm:@rdfjs/types"
       ]
@@ -558,7 +558,7 @@
     "dependencies": [
       "jsr:@std/assert@^1.0.19",
       "jsr:@std/path@1",
-      "jsr:@wazoo/sparql-engine@~0.3.1",
+      "jsr:@wazoo/sparql-engine@0.3",
       "jsr:@worlds/sdk@~0.1.1",
       "npm:@rdfjs/types@^2.0.1",
       "npm:@types/n3@1.26.1",

@@ -16,8 +16,8 @@
     "n3": "npm:n3@^2.0.3",
     "@std/assert": "jsr:@std/assert@^1.0.19",
     "@std/path": "jsr:@std/path@^1",
-    "@wazoo/sparql-engine": "jsr:@wazoo/sparql-engine@^0.3.1",
-    "@wazoo/sparql-engine/term": "jsr:@wazoo/sparql-engine@^0.3.1/term",
+    "@wazoo/sparql-engine": "jsr:@wazoo/sparql-engine@^0.3.0",
+    "@wazoo/sparql-engine/term": "jsr:@wazoo/sparql-engine@^0.3.0/term",
     "@worlds/sdk": "jsr:@worlds/sdk@^0.1.1",
     "@worlds/sdk/rdfjs": "jsr:@worlds/sdk@^0.1.1/rdfjs",
     "@worlds/sdk/sparql-engine": "jsr:@worlds/sdk@^0.1.1/sparql-engine"
