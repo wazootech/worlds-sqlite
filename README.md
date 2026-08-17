@@ -6,7 +6,7 @@ Part of the Worlds durable-backend family per the provider-seam design ([worlds-
 
 ## Status
 
-Scaffold. Repo created 2026-08-17; **beta scope is an open decision** — see open question 2 in [worlds-sdk-ts#164](https://github.com/wazootech/worlds-sdk-ts/issues/164) (in-scope for the private beta, or post-beta?). Do not start implementation until that's resolved.
+Scaffold only — **parked (post-beta / backlog)** as of 2026-08-17 per the provider-seam decision ([worlds-sdk-ts#164](https://github.com/wazootech/worlds-sdk-ts/issues/164)): the beta runs single-backend on Turso (`@worlds/libsql`), and alternative durable backends are deferred. Do not start implementation until the beta ships.
 
 The `SqliteStore` quad primitive already exists in [`@wazoo/sparql-engine`](https://jsr.io/@wazoo/sparql-engine) behind the `./sqlite` subpath (v0.3.0+, graduated via [sparql-engine#56](https://github.com/wazootech/sparql-engine/issues/56)) — this backend consumes it and composes the search layer on top.
 
