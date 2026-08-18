@@ -4,10 +4,11 @@ Local `node:sqlite` durable backend for the Worlds client
 ([`@worlds/sdk`](https://jsr.io/@worlds/sdk)) — single-process, local-file
 storage with optional `sqlite-vec` extension for vector search.
 
-Part of the Worlds durable-backend family per the provider-seam design
-([worlds-sdk-ts#164](https://github.com/wazootech/worlds-sdk-ts/issues/164)),
-alongside `@worlds/libsql` (Turso), `@worlds/postgres`, and
-`@worlds/cloudflare`.
+Part of the Worlds durable-backend family alongside `@worlds/libsql` (Turso),
+`@worlds/postgres`, and `@worlds/cloudflare`. The provider-strategy vocabulary
+is backend-internal (per the de-escalated seam decision,
+[worlds-sdk-ts#170](https://github.com/wazootech/worlds-sdk-ts/issues/170));
+cross-backend interchangeability lives at the `@worlds/sdk` `Sdk` seam.
 
 ## Status
 
@@ -21,7 +22,7 @@ Two layers, two statuses (plan:
   (the `@worlds/sdk` choice) with term identity parity-tested against the
   engine. Published as `@worlds/sqlite` (root + `./rdfjs-store` subpath).
 - **Layer 2 — Worlds impl (search + `createSqliteSdk`): parked (post-beta).**
-  Per the provider-seam decision
+  Per the beta practice decision
   ([worlds-sdk-ts#164](https://github.com/wazootech/worlds-sdk-ts/issues/164))
   the beta runs single-backend on Turso (`@worlds/libsql`); the search layer
   here is spec'd in #1, implemented when unparked.
