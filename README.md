@@ -20,7 +20,7 @@ Two layers, two statuses (plan:
   `PostgresRdfjsStore` in `@worlds/postgres`), re-based on `n3`'s DataFactory
   (the `@worlds/sdk` choice) with term identity parity-tested against the
   engine. Published as `@worlds/sqlite` (root + `./rdfjs-store` subpath).
-- **Layer 2 — Worlds impl (search + `createSqliteClient`): parked (post-beta).**
+- **Layer 2 — Worlds impl (search + `createSqliteSdk`): parked (post-beta).**
   Per the provider-seam decision
   ([worlds-sdk-ts#164](https://github.com/wazootech/worlds-sdk-ts/issues/164))
   the beta runs single-backend on Turso (`@worlds/libsql`); the search layer
@@ -39,9 +39,9 @@ the worlds search layer composes on top (Layer 2).
   STRICT table, WAL + busy_timeout, term-keyed rows, lossless RDF-star payloads,
   `createTransaction()`), `MemoryStream`, term identity
   (`termKey`/`sameRdfTerm`), crash-recovery + term-key-parity suites.
-- **Planned (Layer 2, parked):** `createSqliteClient` — wires
+- **Planned (Layer 2, parked):** `createSqliteSdk` — wires
   `SqliteQuadStoreBackend` + `SqliteSearchQueryBuilder` (keyword + optional
-  `sqlite-vec`, JS-side RRF) into a `@worlds/sdk` `Client` (mirrors
+  `sqlite-vec`, JS-side RRF) into a `@worlds/sdk` `Sdk` (mirrors
   `createLibsqlClient` from `@worlds/libsql`).
 
 ## Setup
