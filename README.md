@@ -43,7 +43,7 @@ the worlds search layer composes on top (Layer 2).
 - **Planned (Layer 2, parked):** `createSqliteSdk` — wires
   `SqliteQuadStoreBackend` + `SqliteSearchQueryBuilder` (keyword + optional
   `sqlite-vec`, JS-side RRF) into a `@worlds/sdk` `Sdk` (mirrors
-  `createLibsqlClient` from `@worlds/libsql`).
+  `createLibsqlSdk` from `@worlds/libsql`).
 
 ## Setup
 
