@@ -10,7 +10,7 @@
 import { assertEquals } from "@std/assert";
 import type * as rdfjs from "@rdfjs/types";
 import { DataFactory as N3 } from "n3";
-import { Client } from "@worlds/sdk";
+import { Sdk } from "@worlds/sdk";
 import { RdfjsQuadStore, RdfjsSearchIndex } from "@worlds/sdk/rdfjs";
 import { MemoryStore, WazooSparqlEngine } from "@wazoo/sparql-engine";
 import type { SparqlBinding, SparqlResponse } from "@worlds/sdk/sparql-engine";
@@ -49,8 +49,8 @@ function normalizeBindings(bindings: SparqlBinding[]): unknown {
 }
 
 /** Wires the full Client facade over one shared RDF/JS store + WazooSparqlEngine. */
-function createWazooClient(store: rdfjs.Store & { size: number }): Client {
-  return new Client({
+function createWazooClient(store: rdfjs.Store & { size: number }): Sdk {
+  return new Sdk({
     quadStore: new RdfjsQuadStore({ store }),
     sparqlEngine: new WazooSparqlEngine({ store }),
     searchIndex: new RdfjsSearchIndex(store),

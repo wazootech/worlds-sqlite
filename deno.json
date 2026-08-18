@@ -1,7 +1,7 @@
 {
   "name": "@worlds/sqlite",
   "description": "node:sqlite durable backend for the Worlds client — RDF/JS quad primitive packaged with the worlds impl.",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "license": "WTFPL",
   "nodeModulesDir": "auto",
   "exports": {
@@ -18,9 +18,9 @@
     "@std/path": "jsr:@std/path@^1",
     "@wazoo/sparql-engine": "jsr:@wazoo/sparql-engine@^0.3.0",
     "@wazoo/sparql-engine/term": "jsr:@wazoo/sparql-engine@^0.3.0/term",
-    "@worlds/sdk": "jsr:@worlds/sdk@^0.1.1",
-    "@worlds/sdk/rdfjs": "jsr:@worlds/sdk@^0.1.1/rdfjs",
-    "@worlds/sdk/sparql-engine": "jsr:@worlds/sdk@^0.1.1/sparql-engine"
+    "@worlds/sdk": "jsr:@worlds/sdk@^0.2.0",
+    "@worlds/sdk/rdfjs": "jsr:@worlds/sdk@^0.2.0/rdfjs",
+    "@worlds/sdk/sparql-engine": "jsr:@worlds/sdk@^0.2.0/sparql-engine"
   },
   "publish": {
     "include": [
