@@ -1,7 +1,7 @@
 # @worlds/sqlite
 
 Local `node:sqlite` durable backend for the Worlds client
-([`@worlds/client`](https://github.com/wazootech/worlds-client-ts)) —
+([`@worlds/sdk`](https://jsr.io/@worlds/sdk)) —
 single-process, local-file storage with optional `sqlite-vec` extension for
 vector search.
 
