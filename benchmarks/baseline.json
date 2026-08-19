@@ -1,0 +1,15 @@
+{
+  "Search: Scan-based Keyword (RdfjsSearchIndex, 1,000 Quads)": 150.10870121598555,
+  "Idempotency: Novel Insert (New Quads Ingested)": 376.54245911596115,
+  "Idempotency: Redundant Insert (Duplicate Quads Suppressed)": 120.70338206048399,
+  "SPARQL Hexastore Perf: 100000 quads | selective | sqliteStore": 60.14523872246701,
+  "SPARQL Hexastore Perf: 250000 quads | selective | sqliteStore": 23.08749963810344,
+  "SPARQL Hexastore Perf: 1000 quads | selective | sqliteStore": 8353.451228375003,
+  "SPARQL Hexastore Perf: 5000 quads | selective | sqliteStore": 1430.330735375941,
+  "SPARQL Hexastore Perf: 10000 quads | selective | sqliteStore": 747.2121514628919,
+  "SPARQL Hexastore Perf: 25000 quads | selective | sqliteStore": 170.61707760927257,
+  "SPARQL Hexastore Perf: 50000 quads | selective | sqliteStore": 91.2631504495851,
+  "Sync: Consolidated Batch Commit (10 Quads)": 3458.101640523418,
+  "Sync: Consolidated Batch Commit (100 Quads)": 101.06382817451338,
+  "Sync: Consolidated Batch Commit (1,000 Quads)": 22.561914914551597
+}

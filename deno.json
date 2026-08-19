@@ -43,6 +43,9 @@
     "check": "deno check",
     "test": "deno test --allow-all",
     "publish:dry": "deno publish --dry-run --allow-dirty",
+    "bench": "deno bench --allow-all benchmarks/",
+    "bench:record": "deno run -A benchmarks/bench-record.ts",
+    "bench:check": "deno run -A benchmarks/bench-check.ts",
     "ci": {
       "description": "Formats, lints, checks, and tests the code",
       "dependencies": [
