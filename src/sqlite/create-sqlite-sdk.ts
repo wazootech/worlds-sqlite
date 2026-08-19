@@ -141,7 +141,11 @@ export async function createSqliteSdk(
     textSplitter,
   });
 
-  const store = new SqliteStore({ path: options.path, db });
+  const store = new SqliteStore({
+    path: options.path,
+    db,
+    matchPageSize: options.matchPageSize,
+  });
 
   const quadStore = new SqliteQuadStore({
     ...options,

@@ -40,6 +40,7 @@ import { DatabaseSync } from "node:sqlite";
 import { DataFactory } from "@wazoo/sparql-engine";
 import { termKey } from "@/sqlite/term/term-key.ts";
 import { MemoryStream } from "@/sqlite/rdfjs-store/memory-stream.ts";
+import { DEFAULT_SQLITE_MATCH_PAGE_SIZE } from "@/sqlite/quad-store/sqlite-quad-query-builder.ts";
 
 /**
  * SqliteTransaction is the atomic patch contract a SPARQL update uses to
@@ -164,6 +165,9 @@ export interface SqliteStoreOptions {
    * provided, `path` is ignored.
    */
   db?: DatabaseSync;
+
+  /** matchPageSize limits rows per getQuads SQL round-trip (default 1000). */
+  matchPageSize?: number;
 
   /**
    * Test seam invoked inside commit(), after BEGIN IMMEDIATE and before any
@@ -322,7 +326,7 @@ export class SqliteStore implements rdfjs.Store<rdfjs.Quad> {
     graph?: rdfjs.Term | null,
   ): rdfjs.Quad[] {
     const where: string[] = [];
-    const args: string[] = [];
+    const args: Array<string | number> = [];
     const bind = (
       column: string,
       term: rdfjs.Term | null | undefined,
@@ -336,12 +340,43 @@ export class SqliteStore implements rdfjs.Store<rdfjs.Quad> {
     bind("pkey", predicate);
     bind("okey", object);
     bind("gkey", graph);
-    const sql = "SELECT payload FROM quads" +
-      (where.length > 0 ? " WHERE " + where.join(" AND ") : "");
-    const rows = this.db.prepare(sql).all(...args) as Array<
-      Record<string, string>
-    >;
-    return rows.map((row) => fromQuadRecord(JSON.parse(row.payload)));
+
+    const pageSize = Math.max(
+      1,
+      Math.floor(
+        this.options.matchPageSize ?? DEFAULT_SQLITE_MATCH_PAGE_SIZE,
+      ),
+    );
+    const quads: rdfjs.Quad[] = [];
+    let anchor: [string, string, string, string] | undefined;
+
+    for (;;) {
+      const pageWhere = [...where];
+      const pageArgs: Array<string | number> = [...args];
+      if (anchor) {
+        pageWhere.push("(skey, pkey, okey, gkey) > (?, ?, ?, ?)");
+        pageArgs.push(...anchor);
+      }
+      const sql = "SELECT payload, skey, pkey, okey, gkey FROM quads" +
+        (pageWhere.length > 0 ? " WHERE " + pageWhere.join(" AND ") : "") +
+        " ORDER BY skey, pkey, okey, gkey LIMIT ?";
+      pageArgs.push(pageSize);
+      const rows = this.db.prepare(sql).all(...pageArgs) as Array<
+        Record<string, string>
+      >;
+      if (rows.length === 0) {
+        break;
+      }
+      for (const row of rows) {
+        quads.push(fromQuadRecord(JSON.parse(row.payload)));
+        anchor = [row.skey, row.pkey, row.okey, row.gkey];
+      }
+      if (rows.length < pageSize) {
+        break;
+      }
+    }
+
+    return quads;
   }
 
   public countQuads(
