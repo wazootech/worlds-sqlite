@@ -1,0 +1,10 @@
+name: Dispatch Probe
+on:
+  push:
+    branches:
+      - dispatch-probe
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "dispatch probe ok"
