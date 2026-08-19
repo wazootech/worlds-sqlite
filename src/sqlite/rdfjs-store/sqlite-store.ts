@@ -157,6 +157,15 @@ export interface SqliteStoreOptions {
   path: string;
 
   /**
+   * Pre-created node:sqlite handle to share instead of opening a new one.
+   * Used by createSqliteSdk so the L2 quad store, search layer, and RDF/JS
+   * read path share a single DatabaseSync (required for ":memory:" and for
+   * a handle opened with allowExtension so sqlite-vec can load). When
+   * provided, `path` is ignored.
+   */
+  db?: DatabaseSync;
+
+  /**
    * Test seam invoked inside commit(), after BEGIN IMMEDIATE and before any
    * row is written. Throw to exercise the atomic-rollback path.
    */
@@ -232,7 +241,7 @@ export class SqliteStore implements rdfjs.Store<rdfjs.Quad> {
   public readonly db: DatabaseSync;
 
   public constructor(public readonly options: SqliteStoreOptions) {
-    this.db = new DatabaseSync(options.path);
+    this.db = options.db ?? new DatabaseSync(options.path);
     this.db.exec(
       "PRAGMA journal_mode = WAL;" +
         "PRAGMA busy_timeout = 5000;" +
@@ -386,7 +395,7 @@ export class SqliteStore implements rdfjs.Store<rdfjs.Quad> {
       termKey(quad.predicate),
       termKey(quad.object),
       termKey(quad.graph),
-      JSON.stringify(toQuadRecord(quad)),
+      quadToPayloadJson(quad),
     );
   }
 
@@ -397,4 +406,23 @@ export class SqliteStore implements rdfjs.Store<rdfjs.Quad> {
       "DELETE FROM quads WHERE skey = ? AND pkey = ? AND okey = ? AND gkey = ?",
     ).run(skey, pkey, okey, gkey);
   }
+}
+
+/**
+ * quadToPayloadJson serializes a quad to the store's lossless JSON payload
+ * format. Exported so the L2 commit path (commitPatchToSqlite) writes rows in
+ * exactly the same encoding the store reads back.
+ */
+export function quadToPayloadJson(quad: rdfjs.Quad): string {
+  return JSON.stringify(toQuadRecord(quad));
+}
+
+/**
+ * quadFromPayloadJson reconstructs a quad from the store's lossless JSON
+ * payload format. Exported so the L2 rebuild path can page over the quads
+ * table directly while keeping the payload format's single source of truth
+ * here.
+ */
+export function quadFromPayloadJson(payload: string): rdfjs.Quad {
+  return fromQuadRecord(JSON.parse(payload) as QuadRecord);
 }

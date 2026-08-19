@@ -12,7 +12,7 @@ cross-backend interchangeability lives at the `@worlds/sdk` `Sdk` seam.
 
 ## Status
 
-Two layers, two statuses (plan:
+Two layers (plan:
 [worlds-sqlite#1](https://github.com/wazootech/worlds-sqlite/issues/1)):
 
 - **Layer 1 — RDF/JS quad primitive (`SqliteStore`): landed.** The store moved
@@ -21,11 +21,13 @@ Two layers, two statuses (plan:
   `PostgresRdfjsStore` in `@worlds/postgres`), re-based on `n3`'s DataFactory
   (the `@worlds/sdk` choice) with term identity parity-tested against the
   engine. Published as `@worlds/sqlite` (root + `./rdfjs-store` subpath).
-- **Layer 2 — Worlds impl (search + `createSqliteSdk`): parked (post-beta).**
-  Per the beta practice decision
-  ([worlds-sdk-ts#164](https://github.com/wazootech/worlds-sdk-ts/issues/164))
-  the beta runs single-backend on Turso (`@worlds/libsql`); the search layer
-  here is spec'd in #1, implemented when unparked.
+- **Layer 2 — Worlds impl (`createSqliteSdk`): landed.** The full L2 SDK surface
+  shipped as part of the durable-backend parity campaign
+  ([worlds-sqlite#7](https://github.com/wazootech/worlds-sqlite/issues/7),
+  tracked on [workspace#59](https://github.com/wazootech/workspace/issues/59)):
+  FTS5 keyword search plus optional `sqlite-vec` hybrid search (RRF `k=60`),
+  graceful keyword-only degradation when the extension is unavailable, and a
+  `createSqliteSdk` factory mirroring `createLibsqlSdk`.
 
 The `SqliteStore` quad primitive moved here from
 [`@wazoo/sparql-engine`](https://jsr.io/@wazoo/sparql-engine) (the `./sqlite`
@@ -40,10 +42,13 @@ the worlds search layer composes on top (Layer 2).
   STRICT table, WAL + busy_timeout, term-keyed rows, lossless RDF-star payloads,
   `createTransaction()`), `MemoryStream`, term identity
   (`termKey`/`sameRdfTerm`), crash-recovery + term-key-parity suites.
-- **Planned (Layer 2, parked):** `createSqliteSdk` — wires
-  `SqliteQuadStoreBackend` + `SqliteSearchQueryBuilder` (keyword + optional
-  `sqlite-vec`, JS-side RRF) into a `@worlds/sdk` `Sdk` (mirrors
-  `createLibsqlSdk` from `@worlds/libsql`).
+- **Landed (Layer 2):** `createSqliteSdk` (root export) plus `./quad-store`,
+  `./search-index`, and `./schema` subpaths — `SqliteQuadStore`,
+  `SqliteSearchIndex` / `SqliteSearchIndexProjector` /
+  `SqliteSearchQueryBuilder` (FTS5 + optional sqlite-vec hybrid with JS-side RRF
+  `1/(60+rank)`), `SqliteSchemaBuilder`, and `commitPatchToSqlite`
+  (content-addressed dedup, replace-mode wipe, chunked batches). Keyword-only
+  FTS5 is fully functional without the `sqlite-vec` extension.
 
 ## Setup
 
