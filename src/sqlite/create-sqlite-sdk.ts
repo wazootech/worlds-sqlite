@@ -44,9 +44,6 @@ export interface SqliteSdkOptions {
   /** maxLookupChunkSize caps IN-clause widths (default 800). */
   maxLookupChunkSize?: number;
 
-  /** maxWriteBatchSize caps statements per write batch (default 500). */
-  maxWriteBatchSize?: number;
-
   /**
    * vectorDimensions pins the vec0 embedding width and must match every
    * embedding produced when embeddingService is set (default 1536).
