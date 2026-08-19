@@ -4,9 +4,6 @@ import type { SqlStatement } from "./sqlite-connection-driver.ts";
 /** DEFAULT_MAX_LOOKUP_CHUNK_SIZE is the default IN-clause and deletion chunk width. */
 export const DEFAULT_MAX_LOOKUP_CHUNK_SIZE = 800;
 
-/** DEFAULT_MAX_WRITE_BATCH_SIZE limits statements per SQLite write batch. */
-export const DEFAULT_MAX_WRITE_BATCH_SIZE = 500;
-
 /** STAGING_FLUSH_THRESHOLD flushes staged SQL during large commits to avoid huge in-memory arrays. */
 export const STAGING_FLUSH_THRESHOLD = 10_000;
 
@@ -14,9 +11,6 @@ export const STAGING_FLUSH_THRESHOLD = 10_000;
 export interface SqliteBatchExecutorOptions {
   /** connection is the SqliteConnectionDriver used for executing writes. */
   connection: SqliteConnectionDriver;
-
-  /** writeBatchSize limits statements per SQLite write batch. */
-  writeBatchSize: number;
 }
 
 /**

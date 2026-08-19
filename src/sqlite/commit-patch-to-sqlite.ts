@@ -31,9 +31,6 @@ export interface CommitPatchToSqliteOptions extends QuadFilter {
   /** connection is the SqliteConnectionDriver wrapping the SQLite handle. */
   connection: SqliteConnectionDriver;
 
-  /** maxWriteBatchSize caps statements per SQLite write batch (default 500). */
-  maxWriteBatchSize?: number;
-
   /** maxLookupChunkSize caps IN-clause widths (default 800). */
   maxLookupChunkSize?: number;
 
@@ -53,10 +50,9 @@ export interface CommitPatchToSqliteResult {
  */
 async function executeReplaceImportWipe(
   connection: SqliteConnectionDriver,
-  writeBatchSize: number,
   vectorSupported: boolean,
 ): Promise<void> {
-  const executor = new SqliteBatchExecutor({ connection, writeBatchSize });
+  const executor = new SqliteBatchExecutor({ connection });
   await executor.stage(buildWipeAllGraphDataStatements({ vectorSupported }));
   await executor.flush();
 }
@@ -78,20 +74,17 @@ export async function commitPatchToSqlite(
   const {
     connection,
     maxLookupChunkSize,
-    maxWriteBatchSize,
     include,
     exclude,
     searchQueryBuilder,
   } = options;
   const lookupChunkSize = maxLookupChunkSize ?? 800;
-  const writeBatchSize = maxWriteBatchSize ?? 500;
 
-  const batchExecutor = new SqliteBatchExecutor({ connection, writeBatchSize });
+  const batchExecutor = new SqliteBatchExecutor({ connection });
 
   if (isReplaceImportCommit(context)) {
     await executeReplaceImportWipe(
       connection,
-      writeBatchSize,
       searchQueryBuilder.vectorSupported,
     );
   }

@@ -38,9 +38,6 @@ export interface SqliteQuadStoreOptions extends QuadFilter {
   /** searchIndexProjector manages vector embedding and text chunk synchronisation. */
   searchIndexProjector?: SqliteSearchIndexProjector;
 
-  /** maxWriteBatchSize caps how many statements are sent per SQLite write batch. Defaults to 500. */
-  maxWriteBatchSize?: number;
-
   /** maxLookupChunkSize caps IN-clause widths. Defaults to 800. */
   maxLookupChunkSize?: number;
 
@@ -135,7 +132,6 @@ export class SqliteQuadStore implements QuadStoreInterface {
     const connection = this.options.connection;
     const batchExecutor = new SqliteBatchExecutor({
       connection,
-      writeBatchSize: this.options.maxWriteBatchSize ?? 500,
     });
     const quadKeys: QuadKey[] = novelInsertions.map(quadKeyFor);
     const quadIds = await hashQuads(novelInsertions);

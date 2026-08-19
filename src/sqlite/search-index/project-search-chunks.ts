@@ -21,9 +21,6 @@ export interface ProjectSearchChunksOptions extends QuadFilter {
   /** textSplitter splits long literal values into chunk rows (required for projection/rebuild). */
   textSplitter?: TextSplitterInterface;
 
-  /** maxWriteBatchSize caps statements per SQLite write batch (default 500). */
-  maxWriteBatchSize?: number;
-
   /** maxLookupChunkSize caps IN-clause widths (default 800). */
   maxLookupChunkSize?: number;
 
@@ -105,11 +102,9 @@ async function flushVecStatements(
   if (statements.length === 0) {
     return;
   }
-  const writeBatchSize = options.maxWriteBatchSize ?? 500;
   try {
     const executor = new SqliteBatchExecutor({
       connection: options.connection,
-      writeBatchSize,
     });
     await executor.stage(statements);
     await executor.flush();
