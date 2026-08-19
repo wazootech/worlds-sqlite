@@ -9,13 +9,13 @@
     "jsr:@std/path@^1.1.5": "1.1.6",
     "jsr:@wazoo/sparql-engine@0.3": "0.3.0",
     "jsr:@wazoo/sparql-engine@~0.4.1": "0.4.1",
-    "jsr:@worlds/sdk@0.2": "0.2.0",
+    "jsr:@worlds/sdk@0.4": "0.4.0",
     "npm:@rdfjs/types@^2.0.1": "2.0.1",
     "npm:@tensorflow/tfjs-backend-wasm@^4.22.0": "4.22.0_@tensorflow+tfjs-core@4.22.0",
     "npm:@tensorflow/tfjs@^4.22.0": "4.22.0_seedrandom@3.0.5",
     "npm:@types/n3@1.26.1": "1.26.1",
     "npm:@types/node@^22.10.0": "22.20.1",
-    "npm:ai@^6.0.195": "6.0.256_zod@4.4.3",
+    "npm:ai@^6.0.195": "6.0.257_zod@4.4.3",
     "npm:n3@^2.0.3": "2.2.0",
     "npm:rdf-canonize@5": "5.0.0"
   },
@@ -50,8 +50,8 @@
         "npm:@rdfjs/types"
       ]
     },
-    "@worlds/sdk@0.2.0": {
-      "integrity": "1f3b87e0358fe50b6bd6121e472be4bba3ddac49f7da73f59687103a689e2ded",
+    "@worlds/sdk@0.4.0": {
+      "integrity": "8023123d43d800125c3130f3ef5a3ea4b4f498d48e6678934598a4aa3b8c93b7",
       "dependencies": [
         "jsr:@std/encoding",
         "jsr:@std/path@^1.1.5",
@@ -65,8 +65,8 @@
     }
   },
   "npm": {
-    "@ai-sdk/gateway@3.0.174_zod@4.4.3": {
-      "integrity": "sha512-RXDYc+FGEuy1Y/HlM4MThtQAzG99AIs8ki4tIoVnVweOlW5HDSfaNGNLw556ZR4TifTRuPfBc6QljX4UkuGG6A==",
+    "@ai-sdk/gateway@3.0.175_zod@4.4.3": {
+      "integrity": "sha512-fK5e5OtgjlpLio1M50ng+XKozPlBIKM/MKrlAIFyFfjC6gWWZaEh76e+OQPq7N0kkO/biVHyFXajxOtCN7YXQg==",
       "dependencies": [
         "@ai-sdk/provider",
         "@ai-sdk/provider-utils",
@@ -226,8 +226,8 @@
         "event-target-shim"
       ]
     },
-    "ai@6.0.256_zod@4.4.3": {
-      "integrity": "sha512-xYvQfvwFG1AsiLv8wSS1o1077q/494HxzI6SIw0G/5zIoirNyJUzFlh/BTZBqbHMa03Pt5EouIGAbGimldiDGg==",
+    "ai@6.0.257_zod@4.4.3": {
+      "integrity": "sha512-ezz/d5KKHmYl96qk8JdU3JRZwO6tFfaXVtDYCQmSUkdHwyF+cnygL75xE0EiCCMgpnmAcJSaPWaz8oGGf6TsEA==",
       "dependencies": [
         "@ai-sdk/gateway",
         "@ai-sdk/provider",
@@ -565,7 +565,7 @@
       "jsr:@std/assert@^1.0.19",
       "jsr:@std/path@1",
       "jsr:@wazoo/sparql-engine@0.3",
-      "jsr:@worlds/sdk@0.2",
+      "jsr:@worlds/sdk@0.4",
       "npm:@rdfjs/types@^2.0.1",
       "npm:@types/n3@1.26.1",
       "npm:@types/node@^22.10.0",
