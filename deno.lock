@@ -7,9 +7,9 @@
     "jsr:@std/internal@^1.0.14": "1.0.14",
     "jsr:@std/path@1": "1.1.6",
     "jsr:@std/path@^1.1.5": "1.1.6",
-    "jsr:@wazoo/sparql-engine@0.3": "0.3.0",
     "jsr:@wazoo/sparql-engine@~0.4.1": "0.4.1",
     "jsr:@worlds/sdk@0.4": "0.4.0",
+    "npm:@langchain/textsplitters@^1.0.1": "1.0.1_@langchain+core@1.2.8",
     "npm:@rdfjs/types@^2.0.1": "2.0.1",
     "npm:@tensorflow/tfjs-backend-wasm@^4.22.0": "4.22.0_@tensorflow+tfjs-core@4.22.0",
     "npm:@tensorflow/tfjs@^4.22.0": "4.22.0_seedrandom@3.0.5",
@@ -17,7 +17,8 @@
     "npm:@types/node@^22.10.0": "22.20.1",
     "npm:ai@^6.0.195": "6.0.257_zod@4.4.3",
     "npm:n3@^2.0.3": "2.2.0",
-    "npm:rdf-canonize@5": "5.0.0"
+    "npm:rdf-canonize@5": "5.0.0",
+    "npm:sqlite-vec@~0.1.9": "0.1.9"
   },
   "jsr": {
     "@std/assert@1.0.19": {
@@ -38,12 +39,6 @@
         "jsr:@std/internal@^1.0.14"
       ]
     },
-    "@wazoo/sparql-engine@0.3.0": {
-      "integrity": "fc0c11ea0569c318baf5ded1f43a7a02b27d2f43466d29feb67294877bb7430a",
-      "dependencies": [
-        "npm:@rdfjs/types"
-      ]
-    },
     "@wazoo/sparql-engine@0.4.1": {
       "integrity": "6881bda5e45aaf8bac2cd87f8b43db5db51d307fccbffc1cd4edaa46454f9bd7",
       "dependencies": [
@@ -55,7 +50,7 @@
       "dependencies": [
         "jsr:@std/encoding",
         "jsr:@std/path@^1.1.5",
-        "jsr:@wazoo/sparql-engine@~0.4.1",
+        "jsr:@wazoo/sparql-engine",
         "npm:@rdfjs/types",
         "npm:@tensorflow/tfjs",
         "npm:@tensorflow/tfjs-backend-wasm",
@@ -88,6 +83,28 @@
       "integrity": "sha512-XeZW1CcDF2GMbH4wejW6xBRI2QCOgnkVYUnxoeDadB1mf85riL2bMUeDoh+6gJ/r4mjNfzUPW8OjLjvwTP0u1Q==",
       "dependencies": [
         "json-schema"
+      ]
+    },
+    "@cfworker/json-schema@4.1.1": {
+      "integrity": "sha512-gAmrUZSGtKc3AiBL71iNWxDsyUC5uMaKKGdvzYsBoTW/xi42JQHl7eKV2OYzCUqvc+D2RCcf7EXY2iCyFIk6og=="
+    },
+    "@langchain/core@1.2.8": {
+      "integrity": "sha512-ppi2UaCYKqM4LEY8NWQ/JZ0Of0MAngHRvclceVeEQklcD/M6QKanlHPWblDnLO2m4vz7987b1Z4r33Ps6lf/ig==",
+      "dependencies": [
+        "@cfworker/json-schema",
+        "@standard-schema/spec",
+        "js-tiktoken",
+        "langsmith",
+        "mustache",
+        "p-queue",
+        "zod"
+      ]
+    },
+    "@langchain/textsplitters@1.0.1_@langchain+core@1.2.8": {
+      "integrity": "sha512-rheJlB01iVtrOUzttscutRgLybPH9qR79EyzBEbf1u97ljWyuxQfCwIWK+SjoQTM9O8M7GGLLRBSYE26Jmcoww==",
+      "dependencies": [
+        "@langchain/core",
+        "js-tiktoken"
       ]
     },
     "@opentelemetry/api@1.9.1": {
@@ -346,6 +363,9 @@
     "event-target-shim@5.0.1": {
       "integrity": "sha512-i/2XbnSz/uxRCU6+NdVJgKWDTM427+MqYbkQzD321DuCQJUqOuJKIA0IM2+W2xtYHdKOmZ4dR6fExsd4SXL+WQ=="
     },
+    "eventemitter3@4.0.7": {
+      "integrity": "sha512-8guHBZCwKnFhYdHr2ysuRWErTwhoN2X8XELRlrRwpmfeY2jjuUN4taQMsULKUVo1K4DvZl+0pgfyoysHxvmvEw=="
+    },
     "events@3.3.0": {
       "integrity": "sha512-mQw+2fkQbALzQ7V0MY0IqdnXNOeTtP4r0lN9z7AAawCXgqea7bDii20AYrIBrFd/Hx0M2Ocz6S111CaFkUcb0Q=="
     },
@@ -417,8 +437,20 @@
     "is-fullwidth-code-point@3.0.0": {
       "integrity": "sha512-zymm5+u+sCsSWyD9qNaejV3DFvhCKclKdizYaJUuHA83RLjb7nSuGnddCHGv0hk+KY7BMAlsWeK4Ueg6EV6XQg=="
     },
+    "js-tiktoken@1.0.21": {
+      "integrity": "sha512-biOj/6M5qdgx5TKjDnFT1ymSpM5tbd3ylwDtrQvFQSu0Z7bBYko2dF+W/aUkXUPuk6IVpRxk/3Q2sHOzGlS36g==",
+      "dependencies": [
+        "base64-js"
+      ]
+    },
     "json-schema@0.4.0": {
       "integrity": "sha512-es94M3nTIfsEPisRafak+HDLfHXnKBhV3vU5eqPcS3flIWqcxJWgXHXiey3YrpaNsanY5ei1VoYEbOzijuq9BA=="
+    },
+    "langsmith@0.8.11": {
+      "integrity": "sha512-dNKtyEiNS6L10qsRGKExQVHoMsRGBJt+xiBHn6G8JxslapedUhXVkvcDkhi00EuiIMeil+RevAVG8k6VM0B9ew==",
+      "dependencies": [
+        "p-queue"
+      ]
     },
     "long@4.0.0": {
       "integrity": "sha512-XsP+KhQif4bjX1kbuSiySJFNAehNxgLb6hPRGJ9QsUr8ajHkuXGdrHmFUTUUXhDwVX2R5bY4JNZEwbUiMhV+MA=="
@@ -435,6 +467,10 @@
         "mime-db"
       ]
     },
+    "mustache@4.2.0": {
+      "integrity": "sha512-71ippSywq5Yb7/tVYyGbkBggbU8H3u5Rz56fH60jGFgr8uHwxs+aSKeqmluIVzM0m0kB7xQjKS6qPfd0b2ZoqQ==",
+      "bin": true
+    },
     "n3@2.2.0": {
       "integrity": "sha512-K/Orb5XrUPocfYfhUT+muvK1I0n2AvVMt93fIExlgjo23u7q0lU0eIFrhBJqooyFWAnpEBz3QZqjHzEHMs1RZg==",
       "dependencies": [
@@ -446,6 +482,22 @@
       "integrity": "sha512-StxNAxh15zr77QvvkmveSQ8uCQ4+v5FkvNTj0OESmiHu+VRi/gXArXtkWMElOsOUNLtUEvI4yS+rdtOHZTwlQA==",
       "dependencies": [
         "whatwg-url"
+      ]
+    },
+    "p-finally@1.0.0": {
+      "integrity": "sha512-LICb2p9CB7FS+0eR1oqWnHhp0FljGLZCWBE9aix0Uye9W8LTQPwMTYVGWQWIw9RdQiDg4+epXQODwIYJtSJaow=="
+    },
+    "p-queue@6.6.2": {
+      "integrity": "sha512-RwFpb72c/BhQLEXIZ5K2e+AhgNVmIejGlTgiB9MzZ0e93GRvqZ7uSi0dvRF7/XIXDeNkra2fNHBxTyPDGySpjQ==",
+      "dependencies": [
+        "eventemitter3",
+        "p-timeout"
+      ]
+    },
+    "p-timeout@3.2.0": {
+      "integrity": "sha512-rhIwUycgwwKcP9yTOOFK/AKsAopjjCakVqLHePO3CC6Mir1Z99xT+R63jZxAT5lFZLa2inS5h+ZS2GvR99/FBg==",
+      "dependencies": [
+        "p-finally"
       ]
     },
     "process@0.11.10": {
@@ -484,6 +536,41 @@
     },
     "sprintf-js@1.0.3": {
       "integrity": "sha512-D9cPgkvLlV3t3IzL0D0YLvGA9Ahk4PcvVwUbN0dSGr1aP0Nrt4AEnTUbuGvquEC0mA64Gqt1fzirlRs5ibXx8g=="
+    },
+    "sqlite-vec-darwin-arm64@0.1.9": {
+      "integrity": "sha512-jSsZpE42OfBkGL/ItyJTVCUwl6o6Ka3U5rc4j+UBDIQzC1ulSSKMEhQLthsOnF/MdAf1MuAkYhkdKmmcjaIZQg==",
+      "os": ["darwin"],
+      "cpu": ["arm64"]
+    },
+    "sqlite-vec-darwin-x64@0.1.9": {
+      "integrity": "sha512-KDlVyqQT7pnOhU1ymB9gs7dMbSoVmKHitT+k1/xkjarcX8bBqPxWrGlK/R+C5WmWkfvWwyq5FfXfiBYCBs6PlA==",
+      "os": ["darwin"],
+      "cpu": ["x64"]
+    },
+    "sqlite-vec-linux-arm64@0.1.9": {
+      "integrity": "sha512-5wXVJ9c9kR4CHm/wVqXb/R+XUHTdpZ4nWbPHlS+gc9qQFVHs92Km4bPnCKX4rtcPMzvNis+SIzMJR1SCEwpuUw==",
+      "os": ["linux"],
+      "cpu": ["arm64"]
+    },
+    "sqlite-vec-linux-x64@0.1.9": {
+      "integrity": "sha512-w3tCH8xK2finW8fQJ/m8uqKodXUZ9KAuAar2UIhz4BHILfpE0WM/MTGCRfa7RjYbrYim5Luk3guvMOGI7T7JQA==",
+      "os": ["linux"],
+      "cpu": ["x64"]
+    },
+    "sqlite-vec-windows-x64@0.1.9": {
+      "integrity": "sha512-y3gEIyy/17bq2QFPQOWLE68TYWcRZkBQVA2XLrTPHNTOp55xJi/BBBmOm40tVMDMjtP+Elpk6UBUXdaq+46b0Q==",
+      "os": ["win32"],
+      "cpu": ["x64"]
+    },
+    "sqlite-vec@0.1.9": {
+      "integrity": "sha512-L7XJWRIBNvR9O5+vh1FQ+IGkh/3D2AzVksW5gdtk28m78Hy8skFD0pqReKH1Yp0/BUKRGcffgKvyO/EON5JXpA==",
+      "optionalDependencies": [
+        "sqlite-vec-darwin-arm64",
+        "sqlite-vec-darwin-x64",
+        "sqlite-vec-linux-arm64",
+        "sqlite-vec-linux-x64",
+        "sqlite-vec-windows-x64"
+      ]
     },
     "string-width@4.2.3": {
       "integrity": "sha512-wKyQRQpjJ0sIp62ErSZdGsjMJWsap5oRNihHhu6G7JVO/9jIB6UyevL+tXuOqrng8j/cxKTWyWUwvSTriiZz/g==",
@@ -564,12 +651,14 @@
     "dependencies": [
       "jsr:@std/assert@^1.0.19",
       "jsr:@std/path@1",
-      "jsr:@wazoo/sparql-engine@0.3",
+      "jsr:@wazoo/sparql-engine@~0.4.1",
       "jsr:@worlds/sdk@0.4",
+      "npm:@langchain/textsplitters@^1.0.1",
       "npm:@rdfjs/types@^2.0.1",
       "npm:@types/n3@1.26.1",
       "npm:@types/node@^22.10.0",
-      "npm:n3@^2.0.3"
+      "npm:n3@^2.0.3",
+      "npm:sqlite-vec@~0.1.9"
     ]
   }
 }

@@ -20,3 +20,7 @@ jobs:
         run: deno ci
       - name: Run CI checks
         run: deno task ci
+      # Hard L3 bench gate (workspace#72): fails on missing bench groups or
+      # >=50% regression vs the committed benchmarks/baseline.json.
+      - name: Bench gate
+        run: deno task bench:check

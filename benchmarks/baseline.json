@@ -1,0 +1,18 @@
+{
+  "Search: FTS5 Keyword-Only Search (Vectorless Mode)": 250.90879164333214,
+  "Search: Hybrid RRF Fusion Search (Vector + FTS5)": 177.93011759045612,
+  "Search: Graceful Degradation (Fallback to FTS5 on Error)": 401.40024461330904,
+  "Idempotency: Novel Insert (New Quads Ingested)": 60.90095780763373,
+  "Idempotency: Redundant Insert (Duplicate Quads Suppressed)": 475.4078642919727,
+  "Maintenance: Full Index Rebuild (1,000 Quads)": 4.226343714105531,
+  "SPARQL Hexastore Perf: 100000 quads | selective | sqliteStore": 41.30504615074764,
+  "SPARQL Hexastore Perf: 250000 quads | selective | sqliteStore": 16.46851122665821,
+  "SPARQL Hexastore Perf: 1000 quads | selective | sqliteStore": 2878.617342518042,
+  "SPARQL Hexastore Perf: 5000 quads | selective | sqliteStore": 656.8688114747099,
+  "SPARQL Hexastore Perf: 10000 quads | selective | sqliteStore": 389.9949144663154,
+  "SPARQL Hexastore Perf: 25000 quads | selective | sqliteStore": 157.53208968049813,
+  "SPARQL Hexastore Perf: 50000 quads | selective | sqliteStore": 82.58502355283579,
+  "Sync: Consolidated Batch Commit (10 Quads)": 2191.809645715889,
+  "Sync: Consolidated Batch Commit (100 Quads)": 212.19668340827766,
+  "Sync: Consolidated Batch Commit (1,000 Quads)": 20.50217410179719
+}
