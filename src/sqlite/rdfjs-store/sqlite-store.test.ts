@@ -217,3 +217,31 @@ Deno.test("SqliteStore - deleteGraph clears exactly one graph", () => {
   assertEquals(store.countQuads(null, null, null, graphB), 1);
   store.close();
 });
+
+Deno.test("SqliteStore - getQuads pages across matchPageSize without skips or duplicates", async () => {
+  const store = new SqliteStore({ path: ":memory:", matchPageSize: 7 });
+  for (let index = 0; index < 20; index++) {
+    store.addQuad(quad(ex(`s${index}`), name, literal(`value-${index}`)));
+  }
+
+  const paged = store.getQuads();
+  assertEquals(paged.length, 20);
+  assertEquals(new Set(paged.map((q) => q.subject.value)).size, 20);
+
+  const matchPageSize = 5;
+  const pagedStore = new SqliteStore({ path: ":memory:", matchPageSize });
+  for (let index = 0; index < 13; index++) {
+    pagedStore.addQuad(quad(ex(`s${index}`), name, literal(`value-${index}`)));
+  }
+
+  const matches = await collect(pagedStore.match());
+  assertEquals(matches.length, 13);
+  assertEquals(new Set(matches.map((q) => q.subject.value)).size, 13);
+
+  const subjectPaged = pagedStore.getQuads(ex("s3"), null, null, null);
+  assertEquals(subjectPaged.length, 1);
+  assertEquals(subjectPaged[0]!.object.value, "value-3");
+
+  pagedStore.close();
+  store.close();
+});
