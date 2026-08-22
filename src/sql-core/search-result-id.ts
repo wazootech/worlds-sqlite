@@ -20,8 +20,8 @@ export interface BuildSearchResultIdOptions {
 
 /**
  * buildSearchResultId computes a stable id from the discovery-facing literal
- * text (mirror of the libsql and @worlds/sdk/rdfjs implementations, so
- * identical worlds produce identical search result ids across backends).
+ * text (shared across backends via sql-core, so identical worlds produce
+ * identical search result ids everywhere).
  */
 export async function buildSearchResultId(
   options: BuildSearchResultIdOptions,

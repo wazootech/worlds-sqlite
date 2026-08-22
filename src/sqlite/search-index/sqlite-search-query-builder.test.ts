@@ -1,24 +1,7 @@
 import { assertEquals } from "@std/assert";
-import {
-  sanitizeFtsQuery,
-  SqliteSearchQueryBuilder,
-} from "./sqlite-search-query-builder.ts";
+import { SqliteSearchQueryBuilder } from "./sqlite-search-query-builder.ts";
 
 const builder = new SqliteSearchQueryBuilder(32, { vectorSupported: true });
-
-Deno.test("sanitizeFtsQuery - strips punctuation, stopwords, and lowercases", () => {
-  assertEquals(
-    sanitizeFtsQuery("Ethan is the Explorer!"),
-    '"ethan" "explorer"',
-  );
-  assertEquals(
-    sanitizeFtsQuery("  multi   word  query  "),
-    '"multi" "word" "query"',
-  );
-  assertEquals(sanitizeFtsQuery("!!!"), "");
-  assertEquals(sanitizeFtsQuery("مرحبا"), '"مرحبا"');
-  assertEquals(sanitizeFtsQuery('quote "phrase"'), '"quote" "phrase"');
-});
 
 Deno.test("SqliteSearchQueryBuilder - validates vector dimensions", () => {
   assertEquals(new SqliteSearchQueryBuilder(32).vectorDimensions, 32);

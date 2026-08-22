@@ -7,7 +7,7 @@ export type {
   SqliteSearchPlan,
   SqliteSearchQueryBuilderOptions,
 } from "./sqlite-search-query-builder.ts";
-export { sanitizeFtsQuery } from "./sqlite-search-query-builder.ts";
+export { sanitizeFtsQuery } from "@/sql-core/mod.ts";
 export {
   projectSearchChunks,
   refreshSearchChunksForQuads,
@@ -18,6 +18,6 @@ export {
   rebuildSqliteSearchIndexFromQuads,
 } from "./rebuild-sqlite-search-index-from-quads.ts";
 export type { RebuildSqliteSearchIndexFromQuadsResult } from "./rebuild-sqlite-search-index-from-quads.ts";
-export { buildChunkFtsValue } from "./search-chunk-fts.ts";
-export { buildSearchResultId } from "./build-search-result-id.ts";
-export type { BuildSearchResultIdOptions } from "./build-search-result-id.ts";
+export { buildChunkFtsValue } from "@/sql-core/mod.ts";
+export { buildSearchResultId } from "@/sql-core/mod.ts";
+export type { BuildSearchResultIdOptions } from "@/sql-core/mod.ts";

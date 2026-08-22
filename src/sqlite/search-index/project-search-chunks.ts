@@ -11,7 +11,7 @@ import { SqliteBatchExecutor } from "@/sqlite/sqlite-batch-executor.ts";
 import type { SqliteConnectionDriver } from "@/sqlite/sqlite-connection-driver.ts";
 import type { SqlStatement } from "@/sqlite/sqlite-connection-driver.ts";
 import type { SqliteSearchQueryBuilder } from "./sqlite-search-query-builder.ts";
-import { buildChunkFtsValue } from "./search-chunk-fts.ts";
+import { buildChunkFtsValue } from "@/sql-core/mod.ts";
 
 /** ProjectSearchChunksOptions configures search chunk projection. */
 export interface ProjectSearchChunksOptions extends QuadFilter {
