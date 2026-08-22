@@ -1,5 +1,5 @@
 import { assertEquals } from "@std/assert";
-import { buildChunkFtsValue } from "./search-chunk-fts.ts";
+import { buildChunkFtsValue } from "./fts-value.ts";
 
 Deno.test("buildChunkFtsValue - indexes only the object-derived value text", () => {
   assertEquals(

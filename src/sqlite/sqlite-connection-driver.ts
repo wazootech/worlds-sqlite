@@ -1,15 +1,13 @@
-import type { DatabaseSync, SQLInputValue } from "node:sqlite";
+import type { DatabaseSync } from "node:sqlite";
+import type { SqlStatement } from "@/sql-core/sql-statement.ts";
 
 /**
- * SqlStatement is a single parameterized SQL statement using `?` placeholders.
+ * SqlStatement is the shared parameterized plan type from sql-core
+ * (`{sql, args}` with `?` placeholders). The driver executes those plans
+ * through node:sqlite; the type itself stays driver-free so every
+ * SQLite-family backend can consume the same emitters.
  */
-export interface SqlStatement {
-  /** sql is the statement text, using `?` placeholders. */
-  sql: string;
-
-  /** args are the positional bind values for the statement's placeholders. */
-  args?: SQLInputValue[];
-}
+export type { SqlStatement };
 
 /**
  * SqlResult is the outcome of executing a single statement.

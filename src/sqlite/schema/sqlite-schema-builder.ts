@@ -1,3 +1,10 @@
+import {
+  buildChunksFtsTable,
+  buildChunksQuadIdIndex,
+  buildChunksTable,
+  buildChunksTriggers,
+} from "@/sql-core/mod.ts";
+
 /** Maximum embedding dimensions accepted by SqliteSchemaBuilder (resource guardrail). */
 const SQLITE_SCHEMA_BUILDER_MAX_VECTOR_DIMENSIONS = 1536;
 
@@ -92,55 +99,38 @@ export class SqliteSchemaBuilder {
   }
 
   /**
-   * buildSqliteChunksTable returns the materialized search chunk table.
-   * Vectors are stored in the vec0 `chunks_vec` table keyed by `chunks.id`
-   * (sqlite-vec stores embeddings in its own virtual table).
+   * buildSqliteChunksTable returns the materialized search chunk table,
+   * delegated to the shared sql-core DDL (identical across SQLite-family
+   * backends). Vectors are stored in the vec0 `chunks_vec` table keyed by
+   * `chunks.id` (sqlite-vec stores embeddings in its own virtual table).
    */
   public buildSqliteChunksTable(): string {
-    return `CREATE TABLE IF NOT EXISTS chunks (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    quad_id TEXT NOT NULL,
-    subject TEXT NOT NULL,
-    predicate TEXT NOT NULL,
-    graph TEXT NOT NULL,
-    value TEXT NOT NULL,
-    fts_value TEXT NOT NULL
-  )`;
+    return buildChunksTable();
   }
 
   /**
    * buildSqliteChunksQuadIdIndex returns the chunks quad_id lookup index used
-   * by content-addressed deletion sweeps.
+   * by content-addressed deletion sweeps (shared sql-core DDL).
    */
   public buildSqliteChunksQuadIdIndex(): string {
-    return "CREATE INDEX IF NOT EXISTS idx_chunks_quad_id ON chunks (quad_id)";
+    return buildChunksQuadIdIndex();
   }
 
   /**
    * buildSqliteChunksFtsTable returns the FTS5 virtual table over the chunks
-   * content table (external content, keyed by chunks.id).
+   * content table, delegated to the shared sql-core DDL.
    */
   public buildSqliteChunksFtsTable(): string {
-    return `CREATE VIRTUAL TABLE IF NOT EXISTS chunks_fts USING fts5(
-    fts_value,
-    content='chunks',
-    content_rowid='id'
-  )`;
+    return buildChunksFtsTable();
   }
 
   /**
    * buildSqliteChunksTriggers returns the triggers that keep the external
-   * FTS5 index in sync with chunks row inserts and deletes.
+   * FTS5 index in sync with chunks row inserts and deletes (shared sql-core
+   * DDL).
    */
   public buildSqliteChunksTriggers(): string[] {
-    return [
-      `CREATE TRIGGER IF NOT EXISTS chunks_ai AFTER INSERT ON chunks BEGIN
-      INSERT INTO chunks_fts(rowid, fts_value) VALUES (new.id, new.fts_value);
-    END;`,
-      `CREATE TRIGGER IF NOT EXISTS chunks_ad AFTER DELETE ON chunks BEGIN
-      INSERT INTO chunks_fts(chunks_fts, rowid, fts_value) VALUES('delete', old.id, old.fts_value);
-    END;`,
-    ];
+    return buildChunksTriggers();
   }
 
   /**

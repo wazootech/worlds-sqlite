@@ -6,7 +6,7 @@ import type {
   SearchResponse,
   SearchResult,
 } from "@worlds/sdk/search-index";
-import { buildSearchResultId } from "./build-search-result-id.ts";
+import { buildSearchResultId } from "@/sql-core/mod.ts";
 import type { SqliteConnectionDriver } from "@/sqlite/sqlite-connection-driver.ts";
 import type { SqliteSearchQueryBuilder } from "./sqlite-search-query-builder.ts";
 import type { SqliteSearchPlan } from "./sqlite-search-query-builder.ts";

@@ -91,6 +91,30 @@ import { SqliteStore } from "https://esm.sh/jsr/@worlds/sqlite@0.4.0?pin=v172410
   `1/(60+rank)`), `SqliteSchemaBuilder`, and `commitPatchToSqlite`
   (content-addressed dedup, replace-mode wipe, chunked batches). Keyword-only
   FTS5 is fully functional without the `sqlite-vec` extension.
+- **Landed (`./sql-core`):** the driver-free SQL plan layer shared across the
+  SQLite-family backends — `sanitizeFtsQuery`/stopwords, `buildChunkFtsValue`,
+  `buildSearchResultId`, the `chunks`/`chunks_fts` DDL emitters, keyword FTS5
+  branch plans, filter-clause helpers, and the `SqlStatement` plan type. See
+  below.
+
+This repo is the **source of truth for SQLite-family SQL logic**: it is the
+easiest backend to test locally (synchronous `node:sqlite`), so the shared
+query/table logic lives here and downstream SQLite-family backends
+(`@worlds/libsql` today; D1 later) consume it via the `./sql-core` subpath. The
+quad storage layout (term-key hexastore here vs column-per-position rows in
+libsql) and each vector-search dialect (vec0 vs native libsql vectors)
+intentionally stay backend-local.
+
+## SQL core
+
+`@worlds/sqlite/sql-core` exports pure, driver-free building blocks: every
+symbol emits inert `{sql, args}` plans or plain strings — no database handle, no
+I/O. Backends execute the plans through their own connection drivers, which is
+why synchronous `node:sqlite` and asynchronous LibSQL can share the same
+emitters. The guardrail is enforced in CI by `deno task sql-core:purity`
+(allowlist-based import check); keep new sql-core modules on that allowlist
+(`@worlds/sdk`, `@wazoo/sparql-engine`, `@rdfjs/types`, intra-package imports,
+and `@std/assert` in tests only).
 
 ## Setup
 

@@ -1,11 +1,12 @@
 {
   "name": "@worlds/sqlite",
   "description": "node:sqlite durable backend for the Worlds client — RDF/JS quad primitive packaged with the worlds impl.",
-  "version": "0.5.0",
+  "version": "0.6.0",
   "license": "WTFPL",
   "nodeModulesDir": "auto",
   "exports": {
     ".": "./src/mod.ts",
+    "./sql-core": "./src/sql-core/mod.ts",
     "./quad-store": "./src/sqlite/quad-store/mod.ts",
     "./search-index": "./src/sqlite/search-index/mod.ts",
     "./rdfjs-store": "./src/sqlite/rdfjs-store/mod.ts",
@@ -52,6 +53,7 @@
     "check": "deno check",
     "test": "deno test --allow-all",
     "publish:dry": "deno publish --dry-run --allow-dirty",
+    "sql-core:purity": "deno run --allow-read tools/sql-core-purity.ts",
     "bench": "deno bench --allow-all benchmarks/",
     "bench:record": "deno run -A benchmarks/bench-record.ts",
     "bench:check": "deno run -A benchmarks/bench-check.ts",
@@ -61,7 +63,8 @@
         "fmt:check",
         "lint",
         "check",
-        "test"
+        "test",
+        "sql-core:purity"
       ]
     }
   }
