@@ -1,9 +1,9 @@
 import { DataFactory } from "n3";
-import { createSqliteSdkForBench } from "./shared/sparql-perf-shared.ts";
+import { createSqliteWorldsSdkForBench } from "./shared/sparql-perf-shared.ts";
 
 const { quad, namedNode, literal } = DataFactory;
 
-const client = createSqliteSdkForBench();
+const client = createSqliteWorldsSdkForBench();
 
 let indexCounter = 3000;
 function generateBatchPayload(count: number) {

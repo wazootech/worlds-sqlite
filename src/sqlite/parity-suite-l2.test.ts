@@ -1,7 +1,7 @@
 /**
  * Layer 2 parity suite (workspace#64, #72) — runs the shared fixture corpus
- * with reference = createMemorySdk (the portable in-memory reference) and
- * candidate = createSqliteSdk over the materialized L2 surface (FTS5 keyword
+ * with reference = createMemoryWorldsSdk (the portable in-memory reference) and
+ * candidate = createSqliteWorldsSdk over the materialized L2 surface (FTS5 keyword
  * search + optional sqlite-vec hybrid, commitPatchToSqlite, quad store).
  *
  * Exemptions (explicit, documented on workspace#72 — never silent):
@@ -17,25 +17,25 @@
  * ranking vs scan order is an engine detail, not a parity contract.
  */
 import { assertEquals } from "@std/assert";
-import { createMemorySdk } from "@worlds/sdk/memory";
+import { createMemoryWorldsSdk } from "@worlds/sdk/memory";
 import { parityCorpus, runParitySuite } from "@worlds/sdk/testing";
-import { createSqliteSdk } from "./create-sqlite-sdk.ts";
+import { createSqliteWorldsSdk } from "./create-sqlite-sdk.ts";
 
 const CHUNKER_DIVERGENT_FIXTURE = "chunkBoundaryWorld";
 
 function createSqliteSdkForParity() {
-  return createSqliteSdk({ path: ":memory:" });
+  return createSqliteWorldsSdk({ path: ":memory:" });
 }
 
 Deno.test(
-  "parity suite - createSqliteSdk agrees with the in-memory reference on the corpus",
+  "parity suite - createSqliteWorldsSdk agrees with the in-memory reference on the corpus",
   async () => {
     const fixtures = parityCorpus.fixtures.filter(
       (fixture) => fixture.name !== CHUNKER_DIVERGENT_FIXTURE,
     );
 
     const report = await runParitySuite({
-      reference: () => createMemorySdk(),
+      reference: () => createMemoryWorldsSdk(),
       candidate: () => createSqliteSdkForParity(),
       fixtures,
       strictSearchOrder: false,

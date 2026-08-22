@@ -4,7 +4,7 @@
  * landed in worlds-sdk-ts#178).
  *
  * Runs the shared fixture corpus with the zero-dependency reference —
- * @worlds/sdk/memory's createMemorySdk — against SqliteStore, the durable
+ * @worlds/sdk/memory's createMemoryWorldsSdk — against SqliteStore, the durable
  * store this backend ships (the same topology client-integration.test.ts
  * proves end to end). No libsql anywhere in the run. The libsql-reference
  * comparison lands when the shared harness grows its reference fixtures.
@@ -13,16 +13,16 @@
  * keyword search order is a store implementation detail, not a parity contract.
  */
 import { assertEquals } from "@std/assert";
-import { Sdk } from "@worlds/sdk";
+import { WorldsSdk } from "@worlds/sdk";
 import { RdfjsQuadStore, RdfjsSearchIndex } from "@worlds/sdk/rdfjs";
-import { createMemorySdk } from "@worlds/sdk/memory";
+import { createMemoryWorldsSdk } from "@worlds/sdk/memory";
 import { parityCorpus, runParitySuite } from "@worlds/sdk/testing";
 import { WazooSparqlEngine } from "@wazoo/sparql-engine";
 import { SqliteStore } from "@/sqlite/rdfjs-store/sqlite-store.ts";
 
-function createSqliteSdk(): Sdk {
+function createSqliteWorldsSdk(): WorldsSdk {
   const store = new SqliteStore({ path: ":memory:" });
-  return new Sdk({
+  return new WorldsSdk({
     quadStore: new RdfjsQuadStore({ store }),
     sparqlEngine: new WazooSparqlEngine({ store }),
     searchIndex: new RdfjsSearchIndex(store),
@@ -33,8 +33,8 @@ Deno.test(
   "parity suite - SqliteStore agrees with the in-memory reference on the full corpus",
   async () => {
     const report = await runParitySuite({
-      reference: () => createMemorySdk(),
-      candidate: () => createSqliteSdk(),
+      reference: () => createMemoryWorldsSdk(),
+      candidate: () => createSqliteWorldsSdk(),
       strictSearchOrder: false,
     });
 

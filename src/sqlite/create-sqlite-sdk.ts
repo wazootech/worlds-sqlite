@@ -1,8 +1,8 @@
 import { DatabaseSync } from "node:sqlite";
 import { RecursiveCharacterTextSplitter } from "@langchain/textsplitters";
 import type * as rdfjs from "@rdfjs/types";
-import type { QuadCriteria, SdkInterface } from "@worlds/sdk";
-import { Sdk } from "@worlds/sdk";
+import type { QuadCriteria, WorldsSdkInterface } from "@worlds/sdk";
+import { WorldsSdk } from "@worlds/sdk";
 import type { SearchIndexOnImport } from "@worlds/sdk/search-index";
 import type { EmbeddingService } from "@worlds/sdk/search-index/embedding-service";
 import type { TextSplitterInterface } from "@worlds/sdk/search-index/quad-chunker";
@@ -19,10 +19,10 @@ import { SqliteQuadStore } from "./quad-store/mod.ts";
 import { SqliteStore } from "./rdfjs-store/mod.ts";
 
 /**
- * SqliteSdkOptions configures sqlite execution through SqliteStore and the
+ * SqliteWorldsSdkOptions configures sqlite execution through SqliteStore and the
  * materialized quad/search indexes.
  */
-export interface SqliteSdkOptions {
+export interface SqliteWorldsSdkOptions {
   /** path is the SQLite database file path, or ":memory:" for a temp database. */
   path: string;
 
@@ -74,13 +74,13 @@ export interface SqliteSdkOptions {
 }
 
 /**
- * SqliteSdk is the SdkInterface surface plus ownership of the underlying
+ * SqliteWorldsSdk is the WorldsSdkInterface surface plus ownership of the underlying
  * database handle: call close() to release the file/`:memory:` database.
  */
-export type SqliteSdk = SdkInterface & { close(): void };
+export type SqliteWorldsSdk = WorldsSdkInterface & { close(): void };
 
 /**
- * createSqliteSdk synthesizes a Sdk for the sqlite L2 surface over one shared
+ * createSqliteWorldsSdk synthesizes a WorldsSdk for the sqlite L2 surface over one shared
  * node:sqlite handle.
  *
  * The factory assembles the strategy objects internally: a
@@ -90,9 +90,9 @@ export type SqliteSdk = SdkInterface & { close(): void };
  * @worlds/libsql. When the sqlite-vec extension cannot be loaded, the whole
  * vector surface degrades to keyword-only.
  */
-export async function createSqliteSdk(
-  options: SqliteSdkOptions,
-): Promise<SqliteSdk> {
+export async function createSqliteWorldsSdk(
+  options: SqliteWorldsSdkOptions,
+): Promise<SqliteWorldsSdk> {
   const vectorDimensions = options.vectorDimensions ?? 1536;
   const db = options.db ??
     new DatabaseSync(options.path, { allowExtension: true });
@@ -160,7 +160,7 @@ export async function createSqliteSdk(
     createTransaction: () => quadStore.createTransaction(),
   });
 
-  const sdk = new Sdk({
+  const sdk = new WorldsSdk({
     quadStore,
     searchIndex,
     sparqlEngine,
