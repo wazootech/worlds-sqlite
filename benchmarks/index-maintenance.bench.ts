@@ -1,7 +1,7 @@
 import { DatabaseSync } from "node:sqlite";
 import { RecursiveCharacterTextSplitter } from "@langchain/textsplitters";
 import { FakeEmbeddingService } from "@worlds/sdk/search-index/embedding-service";
-import { createSqliteSdk } from "@/sqlite/create-sqlite-sdk.ts";
+import { createSqliteWorldsSdk } from "@/sqlite/create-sqlite-sdk.ts";
 import { SqliteConnectionDriver } from "@/sqlite/sqlite-connection-driver.ts";
 import { initializeSqliteSchema } from "@/sqlite/initialize-sqlite-schema.ts";
 import { SqliteSchemaBuilder } from "@/sqlite/schema/sqlite-schema-builder.ts";
@@ -31,7 +31,7 @@ await initializeSqliteSchema(
   new SqliteSchemaBuilder(VECTOR_DIMENSIONS, { vectorSupported }),
 );
 
-const worldsClient = await createSqliteSdk({
+const worldsClient = await createSqliteWorldsSdk({
   path: ":memory:",
   db,
   loadVectorExtension: false,

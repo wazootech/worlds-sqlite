@@ -23,7 +23,7 @@ import { createSqliteWorldsSdk } from "./create-sqlite-sdk.ts";
 
 const CHUNKER_DIVERGENT_FIXTURE = "chunkBoundaryWorld";
 
-function createSqliteSdkForParity() {
+function createSqliteWorldsSdkForParity() {
   return createSqliteWorldsSdk({ path: ":memory:" });
 }
 
@@ -36,7 +36,7 @@ Deno.test(
 
     const report = await runParitySuite({
       reference: () => createMemoryWorldsSdk(),
-      candidate: () => createSqliteSdkForParity(),
+      candidate: () => createSqliteWorldsSdkForParity(),
       fixtures,
       strictSearchOrder: false,
     });
