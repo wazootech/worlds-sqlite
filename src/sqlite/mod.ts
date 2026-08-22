@@ -15,7 +15,10 @@ export type {
   CommitPatchToSqliteResult,
 } from "./commit-patch-to-sqlite.ts";
 export { createSqliteWorldsSdk } from "./create-sqlite-sdk.ts";
-export type { SqliteWorldsSdk, SqliteWorldsSdkOptions } from "./create-sqlite-sdk.ts";
+export type {
+  SqliteWorldsSdk,
+  SqliteWorldsSdkOptions,
+} from "./create-sqlite-sdk.ts";
 export { SqliteQuadStore } from "./quad-store/mod.ts";
 export type { SqliteQuadStoreOptions } from "./quad-store/mod.ts";
 export {
