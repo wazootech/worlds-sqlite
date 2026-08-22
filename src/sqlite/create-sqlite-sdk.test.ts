@@ -1,12 +1,12 @@
 import { assertEquals, assertExists } from "@std/assert";
 import { DataFactory } from "n3";
-import { createSqliteSdk } from "./create-sqlite-sdk.ts";
+import { createSqliteWorldsSdk } from "./create-sqlite-sdk.ts";
 import { FakeEmbeddingService } from "@worlds/sdk/search-index/embedding-service";
 
 const { quad, namedNode, literal } = DataFactory;
 
-Deno.test("createSqliteSdk - serves SPARQL on the shared SqliteStore", async () => {
-  const sdk = await createSqliteSdk({ path: ":memory:" });
+Deno.test("createSqliteWorldsSdk - serves SPARQL on the shared SqliteStore", async () => {
+  const sdk = await createSqliteWorldsSdk({ path: ":memory:" });
   try {
     assertExists(sdk);
     await sdk.import({
@@ -31,8 +31,8 @@ Deno.test("createSqliteSdk - serves SPARQL on the shared SqliteStore", async () 
   }
 });
 
-Deno.test("createSqliteSdk - SPARQL INSERT DATA round-trips through the transaction commit", async () => {
-  const sdk = await createSqliteSdk({ path: ":memory:" });
+Deno.test("createSqliteWorldsSdk - SPARQL INSERT DATA round-trips through the transaction commit", async () => {
+  const sdk = await createSqliteWorldsSdk({ path: ":memory:" });
   try {
     const insertResponse = await sdk.sparql({
       query:
@@ -56,8 +56,8 @@ Deno.test("createSqliteSdk - SPARQL INSERT DATA round-trips through the transact
   }
 });
 
-Deno.test("createSqliteSdk - search + reindex over the materialized index", async () => {
-  const sdk = await createSqliteSdk({ path: ":memory:" });
+Deno.test("createSqliteWorldsSdk - search + reindex over the materialized index", async () => {
+  const sdk = await createSqliteWorldsSdk({ path: ":memory:" });
   try {
     await sdk.import({
       source: {
@@ -89,8 +89,8 @@ Deno.test("createSqliteSdk - search + reindex over the materialized index", asyn
   }
 });
 
-Deno.test("createSqliteSdk - hybrid search works when sqlite-vec loads, degrades otherwise", async () => {
-  const sdk = await createSqliteSdk({
+Deno.test("createSqliteWorldsSdk - hybrid search works when sqlite-vec loads, degrades otherwise", async () => {
+  const sdk = await createSqliteWorldsSdk({
     path: ":memory:",
     vectorDimensions: 32,
     embeddingService: new FakeEmbeddingService(),
@@ -124,8 +124,8 @@ Deno.test("createSqliteSdk - hybrid search works when sqlite-vec loads, degrades
   }
 });
 
-Deno.test("createSqliteSdk - loadVectorExtension:false forces keyword-only (no vec tables)", async () => {
-  const sdk = await createSqliteSdk({
+Deno.test("createSqliteWorldsSdk - loadVectorExtension:false forces keyword-only (no vec tables)", async () => {
+  const sdk = await createSqliteWorldsSdk({
     path: ":memory:",
     loadVectorExtension: false,
     embeddingService: new FakeEmbeddingService(),
@@ -151,8 +151,8 @@ Deno.test("createSqliteSdk - loadVectorExtension:false forces keyword-only (no v
   }
 });
 
-Deno.test("createSqliteSdk - include/exclude scope routes imports and search", async () => {
-  const sdk = await createSqliteSdk({
+Deno.test("createSqliteWorldsSdk - include/exclude scope routes imports and search", async () => {
+  const sdk = await createSqliteWorldsSdk({
     path: ":memory:",
     include: { subjects: ["urn:kept"] },
   });

@@ -159,7 +159,7 @@ export interface SqliteStoreOptions {
 
   /**
    * Pre-created node:sqlite handle to share instead of opening a new one.
-   * Used by createSqliteSdk so the L2 quad store, search layer, and RDF/JS
+   * Used by createSqliteWorldsSdk so the L2 quad store, search layer, and RDF/JS
    * read path share a single DatabaseSync (required for ":memory:" and for
    * a handle opened with allowExtension so sqlite-vec can load). When
    * provided, `path` is ignored.

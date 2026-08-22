@@ -1,4 +1,4 @@
-import { Sdk, type SdkInterface } from "@worlds/sdk";
+import { WorldsSdk, type WorldsSdkInterface } from "@worlds/sdk";
 import { RdfjsQuadStore, RdfjsSearchIndex } from "@worlds/sdk/rdfjs";
 import { WazooSparqlEngine } from "@wazoo/sparql-engine";
 import { SqliteStore } from "@/sqlite/rdfjs-store/sqlite-store.ts";
@@ -39,12 +39,12 @@ export function resolvePerfQueryShapes(): readonly SparqlQueryShape[] {
 }
 
 /**
- * createSqliteSdkForBench wires the shared Sdk facade over a fresh
+ * createSqliteWorldsSdkForBench wires the shared WorldsSdk facade over a fresh
  * :memory: SqliteStore — the same topology the phase-4 parity suite proves.
  */
-export function createSqliteSdkForBench(): SdkInterface {
+export function createSqliteWorldsSdkForBench(): WorldsSdkInterface {
   const store = new SqliteStore({ path: ":memory:" });
-  return new Sdk({
+  return new WorldsSdk({
     quadStore: new RdfjsQuadStore({ store }),
     sparqlEngine: new WazooSparqlEngine({ store }),
     searchIndex: new RdfjsSearchIndex(store),
@@ -52,16 +52,16 @@ export function createSqliteSdkForBench(): SdkInterface {
 }
 
 /**
- * preloadSparqlPerfFixtures builds a warmed Sdk per scale at module load.
+ * preloadSparqlPerfFixtures builds a warmed WorldsSdk per scale at module load.
  */
 export async function preloadSparqlPerfFixtures(
   perfScales: readonly number[],
-): Promise<Map<number, SdkInterface>> {
-  const engines = new Map<number, SdkInterface>();
+): Promise<Map<number, WorldsSdkInterface>> {
+  const engines = new Map<number, WorldsSdkInterface>();
   for (const quadCount of perfScales) {
     // Timing logs go to stderr so `deno bench --json` stdout stays parseable.
     const startedAt = performance.now();
-    const sdk = createSqliteSdkForBench();
+    const sdk = createSqliteWorldsSdkForBench();
     await sdk.import({
       source: { kind: "quads", quads: generateSyntheticQuads(quadCount) },
     });
@@ -89,7 +89,7 @@ export function sparqlQueryForShape(queryShape: SparqlQueryShape): string {
  */
 export function registerSparqlPerfBenchmarks(
   perfScales: readonly number[],
-  engines: Map<number, SdkInterface>,
+  engines: Map<number, WorldsSdkInterface>,
   queryShapes: readonly SparqlQueryShape[] = resolvePerfQueryShapes(),
 ): void {
   for (const quadCount of perfScales) {

@@ -1,10 +1,10 @@
 import { DataFactory } from "n3";
-import { createSqliteSdk } from "@/sqlite/create-sqlite-sdk.ts";
+import { createSqliteWorldsSdk } from "@/sqlite/create-sqlite-sdk.ts";
 import { generateSyntheticQuads } from "./shared/synthetic-data.ts";
 
 const { quad, namedNode, literal } = DataFactory;
 
-const client = await createSqliteSdk({ path: ":memory:" });
+const client = await createSqliteWorldsSdk({ path: ":memory:" });
 
 const payload100 = generateSyntheticQuads(100);
 
