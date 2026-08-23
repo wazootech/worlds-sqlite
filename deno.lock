@@ -5,15 +5,15 @@
     "jsr:@std/encoding@^1.0.10": "1.0.11",
     "jsr:@std/internal@^1.0.12": "1.0.14",
     "jsr:@std/internal@^1.0.14": "1.0.14",
-    "jsr:@std/path@1": "1.1.6",
+    "jsr:@std/path@^1.1.6": "1.1.6",
     "jsr:@wazoo/sparql-engine@~0.4.1": "0.4.1",
-    "jsr:@worlds/sdk@0.6": "0.6.0",
+    "jsr:@worlds/sdk@~0.6.1": "0.6.1",
     "npm:@langchain/textsplitters@^1.0.1": "1.0.1_@langchain+core@1.2.8",
     "npm:@rdfjs/types@^2.0.1": "2.0.1",
     "npm:@types/n3@1.26.1": "1.26.1",
-    "npm:@types/node@^22.10.0": "22.20.1",
+    "npm:@types/node@^26.2.0": "26.2.0",
     "npm:ai@^6.0.195": "6.0.257_zod@4.4.3",
-    "npm:n3@^2.0.3": "2.2.0",
+    "npm:n3@^2.2.11": "2.2.11",
     "npm:sqlite-vec@~0.1.9": "0.1.9"
   },
   "jsr": {
@@ -41,8 +41,8 @@
         "npm:@rdfjs/types"
       ]
     },
-    "@worlds/sdk@0.6.0": {
-      "integrity": "c8e7285a733d4a2e451b099ddf7a10f3920b4e1a02286ff000ca386d2502263b",
+    "@worlds/sdk@0.6.1": {
+      "integrity": "12a1ba2d69322b13e1b271c00e9c7873cd4d5aca8b08b681f40fa004808067d6",
       "dependencies": [
         "jsr:@std/encoding",
         "jsr:@wazoo/sparql-engine",
@@ -118,8 +118,8 @@
         "@types/node"
       ]
     },
-    "@types/node@22.20.1": {
-      "integrity": "sha512-EANqOCF9QFyra+4pfxUcX9STKJpCLjMbObVzljIJomAWSnuSIEAvyzEU53GaajbXJEgdh0iEcPL+DGvpUd4k1Q==",
+    "@types/node@26.2.0": {
+      "integrity": "sha512-5IviulTZeRNp2vAJ514cc/HUlY5nZ9fCbq9DMyC52BrhFZACo3nI0R7qBxhQmo/d27NFe96ur/b7Wwxklda+kg==",
       "dependencies": [
         "undici-types"
       ]
@@ -187,8 +187,8 @@
       "integrity": "sha512-71ippSywq5Yb7/tVYyGbkBggbU8H3u5Rz56fH60jGFgr8uHwxs+aSKeqmluIVzM0m0kB7xQjKS6qPfd0b2ZoqQ==",
       "bin": true
     },
-    "n3@2.2.0": {
-      "integrity": "sha512-K/Orb5XrUPocfYfhUT+muvK1I0n2AvVMt93fIExlgjo23u7q0lU0eIFrhBJqooyFWAnpEBz3QZqjHzEHMs1RZg==",
+    "n3@2.2.11": {
+      "integrity": "sha512-La460srjrwM4wQ6I+IrWhXeaIn4sPV2B61SjPhABWNg9iUTLY7WK9MCxVhyoY05z/oq2ucayxtzIfQOO2Gz10g==",
       "dependencies": [
         "buffer",
         "readable-stream"
@@ -267,8 +267,8 @@
         "safe-buffer"
       ]
     },
-    "undici-types@6.21.0": {
-      "integrity": "sha512-iwDZqg0QAGrg9Rav5H4n0M64c3mkR59cJ6wQp+7C4nI0gsmExaedaYLNO44eT4AtBBwjbTiGPMlt2Md0T9H9JQ=="
+    "undici-types@8.3.0": {
+      "integrity": "sha512-j375ScV60dom+YkPFIfTLcOiPxkN/buHz5GobjLhixFuANaNs3C9l4GmrWqejgXWJ7BbJcFYpTEUkS1Ge8bpZQ=="
     },
     "undici@6.28.0": {
       "integrity": "sha512-LIY910g9TI13YS95lrMFrs8Rm/u/irgHeTWoKCoteeJ04CUJ92eEfj0rVn+7VKMPBpUPiUoBKfhNyLI23EE/KA=="
@@ -280,14 +280,14 @@
   "workspace": {
     "dependencies": [
       "jsr:@std/assert@^1.0.19",
-      "jsr:@std/path@1",
+      "jsr:@std/path@^1.1.6",
       "jsr:@wazoo/sparql-engine@~0.4.1",
-      "jsr:@worlds/sdk@0.6",
+      "jsr:@worlds/sdk@~0.6.1",
       "npm:@langchain/textsplitters@^1.0.1",
       "npm:@rdfjs/types@^2.0.1",
       "npm:@types/n3@1.26.1",
-      "npm:@types/node@^22.10.0",
-      "npm:n3@^2.0.3",
+      "npm:@types/node@^26.2.0",
+      "npm:n3@^2.2.11",
       "npm:sqlite-vec@~0.1.9"
     ]
   }
