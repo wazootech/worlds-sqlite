@@ -15,16 +15,16 @@
   "imports": {
     "@/": "./src/",
     "@rdfjs/types": "npm:@rdfjs/types@^2.0.1",
-    "@types/node": "npm:@types/node@^22.10.0",
+    "@types/node": "npm:@types/node@^26.2.0",
     "@types/n3": "npm:@types/n3@1.26.1",
-    "n3": "npm:n3@^2.0.3",
+    "n3": "npm:n3@^2.2.11",
     "@std/assert": "jsr:@std/assert@^1.0.19",
-    "@std/path": "jsr:@std/path@^1",
+    "@std/path": "jsr:@std/path@^1.1.6",
     "@langchain/textsplitters": "npm:@langchain/textsplitters@^1.0.1",
     "sqlite-vec": "npm:sqlite-vec@^0.1.9",
     "@wazoo/sparql-engine": "jsr:@wazoo/sparql-engine@^0.4.1",
     "@wazoo/sparql-engine/term": "jsr:@wazoo/sparql-engine@^0.4.1/term",
-    "@worlds/sdk": "jsr:@worlds/sdk@^0.6.0"
+    "@worlds/sdk": "jsr:@worlds/sdk@^0.6.1"
   },
   "minimumDependencyAge": 0,
   "publish": {
