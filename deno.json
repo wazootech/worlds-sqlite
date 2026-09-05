@@ -59,5 +59,10 @@
         "sql-core:purity"
       ]
     }
+  },
+  "test": {
+    "exclude": [
+      "src/sqlite/runtime-portability/bun-handle.portability.test.ts"
+    ]
   }
 }

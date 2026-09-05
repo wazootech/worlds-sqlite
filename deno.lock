@@ -8,6 +8,7 @@
     "jsr:@std/path@^1.1.6": "1.1.6",
     "jsr:@wazoo/sparql-engine@~0.4.1": "0.4.1",
     "jsr:@worlds/sdk@~0.6.1": "0.6.1",
+    "npm:@jsr/wazoo__sparql-engine@~0.4.1": "0.4.1",
     "npm:@langchain/textsplitters@^1.0.1": "1.0.1_@langchain+core@1.2.8",
     "npm:@rdfjs/types@^2.0.1": "2.0.1",
     "npm:@types/n3@1.26.1": "1.26.1",
@@ -79,6 +80,13 @@
     },
     "@cfworker/json-schema@4.1.1": {
       "integrity": "sha512-gAmrUZSGtKc3AiBL71iNWxDsyUC5uMaKKGdvzYsBoTW/xi42JQHl7eKV2OYzCUqvc+D2RCcf7EXY2iCyFIk6og=="
+    },
+    "@jsr/wazoo__sparql-engine@0.4.1": {
+      "integrity": "sha512-Cx6fEJnQG3K4m2jv4c/Yi9f1QCt/j+CeJjeoMFW1iIfk+j7/3AJDfe1WSrVbIEQSzyPhxopgO1R0oH8ybWZDhQ==",
+      "dependencies": [
+        "@rdfjs/types"
+      ],
+      "tarball": "https://npm.jsr.io/~/11/@jsr/wazoo__sparql-engine/0.4.1.tgz"
     },
     "@langchain/core@1.2.8": {
       "integrity": "sha512-ppi2UaCYKqM4LEY8NWQ/JZ0Of0MAngHRvclceVeEQklcD/M6QKanlHPWblDnLO2m4vz7987b1Z4r33Ps6lf/ig==",
@@ -289,6 +297,12 @@
       "npm:@types/node@^26.2.0",
       "npm:n3@^2.2.11",
       "npm:sqlite-vec@~0.1.9"
-    ]
+    ],
+    "packageJson": {
+      "dependencies": [
+        "npm:@jsr/wazoo__sparql-engine@~0.4.1",
+        "npm:n3@^2.2.11"
+      ]
+    }
   }
 }
