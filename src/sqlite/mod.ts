@@ -1,3 +1,8 @@
+export type {
+  AnySyncSqliteHandle,
+  AnySyncSqliteStatement,
+  SyncSqliteHandleFactory,
+} from "./any-sync-sqlite-handle.ts";
 export { SqliteConnectionDriver } from "./sqlite-connection-driver.ts";
 export type {
   SqliteConnectionDriverOptions,

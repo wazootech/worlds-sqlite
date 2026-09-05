@@ -1,0 +1,9 @@
+{
+  "name": "@worlds/sqlite",
+  "private": true,
+  "type": "module",
+  "dependencies": {
+    "@wazoo/sparql-engine": "npm:@jsr/wazoo__sparql-engine@^0.4.1",
+    "n3": "^2.2.11"
+  }
+}

@@ -24,3 +24,21 @@ jobs:
       # >=50% regression vs the committed benchmarks/baseline.json.
       - name: Bench gate
         run: deno task bench:check
+
+  # Runtime-portability gate (worlds-sqlite#24): the SqliteStore + driver
+  # suite must pass over a bun:sqlite handle exactly as it does over
+  # node:sqlite. Pinned to Bun 1.3.x — the release line whose CI cannot
+  # resolve node:sqlite at all — so the AnySyncSqliteHandle seam is enforced
+  # on the runtime it exists for. The node:sqlite leg runs in the `ci` job
+  # above via the shared suite's node-handle wrapper.
+  bun-portability:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: oven-sh/setup-bun@v2
+        with:
+          version: "1.3.14"
+      - name: Install bun deps
+        run: bun install --frozen-lockfile
+      - name: Run SqliteStore + driver suite under bun:sqlite
+        run: bun test src/sqlite/runtime-portability/bun-handle.portability.test.ts

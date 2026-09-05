@@ -1,8 +1,9 @@
 # @worlds/sqlite
 
-Local `node:sqlite` durable backend for the Worlds client
+Local synchronous-SQLite durable backend for the Worlds client
 ([`@worlds/sdk`](https://jsr.io/@worlds/sdk)) — single-process, local-file
-storage with optional `sqlite-vec` extension for vector search.
+storage over `node:sqlite` (Node/Deno) or `bun:sqlite` (Bun), with optional
+`sqlite-vec` extension for vector search.
 
 Part of the Worlds durable-backend family alongside `@worlds/libsql` (Turso),
 `@worlds/postgres`, and `@worlds/cloudflare`. The provider-strategy vocabulary
@@ -80,10 +81,11 @@ import { SqliteStore } from "https://esm.sh/jsr/@worlds/sqlite@0.4.0?pin=v172410
 
 ## Surface
 
-- **Landed (Layer 1):** `SqliteStore` (durable `rdfjs.Store` over `node:sqlite`,
-  STRICT table, WAL + busy_timeout, term-keyed rows, lossless RDF-star payloads,
-  `createTransaction()`), `MemoryStream`, term identity
-  (`termKey`/`sameRdfTerm`), crash-recovery + term-key-parity suites.
+- **Landed (Layer 1):** `SqliteStore` (durable `rdfjs.Store` over a synchronous
+  SQLite handle — `node:sqlite` DatabaseSync by default, `bun:sqlite` Database
+  via `db`/`createHandle`; STRICT table, WAL + busy_timeout, term-keyed rows,
+  lossless RDF-star payloads, `createTransaction()`), `MemoryStream`, term
+  identity (`termKey`/`sameRdfTerm`), crash-recovery + term-key-parity suites.
 - **Landed (Layer 2):** `createSqliteWorldsSdk` (root export) plus
   `./quad-store`, `./search-index`, and `./schema` subpaths — `SqliteQuadStore`,
   `SqliteSearchIndex` / `SqliteSearchIndexProjector` /
@@ -96,6 +98,25 @@ import { SqliteStore } from "https://esm.sh/jsr/@worlds/sqlite@0.4.0?pin=v172410
   `buildSearchResultId`, the `chunks`/`chunks_fts` DDL emitters, keyword FTS5
   branch plans, filter-clause helpers, and the `SqlStatement` plan type. See
   below.
+
+## Runtime support
+
+The sqlite layer is typed against a minimal structural handle seam
+(`AnySyncSqliteHandle`: `exec` / `prepare` / `close`, plus optional
+`loadExtension`) satisfied by both `node:sqlite`'s `DatabaseSync` and
+`bun:sqlite`'s `Database`. `createSqliteWorldsSdk({ db })` and
+`SqliteStore({ db })` accept either; `createHandle` injects the default
+construction for path-only usage (node:sqlite remains the default).
+`node:sqlite` is resolved lazily (never at module load), so Bun consumers
+passing a `bun:sqlite` handle never load it — useful for Bun-only deployments
+where `node:sqlite` is unavailable (e.g. Bun 1.3.x).
+
+The claim is enforced, not asserted: the shared runtime-portability suite
+(`src/sqlite/runtime-portability/`) runs the core `SqliteStore` +
+`SqliteConnectionDriver` surface over both builtins — the `node:sqlite` leg in
+the Deno CI job, the `bun:sqlite` leg in a pinned Bun CI job (see
+`.github/workflows/ci.yml`). Any new runtime that provides an
+`AnySyncSqliteHandle` can reuse the same suite via its own wrapper.
 
 This repo is the **source of truth for SQLite-family SQL logic**: it is the
 easiest backend to test locally (synchronous `node:sqlite`), so the shared
