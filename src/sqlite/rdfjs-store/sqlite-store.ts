@@ -21,9 +21,14 @@
  *
  * Design notes
  * ------------
- * - Uses Deno/Node's built-in `node:sqlite` (DatabaseSync) — a builtin, not
- *   a dependency. Server-side (Deno >= 2.1 / Node >= 22.5) deployments only;
- *   browser bundles should keep using an in-memory store.
+ * - Runs over a synchronous SQLite handle: `node:sqlite` DatabaseSync (Deno
+ *   >= 2.1 / Node >= 22.5, the default) or `bun:sqlite` Database passed via
+ *   `db` / a `createHandle` factory — both are builtins, not dependencies,
+ *   and both structurally satisfy AnySyncSqliteHandle. Server-side
+ *   deployments only; browser bundles should keep using an in-memory store.
+ * - node:sqlite is resolved lazily (never at module load), so this module
+ *   stays loadable on runtimes without it (Bun). On such runtimes, path-only
+ *   construction throws and callers must pass `db` or `createHandle`.
  * - `PRAGMA busy_timeout` lets concurrent writers wait for the write lock
  *   instead of failing with SQLITE_BUSY when a transaction is in flight.
  * - Rows are keyed by a sound RDF-term equality key per position (`termKey`),
@@ -36,11 +41,33 @@
  *   database consistent across process crashes.
  */
 import type * as rdfjs from "@rdfjs/types";
-import { DatabaseSync } from "node:sqlite";
+import { createRequire } from "node:module";
 import { DataFactory } from "@wazoo/sparql-engine";
+import type {
+  AnySyncSqliteHandle,
+  SyncSqliteHandleFactory,
+} from "@/sqlite/any-sync-sqlite-handle.ts";
 import { termKey } from "@/sqlite/term/term-key.ts";
 import { MemoryStream } from "@/sqlite/rdfjs-store/memory-stream.ts";
 import { DEFAULT_SQLITE_MATCH_PAGE_SIZE } from "@/sqlite/quad-store/sqlite-quad-query-builder.ts";
+
+/** nodeRequire is used only to lazily resolve node:sqlite (see openNodeSqliteHandle). */
+const nodeRequire = createRequire(import.meta.url);
+
+/**
+ * openNodeSqliteHandle opens the default node:sqlite DatabaseSync for a path.
+ *
+ * node:sqlite is a Node/Deno builtin absent on Bun, so it is resolved here —
+ * at call time, never at module load — keeping this module loadable on every
+ * runtime. On runtimes without node:sqlite the error surfaces only when no
+ * `db` / `createHandle` was provided.
+ */
+function openNodeSqliteHandle(path: string): AnySyncSqliteHandle {
+  const { DatabaseSync } = nodeRequire(
+    "node:sqlite",
+  ) as typeof import("node:sqlite");
+  return new DatabaseSync(path);
+}
 
 /**
  * SqliteTransaction is the atomic patch contract a SPARQL update uses to
@@ -158,13 +185,23 @@ export interface SqliteStoreOptions {
   path: string;
 
   /**
-   * Pre-created node:sqlite handle to share instead of opening a new one.
-   * Used by createSqliteWorldsSdk so the L2 quad store, search layer, and RDF/JS
-   * read path share a single DatabaseSync (required for ":memory:" and for
-   * a handle opened with allowExtension so sqlite-vec can load). When
-   * provided, `path` is ignored.
+   * Pre-created synchronous SQLite handle to share instead of opening a new
+   * one: a node:sqlite DatabaseSync, a bun:sqlite Database, or any other
+   * AnySyncSqliteHandle. Used by createSqliteWorldsSdk so the L2 quad store,
+   * search layer, and RDF/JS read path share a single handle (required for
+   * ":memory:" and for a handle opened with allowExtension so sqlite-vec can
+   * load). When provided, `path` is ignored.
    */
-  db?: DatabaseSync;
+  db?: AnySyncSqliteHandle;
+
+  /**
+   * createHandle supplies the default handle when `db` is absent — the
+   * injectable construction seam. Defaults to opening a node:sqlite
+   * DatabaseSync for `path`; Bun callers can pass a factory over
+   * bun:sqlite's Database instead. When provided, `path` is used as its
+   * argument.
+   */
+  createHandle?: SyncSqliteHandleFactory;
 
   /** matchPageSize limits rows per getQuads SQL round-trip (default 1000). */
   matchPageSize?: number;
@@ -173,7 +210,7 @@ export interface SqliteStoreOptions {
    * Test seam invoked inside commit(), after BEGIN IMMEDIATE and before any
    * row is written. Throw to exercise the atomic-rollback path.
    */
-  beforeCommit?: (db: DatabaseSync) => void;
+  beforeCommit?: (db: AnySyncSqliteHandle) => void;
 }
 
 /**
@@ -242,10 +279,12 @@ function quadKey(quad: rdfjs.Quad): string {
  * atomic, restart-safe SPARQL updates.
  */
 export class SqliteStore implements rdfjs.Store<rdfjs.Quad> {
-  public readonly db: DatabaseSync;
+  public readonly db: AnySyncSqliteHandle;
 
   public constructor(public readonly options: SqliteStoreOptions) {
-    this.db = options.db ?? new DatabaseSync(options.path);
+    this.db = options.db ??
+      (options.createHandle?.(options.path) ??
+        openNodeSqliteHandle(options.path));
     this.db.exec(
       "PRAGMA journal_mode = WAL;" +
         "PRAGMA busy_timeout = 5000;" +

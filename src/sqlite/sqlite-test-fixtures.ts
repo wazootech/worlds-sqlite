@@ -1,5 +1,5 @@
-import type { DatabaseSync } from "node:sqlite";
 import { RecursiveCharacterTextSplitter } from "@langchain/textsplitters";
+import type { AnySyncSqliteHandle } from "./any-sync-sqlite-handle.ts";
 import { SqliteConnectionDriver } from "./sqlite-connection-driver.ts";
 import { initializeSqliteSchema } from "./initialize-sqlite-schema.ts";
 import { SqliteSchemaBuilder } from "./schema/sqlite-schema-builder.ts";
@@ -37,11 +37,11 @@ export const sharedTextSplitter = new RecursiveCharacterTextSplitter({
  * tests gate on the result so runs degrade cleanly without the extension.
  */
 export async function tryLoadVectorExtension(
-  db: DatabaseSync,
+  db: AnySyncSqliteHandle,
 ): Promise<boolean> {
   try {
     const { load } = await import("sqlite-vec");
-    load(db);
+    load(db as Parameters<typeof load>[0]);
     return true;
   } catch {
     return false;
@@ -49,11 +49,12 @@ export async function tryLoadVectorExtension(
 }
 
 /**
- * createTestSqliteConnectionDriver wraps a raw DatabaseSync in a
+ * createTestSqliteConnectionDriver wraps a raw synchronous SQLite handle
+ * (node:sqlite DatabaseSync or bun:sqlite Database) in a
  * SqliteConnectionDriver for adapter tests.
  */
 export function createTestSqliteConnectionDriver(
-  db: DatabaseSync,
+  db: AnySyncSqliteHandle,
   options?: { vectorSupported?: boolean },
 ): SqliteConnectionDriver {
   return new SqliteConnectionDriver(db, options);

@@ -1,10 +1,11 @@
-import type { DatabaseSync } from "node:sqlite";
+import type { AnySyncSqliteHandle } from "./any-sync-sqlite-handle.ts";
 import type { SqlStatement } from "@/sql-core/sql-statement.ts";
 
 /**
  * SqlStatement is the shared parameterized plan type from sql-core
  * (`{sql, args}` with `?` placeholders). The driver executes those plans
- * through node:sqlite; the type itself stays driver-free so every
+ * through the wrapped synchronous handle (node:sqlite DatabaseSync or
+ * bun:sqlite Database); the type itself stays driver-free so every
  * SQLite-family backend can consume the same emitters.
  */
 export type { SqlStatement };
@@ -39,26 +40,27 @@ export interface SqliteConnectionDriverOptions {
 }
 
 /**
- * SqliteConnectionDriver adapts a `node:sqlite` DatabaseSync handle to the
- * uniform async SQL surface the L2 layer consumes (execute / batch /
- * transaction / close), mirroring LibsqlConnectionDriver over @libsql/client.
+ * SqliteConnectionDriver adapts a synchronous SQLite handle (node:sqlite
+ * DatabaseSync or bun:sqlite Database) to the uniform async SQL surface the
+ * L2 layer consumes (execute / batch / transaction / close), mirroring
+ * LibsqlConnectionDriver over @libsql/client.
  *
- * node:sqlite is synchronous, so every method resolves immediately after the
- * statement runs; the async shape exists to keep the L2 pipeline portable
- * with the libsql reference and the @worlds/sdk seam.
+ * The wrapped handles are synchronous, so every method resolves immediately
+ * after the statement runs; the async shape exists to keep the L2 pipeline
+ * portable with the libsql reference and the @worlds/sdk seam.
  */
 export class SqliteConnectionDriver {
   private readonly vectorSupported: boolean;
 
   public constructor(
-    private readonly db: DatabaseSync,
+    private readonly db: AnySyncSqliteHandle,
     options?: SqliteConnectionDriverOptions,
   ) {
     this.vectorSupported = options?.vectorSupported ?? false;
   }
 
-  /** database exposes the underlying node:sqlite handle (advanced use). */
-  public get database(): DatabaseSync {
+  /** database exposes the underlying SQLite handle (advanced use). */
+  public get database(): AnySyncSqliteHandle {
     return this.db;
   }
 
