@@ -101,6 +101,19 @@ import { SqliteStore } from "https://esm.sh/jsr/@worlds/sqlite@0.4.0?pin=v172410
 
 ## Runtime support
 
+### bun:sqlite
+
+The SDK accepts a `bun:sqlite` `Database` directly:
+
+```ts
+import { Database } from "bun:sqlite";
+import { createSqliteWorldsSdk } from "@worlds/sqlite";
+
+const sdk = await createSqliteWorldsSdk({ db: new Database("data.sqlite") });
+// or path-only via an injected bun factory:
+// createHandle: (path) => new Database(path)
+```
+
 The sqlite layer is typed against a minimal structural handle seam
 (`AnySyncSqliteHandle`: `exec` / `prepare` / `close`, plus optional
 `loadExtension`) satisfied by both `node:sqlite`'s `DatabaseSync` and
