@@ -51,22 +51,27 @@ import { termKey } from "@/sqlite/term/term-key.ts";
 import { MemoryStream } from "@/sqlite/rdfjs-store/memory-stream.ts";
 import { DEFAULT_SQLITE_MATCH_PAGE_SIZE } from "@/sqlite/quad-store/sqlite-quad-query-builder.ts";
 
-/** nodeRequire is used only to lazily resolve node:sqlite (see openNodeSqliteHandle). */
-const nodeRequire = createRequire(import.meta.url);
-
 /**
  * openNodeSqliteHandle opens the default node:sqlite DatabaseSync for a path.
  *
- * node:sqlite is a Node/Deno builtin absent on Bun, so it is resolved here —
- * at call time, never at module load — keeping this module loadable on every
- * runtime. On runtimes without node:sqlite the error surfaces only when no
- * `db` / `createHandle` was provided.
+ * This is the package's single default node:sqlite construction site.
+ * createSqliteWorldsSdk and SqliteStore both route through this function so
+ * the default handle is constructed identically everywhere. node:sqlite is
+ * resolved lazily (never at module load), so this module stays loadable on
+ * runtimes without it (Bun).
+ *
+ * On runtimes without node:sqlite the error surfaces only when no `db` /
+ * `createHandle` was provided.
  */
 function openNodeSqliteHandle(path: string): AnySyncSqliteHandle {
-  const { DatabaseSync } = nodeRequire(
+  const { DatabaseSync } = createRequire(import.meta.url)(
     "node:sqlite",
   ) as typeof import("node:sqlite");
-  return new DatabaseSync(path);
+  // Default construction mirrors createNodeSqliteHandle(options) with
+  // allowExtension: false so this fallback is byte-identical to the SDK path.
+  return new DatabaseSync(path, {
+    allowExtension: false,
+  });
 }
 
 /**
