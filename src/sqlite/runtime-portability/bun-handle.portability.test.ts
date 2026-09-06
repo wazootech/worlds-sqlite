@@ -5,9 +5,9 @@
  * Bun 1.3.x does not resolve node:sqlite at all).
  *
  * This file is bun-only: `deno test` discovery excludes it via deno.json's
- * `test.exclude`, and CI runs it with `bun test`. The file is kept reachable
- * for typechecking by the `tools/run-examples.ts` harness's sibling example
- * imports, so `deno check` stays green through example-side type coverage.
+ * `test.exclude`, and CI runs it with `bun test`. The file is unreachable
+ * from any package export and is not typechecked by `deno check` — the real
+ * protection is Bun's own runtime + typecheck on `bun test`.
  */
 import { Database } from "bun:sqlite";
 import { test } from "bun:test";
