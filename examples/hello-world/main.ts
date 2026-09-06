@@ -22,25 +22,27 @@ const engine = new WazooSparqlEngine({
 });
 
 // One named triple, then a SPARQL SELECT over it.
-store.addQuad(
-  quad(
-    namedNode("http://example.org/alice"),
-    namedNode("http://example.org/name"),
-    literal("Alice"),
-    defaultGraph(),
-  ),
-);
+if (import.meta.main) {
+  store.addQuad(
+    quad(
+      namedNode("http://example.org/alice"),
+      namedNode("http://example.org/name"),
+      literal("Alice"),
+      defaultGraph(),
+    ),
+  );
 
-console.log(store.size); // 1
+  console.log(store.size); // 1
 
-const results = await engine.execute({
-  query: "SELECT ?name WHERE { ?s <http://example.org/name> ?name }",
-});
+  const results = await engine.execute({
+    query: "SELECT ?name WHERE { ?s <http://example.org/name> ?name }",
+  });
 
-if (results.kind === "select") {
-  console.log(results.kind); // "select"
-  console.log(results.data.results.bindings.length); // 1
-  console.log(results.data.results.bindings[0].name.value); // "Alice"
+  if (results.kind === "select") {
+    console.log(results.kind); // "select"
+    console.log(results.data.results.bindings.length); // 1
+    console.log(results.data.results.bindings[0].name.value); // "Alice"
+  }
+
+  store.close();
 }
-
-store.close();

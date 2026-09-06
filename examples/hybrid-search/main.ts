@@ -15,42 +15,44 @@ import { FakeEmbeddingService } from "@worlds/sdk/search-index/embedding-service
 
 const { namedNode, literal, quad } = DataFactory;
 
-const sdk = await createSqliteWorldsSdk({
-  path: ":memory:",
-  vectorDimensions: 32,
-  embeddingService: new FakeEmbeddingService(),
-});
+if (import.meta.main) {
+  const sdk = await createSqliteWorldsSdk({
+    path: ":memory:",
+    vectorDimensions: 32,
+    embeddingService: new FakeEmbeddingService(),
+  });
 
-// Two facts so both keyword-only and hybrid searches have something to find.
-await sdk.import({
-  source: {
-    kind: "quads",
-    quads: [
-      quad(
-        namedNode("urn:alice"),
-        namedNode("urn:name"),
-        literal("Alice the explorer"),
-      ),
-      quad(
-        namedNode("urn:bob"),
-        namedNode("urn:name"),
-        literal("Bob lives in orbit"),
-      ),
-    ],
-  },
-});
+  // Two facts so both keyword-only and hybrid searches have something to find.
+  await sdk.import({
+    source: {
+      kind: "quads",
+      quads: [
+        quad(
+          namedNode("urn:alice"),
+          namedNode("urn:name"),
+          literal("Alice the explorer"),
+        ),
+        quad(
+          namedNode("urn:bob"),
+          namedNode("urn:name"),
+          literal("Bob lives in orbit"),
+        ),
+      ],
+    },
+  });
 
-const searchResult = await sdk.search({ query: "explorer", topK: 10 });
-console.log(searchResult.results?.length); // 1
-console.log(searchResult.results?.[0]?.text); // "Alice the explorer"
+  const searchResult = await sdk.search({ query: "explorer", topK: 10 });
+  console.log(searchResult.results?.length); // 1
+  console.log(searchResult.results?.[0]?.text); // "Alice the explorer"
 
-const sparqlResult = await sdk.sparql({
-  query: "SELECT ?name WHERE { ?s <urn:name> ?name }",
-});
+  const sparqlResult = await sdk.sparql({
+    query: "SELECT ?name WHERE { ?s <urn:name> ?name }",
+  });
 
-if (sparqlResult.kind === "select") {
-  console.log(sparqlResult.kind); // "select"
-  console.log(sparqlResult.data.results.bindings.length); // 2
+  if (sparqlResult.kind === "select") {
+    console.log(sparqlResult.kind); // "select"
+    console.log(sparqlResult.data.results.bindings.length); // 2
+  }
+
+  await sdk.close();
 }
-
-await sdk.close();
