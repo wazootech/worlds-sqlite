@@ -1,9 +1,7 @@
 name: CI
 
 on:
-  pull_request:
-    branches:
-      - main
+  pull_request: # all bases — stacked PRs target feature branches, not just main
   push:
     branches:
       - main
