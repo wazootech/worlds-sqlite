@@ -35,6 +35,7 @@
     ],
     "exclude": [
       "src/**/*.test.ts",
+      "tools/run-examples.ts",
       "test/"
     ]
   },
@@ -45,17 +46,19 @@
     "check": "deno check",
     "test": "deno test --allow-all",
     "publish:dry": "deno publish --dry-run --allow-dirty",
+    "examples:check": "deno test --allow-all tools/run-examples.ts",
     "sql-core:purity": "deno run --allow-read tools/sql-core-purity.ts",
     "bench": "deno bench --allow-all benchmarks/",
     "bench:record": "deno run -A benchmarks/bench-record.ts",
     "bench:check": "deno run -A benchmarks/bench-check.ts",
     "ci": {
-      "description": "Formats, lints, checks, and tests the code",
+      "description": "Formats, lints, checks, tests, and example harness",
       "dependencies": [
         "fmt:check",
         "lint",
         "check",
         "test",
+        "examples:check",
         "sql-core:purity"
       ]
     }
