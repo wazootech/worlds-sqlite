@@ -3,7 +3,7 @@
   "private": true,
   "type": "module",
   "dependencies": {
-    "@wazoo/sparql-engine": "npm:@jsr/wazoo__sparql-engine@^0.4.1",
+    "@wazoo/sparql-engine": "npm:@jsr/wazoo__sparql-engine@^0.4.2",
     "n3": "^2.2.11"
   }
 }
