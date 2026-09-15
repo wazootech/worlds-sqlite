@@ -42,7 +42,7 @@ if (import.meta.main) {
   });
 
   const searchResult = await sdk.search({ query: "explorer", topK: 10 });
-  console.log(searchResult.results?.length); // 1
+  console.log(searchResult.results?.length); // 2
   console.log(searchResult.results?.[0]?.text); // "Alice the explorer"
 
   const sparqlResult = await sdk.sparql({
