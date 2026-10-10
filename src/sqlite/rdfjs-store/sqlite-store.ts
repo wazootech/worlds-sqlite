@@ -290,9 +290,12 @@ export class SqliteStore implements rdfjs.Store<rdfjs.Quad> {
     this.db = options.db ??
       (options.createHandle?.(options.path) ??
         openNodeSqliteHandle(options.path));
+    // busy_timeout goes first: switching to WAL takes an exclusive lock, and
+    // without a timeout already set, a second process opening the same new
+    // database fails at once with "database is locked" instead of waiting.
     this.db.exec(
-      "PRAGMA journal_mode = WAL;" +
-        "PRAGMA busy_timeout = 5000;" +
+      "PRAGMA busy_timeout = 5000;" +
+        "PRAGMA journal_mode = WAL;" +
         "CREATE TABLE IF NOT EXISTS quads (" +
         "  skey TEXT NOT NULL," +
         "  pkey TEXT NOT NULL," +
