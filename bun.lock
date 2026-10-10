@@ -5,7 +5,7 @@
     "": {
       "name": "@worlds/sqlite",
       "dependencies": {
-        "@wazoo/sparql-engine": "npm:@jsr/wazoo__sparql-engine@^0.4.3",
+        "@wazoo/sparql-engine": "npm:@jsr/wazoo__sparql-engine@^0.4.4",
         "n3": "^2.2.11",
       },
     },
@@ -15,7 +15,7 @@
 
     "@types/node": ["@types/node@26.4.1", "", { "dependencies": { "undici-types": "~8.3.0" } }, "sha512-k97ENvZWtvA6yqz5/FS6a7duDgOPEeOQOc2iKS/nY6mX6qJUKtLnWzQS+Xj6tXweyj6ZcTAK2Qecetnvi9nCLA=="],
 
-    "@wazoo/sparql-engine": ["@jsr/wazoo__sparql-engine@0.4.3", "https://npm.jsr.io/~/11/@jsr/wazoo__sparql-engine/0.4.3.tgz", { "dependencies": { "@rdfjs/types": "^2.0.1" } }, "sha512-CD6/Qmn8xPPyIM41eCZxJnXDr6F2L/r1Ge33vgzTqNl4rU19jFl0LskDEtSPf1YtJC7Rt+K2ovmV2rMhyn1aWw=="],
+    "@wazoo/sparql-engine": ["@jsr/wazoo__sparql-engine@0.4.4", "https://npm.jsr.io/~/11/@jsr/wazoo__sparql-engine/0.4.4.tgz", { "dependencies": { "@rdfjs/types": "^2.0.1" } }, "sha512-Qk6Sj1LyLQvyzA12cYOSuHN5hvJnr/BJPCyHsWAXFkKuifVV/t+trfLKaxbL8BHq3znDW6bL5uB0P39qfy9yIA=="],
 
     "abort-controller": ["abort-controller@3.0.0", "", { "dependencies": { "event-target-shim": "^5.0.0" } }, "sha512-h8lQ8tacZYnR3vNQTgibj+tODHI5/+l06Au2Pcriv/Gmet0eaj4TwWH41sO9wnHDiQsEj19q0drzdWdeAHtweg=="],
 
