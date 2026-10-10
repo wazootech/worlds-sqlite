@@ -6,15 +6,15 @@
     "jsr:@std/internal@^1.0.12": "1.0.14",
     "jsr:@std/internal@^1.0.14": "1.0.14",
     "jsr:@std/path@^1.1.6": "1.1.6",
-    "jsr:@wazoo/sparql-engine@~0.4.1": "0.4.2",
-    "jsr:@wazoo/sparql-engine@~0.4.2": "0.4.2",
+    "jsr:@wazoo/sparql-engine@~0.4.1": "0.4.3",
+    "jsr:@wazoo/sparql-engine@~0.4.3": "0.4.3",
     "jsr:@worlds/sdk@~0.6.1": "0.6.1",
-    "npm:@jsr/wazoo__sparql-engine@~0.4.2": "0.4.2",
+    "npm:@jsr/wazoo__sparql-engine@~0.4.3": "0.4.3",
     "npm:@langchain/textsplitters@^1.0.1": "1.0.1_@langchain+core@1.2.8",
     "npm:@rdfjs/types@^2.0.1": "2.0.1",
     "npm:@types/n3@1.26.1": "1.26.1",
     "npm:@types/node@^26.2.0": "26.2.0",
-    "npm:ai@^6.0.195": "6.0.283_zod@4.6.5",
+    "npm:ai@^6.0.195": "6.0.303_zod@4.6.5",
     "npm:n3@^2.2.11": "2.2.11",
     "npm:sqlite-vec@~0.1.9": "0.1.9"
   },
@@ -37,8 +37,8 @@
         "jsr:@std/internal@^1.0.14"
       ]
     },
-    "@wazoo/sparql-engine@0.4.2": {
-      "integrity": "24e3923a302cd2b73a2ddb2726c8550c53e565e6100477ed80a18777364c7a38",
+    "@wazoo/sparql-engine@0.4.3": {
+      "integrity": "727583ede208f1534d60ef9a878ad1a8c34c3d71a99c9a27679dde7fa82b41f8",
       "dependencies": [
         "npm:@rdfjs/types"
       ]
@@ -54,8 +54,8 @@
     }
   },
   "npm": {
-    "@ai-sdk/gateway@3.0.194_zod@4.6.5": {
-      "integrity": "sha512-i6l8f9IT2dmqAC2/Pa1o09ouR4Lu6JYAkEAIRzNgJwJr3pbPR8mYPzi+w4LFKt6fImEz+b4EHYTFz4Ly5XLdJQ==",
+    "@ai-sdk/gateway@3.0.212_zod@4.6.5": {
+      "integrity": "sha512-iTJSim/6LuSxiG3RF0FWU7bEQ8dF6EplcWci5Km4Vc8SUcR8vxFuC7T/pfCutW00pI/3WYsHm8RCQ5141/Xykw==",
       "dependencies": [
         "@ai-sdk/provider",
         "@ai-sdk/provider-utils",
@@ -63,8 +63,8 @@
         "zod"
       ]
     },
-    "@ai-sdk/provider-utils@4.0.51_zod@4.6.5": {
-      "integrity": "sha512-ukLTs9x1Xm6lxSIwbJIxYQxbZHmVeIczNntARZrBcOa6pjdBhqeZnATNnJMHa7M9dZ8Ji5NJbpKpvz7o5XyBtg==",
+    "@ai-sdk/provider-utils@4.0.57_zod@4.6.5": {
+      "integrity": "sha512-89a7sPvZqXsP3PigcAQLWntu/duIVEcN/RyChAB+j6p3C7NwW767sVttvL8r0+BetTg63uAXQoYHCZZueQKBSw==",
       "dependencies": [
         "@ai-sdk/provider",
         "@standard-schema/spec",
@@ -73,8 +73,8 @@
         "zod"
       ]
     },
-    "@ai-sdk/provider@3.0.16": {
-      "integrity": "sha512-9Av6kg0t/IN/dcYAAmEJ4B9OPhcEJqwSR+GfHEA8olRkindXpUHadc3p3cyvgFUQFTVm1G5thtsmgZ9yVb2w3A==",
+    "@ai-sdk/provider@3.0.18": {
+      "integrity": "sha512-IpefF5ssZVOZCD4Wu7zxt6PwZoGT2HLVjxpJ10Bjx6EAmRfLYJPjyrfxb0RYDlwvXnDb9nkQ7Do/oJVDuRFzew==",
       "dependencies": [
         "json-schema"
       ]
@@ -82,12 +82,12 @@
     "@cfworker/json-schema@4.1.1": {
       "integrity": "sha512-gAmrUZSGtKc3AiBL71iNWxDsyUC5uMaKKGdvzYsBoTW/xi42JQHl7eKV2OYzCUqvc+D2RCcf7EXY2iCyFIk6og=="
     },
-    "@jsr/wazoo__sparql-engine@0.4.2": {
-      "integrity": "sha512-iDhR7TX88E2CvTBJOZeWQdCgsc2oo8a6DlpJtvBU+roKnycgKD12nGVkJr2BTV+oy/9g2ah6QTRJ7caL+TcAXg==",
+    "@jsr/wazoo__sparql-engine@0.4.3": {
+      "integrity": "sha512-CD6/Qmn8xPPyIM41eCZxJnXDr6F2L/r1Ge33vgzTqNl4rU19jFl0LskDEtSPf1YtJC7Rt+K2ovmV2rMhyn1aWw==",
       "dependencies": [
         "@rdfjs/types"
       ],
-      "tarball": "https://npm.jsr.io/~/11/@jsr/wazoo__sparql-engine/0.4.2.tgz"
+      "tarball": "https://npm.jsr.io/~/11/@jsr/wazoo__sparql-engine/0.4.3.tgz"
     },
     "@langchain/core@1.2.8": {
       "integrity": "sha512-ppi2UaCYKqM4LEY8NWQ/JZ0Of0MAngHRvclceVeEQklcD/M6QKanlHPWblDnLO2m4vz7987b1Z4r33Ps6lf/ig==",
@@ -141,8 +141,8 @@
         "event-target-shim"
       ]
     },
-    "ai@6.0.283_zod@4.6.5": {
-      "integrity": "sha512-1/vdLNPDNZhdDTMvEvDldEXELCY4k3Ak3ztiH3/f59odFHzDO2VRtm3VYwaIX+eF1Gh22I3Ai3Su30l2Yp3+GQ==",
+    "ai@6.0.303_zod@4.6.5": {
+      "integrity": "sha512-4HE3naLXgRLN4XOoEJaPHfIz7/hO0A21ltUG5DM3NDrGVTrqhnfs7s3ItwHtiWazCDOIuc4cCE4MgiuEvVryCw==",
       "dependencies": [
         "@ai-sdk/gateway",
         "@ai-sdk/provider",
@@ -278,8 +278,8 @@
     "undici-types@8.3.0": {
       "integrity": "sha512-j375ScV60dom+YkPFIfTLcOiPxkN/buHz5GobjLhixFuANaNs3C9l4GmrWqejgXWJ7BbJcFYpTEUkS1Ge8bpZQ=="
     },
-    "undici@6.28.1": {
-      "integrity": "sha512-zWpdTVD54H48CIybL0rWQ3ukpb9d23wM7eH5RtfdmeP70cWHNjtfo7P4vZX+5CoDcO53J4Pu5uXp7lNfjc6DRA=="
+    "undici@6.29.0": {
+      "integrity": "sha512-R+RODBqp6i2pPflGdq+xIOUkl+RNfGgHwoinecKu/JCuf2uO06cOKoDbI2P7Dn6KcswdKwrczbU6IYJ6K8X+wg=="
     },
     "zod@4.6.5": {
       "integrity": "sha512-v5l/aFXZQeai4awLbOpSoHecE9UiMrnfx75tEXLjNonXVARxQ5mOeipTjROUchszUNCqnE+hqAMujRsRHsut2Q=="
@@ -289,7 +289,7 @@
     "dependencies": [
       "jsr:@std/assert@^1.0.19",
       "jsr:@std/path@^1.1.6",
-      "jsr:@wazoo/sparql-engine@~0.4.2",
+      "jsr:@wazoo/sparql-engine@~0.4.3",
       "jsr:@worlds/sdk@~0.6.1",
       "npm:@langchain/textsplitters@^1.0.1",
       "npm:@rdfjs/types@^2.0.1",
@@ -300,7 +300,7 @@
     ],
     "packageJson": {
       "dependencies": [
-        "npm:@jsr/wazoo__sparql-engine@~0.4.2",
+        "npm:@jsr/wazoo__sparql-engine@~0.4.3",
         "npm:n3@^2.2.11"
       ]
     }
