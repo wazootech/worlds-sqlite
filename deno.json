@@ -22,8 +22,8 @@
     "@std/path": "jsr:@std/path@^1.1.6",
     "@langchain/textsplitters": "npm:@langchain/textsplitters@^1.0.1",
     "sqlite-vec": "npm:sqlite-vec@^0.1.9",
-    "@wazoo/sparql-engine": "jsr:@wazoo/sparql-engine@^0.4.3",
-    "@wazoo/sparql-engine/term": "jsr:@wazoo/sparql-engine@^0.4.3/term",
+    "@wazoo/sparql-engine": "jsr:@wazoo/sparql-engine@^0.4.4",
+    "@wazoo/sparql-engine/term": "jsr:@wazoo/sparql-engine@^0.4.4/term",
     "@worlds/sdk": "jsr:@worlds/sdk@^0.6.1"
   },
   "minimumDependencyAge": 0,
