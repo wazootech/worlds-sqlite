@@ -48,6 +48,7 @@ import type {
   SyncSqliteHandleFactory,
 } from "@/sqlite/any-sync-sqlite-handle.ts";
 import { termKey } from "@/sqlite/term/term-key.ts";
+import { requireBase } from "@/sqlite/rdfjs-store/require-base.ts";
 import { MemoryStream } from "@/sqlite/rdfjs-store/memory-stream.ts";
 import { DEFAULT_SQLITE_MATCH_PAGE_SIZE } from "@/sqlite/quad-store/sqlite-quad-query-builder.ts";
 
@@ -64,7 +65,7 @@ import { DEFAULT_SQLITE_MATCH_PAGE_SIZE } from "@/sqlite/quad-store/sqlite-quad-
  * `createHandle` was provided.
  */
 function openNodeSqliteHandle(path: string): AnySyncSqliteHandle {
-  const { DatabaseSync } = createRequire(import.meta.url)(
+  const { DatabaseSync } = createRequire(requireBase(import.meta.url))(
     "node:sqlite",
   ) as typeof import("node:sqlite");
   // Default construction mirrors createNodeSqliteHandle(options) with
