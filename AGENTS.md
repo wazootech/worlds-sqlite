@@ -31,7 +31,9 @@ this repo's specifics:
   to `v2.9.8`, and installs are frozen (`deno ci`).
 - `secret-scan.yml` runs gitleaks on every PR and push to `main`; report
   findings, never suppress them.
-- `code-health.yml` is warn-only (file length, TODO/FIXME without an issue
-  link); it does not fail the build.
+- `code-health.yml` enforces the file-length limit (120 lines of code per source
+  file, 300 per test; a file over its limit fails the build, with a short
+  explicit in-workflow allowlist that may only shrink). The TODO/FIXME check is
+  still warn-only.
 - `.github/CODEOWNERS` and `renovate.json` are present; Renovate only acts where
   the org has the Renovate GitHub App installed.
