@@ -21,6 +21,7 @@ import type {
   SqliteRuntimePortabilitySuiteOptions,
 } from "./sqlite-runtime-portability-shared.ts";
 import { registerStoreCases } from "./sqlite-runtime-portability-store-cases.ts";
+import { registerStorePagingCases } from "./sqlite-runtime-portability-store-paging-cases.ts";
 import { registerDriverCases } from "./sqlite-runtime-portability-driver-cases.ts";
 
 export type {
@@ -34,5 +35,6 @@ export function runSqliteRuntimePortabilitySuite(
   options: SqliteRuntimePortabilitySuiteOptions,
 ): void {
   registerStoreCases(test, options);
+  registerStorePagingCases(test, options);
   registerDriverCases(test, options);
 }
