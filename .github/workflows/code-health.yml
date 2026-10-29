@@ -12,10 +12,21 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - name: File length (warn-only; 120 src / 300 test, blank/comment/import lines excluded)
         run: |
+          # Counter: skips blank, comment, and (multi-line) import / export-from lines.
+          cat > "$RUNNER_TEMP/loc.awk" <<'AWK'
+          inimp { if ($0 ~ /from[ \t]*["'][^"']+["'];?[ \t]*$/ || $0 ~ /^[ \t]*\}/) inimp = 0; next }
+          /^[ \t]*(import[ \t]|export[ \t]+(type[ \t]+)?(\{|\*))/ {
+            if ($0 !~ /from[ \t]*["'][^"']+["'];?[ \t]*$/ && $0 !~ /^[ \t]*import[ \t]*["']/ && $0 !~ /\}/) inimp = 1
+            next
+          }
+          /^[ \t]*($|\/\/|\/\*|\*)/ { next }
+          { n++ }
+          END { print n + 0 }
+          AWK
           git ls-files '*.ts' '*.tsx' '*.js' '*.mjs' \
             | grep -vE '(^|/)(node_modules|dist|generated|fixtures|\.next)/|\.d\.ts$|\.gen\.|openapi|snapshot|schema' \
             | while read -r f; do
-                n=$(grep -cvE '^\s*($|//|/\*|\*|import |export .* from )' "$f" || true)
+                n=$(awk -f "$RUNNER_TEMP/loc.awk" "$f")
                 case "$f" in *.test.*|*.spec.*|*/tests/*|tests/*) max=300;; *) max=120;; esac
                 if [ "$n" -gt "$max" ]; then echo "::warning file=$f::$n lines of code (limit $max)"; echo "- \`$f\`: $n (limit $max)" >> "$GITHUB_STEP_SUMMARY"; fi
               done

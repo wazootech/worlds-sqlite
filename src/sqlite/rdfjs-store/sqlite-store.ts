@@ -41,243 +41,29 @@
  *   database consistent across process crashes.
  */
 import type * as rdfjs from "@rdfjs/types";
-import { createRequire } from "node:module";
 import { DataFactory } from "@wazoo/sparql-engine";
-import type {
-  AnySyncSqliteHandle,
-  SyncSqliteHandleFactory,
-} from "@/sqlite/any-sync-sqlite-handle.ts";
-import { termKey } from "@/sqlite/term/term-key.ts";
-import { requireBase } from "@/sqlite/rdfjs-store/require-base.ts";
+import type { AnySyncSqliteHandle } from "@/sqlite/any-sync-sqlite-handle.ts";
 import { MemoryStream } from "@/sqlite/rdfjs-store/memory-stream.ts";
-import { DEFAULT_SQLITE_MATCH_PAGE_SIZE } from "@/sqlite/quad-store/sqlite-quad-query-builder.ts";
+import { openNodeSqliteHandle } from "@/sqlite/rdfjs-store/sqlite-store-handle.ts";
+import { quadKey } from "@/sqlite/rdfjs-store/sqlite-store-codec.ts";
+import {
+  type SqliteTransaction,
+  SqliteTransactionImpl,
+} from "@/sqlite/rdfjs-store/sqlite-store-tx.ts";
+import type { SqliteStoreOptions } from "@/sqlite/rdfjs-store/sqlite-store-options.ts";
+import { queryQuads } from "@/sqlite/rdfjs-store/sqlite-store-query.ts";
+import {
+  deleteQuadRow,
+  insertQuadRow,
+  SQLITE_STORE_INIT_SQL,
+} from "@/sqlite/rdfjs-store/sqlite-store-sql.ts";
 
-/**
- * openNodeSqliteHandle opens the default node:sqlite DatabaseSync for a path.
- *
- * This is the package's single default node:sqlite construction site.
- * createSqliteWorldsSdk and SqliteStore both route through this function so
- * the default handle is constructed identically everywhere. node:sqlite is
- * resolved lazily (never at module load), so this module stays loadable on
- * runtimes without it (Bun).
- *
- * On runtimes without node:sqlite the error surfaces only when no `db` /
- * `createHandle` was provided.
- */
-function openNodeSqliteHandle(path: string): AnySyncSqliteHandle {
-  const { DatabaseSync } = createRequire(requireBase(import.meta.url))(
-    "node:sqlite",
-  ) as typeof import("node:sqlite");
-  // Default construction mirrors createNodeSqliteHandle(options) with
-  // allowExtension: false so this fallback is byte-identical to the SDK path.
-  return new DatabaseSync(path, {
-    allowExtension: false,
-  });
-}
-
-/**
- * SqliteTransaction is the atomic patch contract a SPARQL update uses to
- * buffer writes. It is structurally identical to the engine's
- * `WazooSparqlTransaction` (and the worlds client's Transaction), so a store
- * producing it satisfies the engine's `createTransaction` hook with no
- * cross-package import.
- */
-export interface SqliteTransaction {
-  /** add buffers a single quad for insertion on the next commit. */
-  add(quad: rdfjs.Quad): unknown;
-
-  /** delete buffers a single quad for deletion on the next commit. */
-  delete(quad: rdfjs.Quad): unknown;
-
-  /** commit persists the buffered patch. */
-  commit(): Promise<void>;
-
-  /** rollback discards any uncommitted insertions and deletions. */
-  rollback(): void;
-}
-
-/** Lossless, JSON-serializable term encoding (kept private to this module). */
-type TermRecord =
-  | { t: "N"; v: string } // NamedNode
-  | { t: "B"; v: string } // BlankNode
-  | { t: "V"; v: string } // Variable
-  | { t: "D" } // DefaultGraph
-  | { t: "L"; v: string; lang: string; dt: string } // Literal
-  | { t: "Q"; s: TermRecord; p: TermRecord; o: TermRecord }; // RDF-star triple term
-
-type QuadRecord = {
-  s: TermRecord;
-  p: TermRecord;
-  o: TermRecord;
-  g: TermRecord;
-};
-
-function toTermRecord(term: rdfjs.Term): TermRecord {
-  switch (term.termType) {
-    case "NamedNode":
-      return { t: "N", v: term.value };
-    case "BlankNode":
-      return { t: "B", v: term.value };
-    case "Variable":
-      return { t: "V", v: term.value };
-    case "DefaultGraph":
-      return { t: "D" };
-    case "Literal":
-      return {
-        t: "L",
-        v: term.value,
-        lang: term.language,
-        dt: term.datatype.value,
-      };
-    case "Quad":
-      return {
-        t: "Q",
-        s: toTermRecord(term.subject),
-        p: toTermRecord(term.predicate),
-        o: toTermRecord(term.object),
-      };
-  }
-}
-
-function fromTermRecord(rec: TermRecord): rdfjs.Term {
-  switch (rec.t) {
-    case "N":
-      return DataFactory.namedNode(rec.v);
-    case "B":
-      return DataFactory.blankNode(rec.v);
-    case "V":
-      return DataFactory.variable(rec.v);
-    case "D":
-      return DataFactory.defaultGraph();
-    case "L":
-      return rec.lang
-        ? DataFactory.literal(rec.v, rec.lang)
-        : DataFactory.literal(rec.v, DataFactory.namedNode(rec.dt));
-    case "Q":
-      // The engine's quad() types are strict about positions, but RDF 1.2
-      // triple terms allow any term in any position (literal subjects
-      // included) — cast to the position types, which is always sound here.
-      return DataFactory.quad(
-        fromTermRecord(rec.s) as rdfjs.Quad_Subject,
-        fromTermRecord(rec.p) as rdfjs.Quad_Predicate,
-        fromTermRecord(rec.o) as rdfjs.Quad_Object,
-      );
-  }
-}
-
-function toQuadRecord(quad: rdfjs.Quad): QuadRecord {
-  return {
-    s: toTermRecord(quad.subject),
-    p: toTermRecord(quad.predicate),
-    o: toTermRecord(quad.object),
-    g: toTermRecord(quad.graph),
-  };
-}
-
-function fromQuadRecord(rec: QuadRecord): rdfjs.Quad {
-  // Reconstructed positions may be any term (RDF 1.2 quoted triples allow
-  // literal subjects); the engine's position types are narrower, so cast.
-  return DataFactory.quad(
-    fromTermRecord(rec.s) as rdfjs.Quad_Subject,
-    fromTermRecord(rec.p) as rdfjs.Quad_Predicate,
-    fromTermRecord(rec.o) as rdfjs.Quad_Object,
-    fromTermRecord(rec.g) as rdfjs.Quad_Graph,
-  );
-}
-
-/** SqliteStoreOptions configures SqliteStore. */
-export interface SqliteStoreOptions {
-  /** Path to the SQLite database file, or ":memory:" for a temp database. */
-  path: string;
-
-  /**
-   * Pre-created synchronous SQLite handle to share instead of opening a new
-   * one: a node:sqlite DatabaseSync, a bun:sqlite Database, or any other
-   * AnySyncSqliteHandle. Used by createSqliteWorldsSdk so the L2 quad store,
-   * search layer, and RDF/JS read path share a single handle (required for
-   * ":memory:" and for a handle opened with allowExtension so sqlite-vec can
-   * load). When provided, `path` is ignored.
-   */
-  db?: AnySyncSqliteHandle;
-
-  /**
-   * createHandle supplies the default handle when `db` is absent — the
-   * injectable construction seam. Defaults to opening a node:sqlite
-   * DatabaseSync for `path`; Bun callers can pass a factory over
-   * bun:sqlite's Database instead. When provided, `path` is used as its
-   * argument.
-   */
-  createHandle?: SyncSqliteHandleFactory;
-
-  /** matchPageSize limits rows per getQuads SQL round-trip (default 1000). */
-  matchPageSize?: number;
-
-  /**
-   * Test seam invoked inside commit(), after BEGIN IMMEDIATE and before any
-   * row is written. Throw to exercise the atomic-rollback path.
-   */
-  beforeCommit?: (db: AnySyncSqliteHandle) => void;
-}
-
-/**
- * SqliteTransactionImpl buffers a SPARQL update patch and applies it
- * atomically on commit. Deletes run before inserts, and a delete followed by
- * an insert of the same quad nets to the insert.
- */
-class SqliteTransactionImpl implements SqliteTransaction {
-  /** quad key -> quad, for insert; a Map keeps the last insert of a key. */
-  private readonly inserted = new Map<string, rdfjs.Quad>();
-  /** quad keys buffered for deletion (net of any insert of the same key). */
-  private readonly deleted = new Set<string>();
-
-  public constructor(private readonly store: SqliteStore) {}
-
-  public add(quad: rdfjs.Quad): void {
-    this.deleted.delete(quadKey(quad));
-    this.inserted.set(quadKey(quad), quad);
-  }
-
-  public delete(quad: rdfjs.Quad): void {
-    if (this.inserted.delete(quadKey(quad))) {
-      return; // add + delete of the same quad nets to nothing
-    }
-    this.deleted.add(quadKey(quad));
-  }
-
-  public commit(): Promise<void> {
-    // node:sqlite is synchronous, so commit resolves once the COMMIT lands.
-    const db = this.store.db;
-    db.exec("BEGIN IMMEDIATE");
-    try {
-      this.store.options.beforeCommit?.(db);
-      for (const key of this.deleted) {
-        this.store.removeQuadByKey(key);
-      }
-      for (const quad of this.inserted.values()) {
-        this.store.insertQuad(quad);
-      }
-      db.exec("COMMIT");
-      return Promise.resolve();
-    } catch (error) {
-      db.exec("ROLLBACK");
-      return Promise.reject(error);
-    }
-  }
-
-  public rollback(): void {
-    this.inserted.clear();
-    this.deleted.clear();
-  }
-}
-
-function quadKey(quad: rdfjs.Quad): string {
-  return [
-    termKey(quad.subject),
-    termKey(quad.predicate),
-    termKey(quad.object),
-    termKey(quad.graph),
-  ].join("\u0000");
-}
+export type { SqliteTransaction };
+export type { SqliteStoreOptions };
+export {
+  quadFromPayloadJson,
+  quadToPayloadJson,
+} from "@/sqlite/rdfjs-store/sqlite-store-codec.ts";
 
 /**
  * SqliteStore is a durable RDF/JS Store. It implements the read side of
@@ -294,21 +80,7 @@ export class SqliteStore implements rdfjs.Store<rdfjs.Quad> {
     // busy_timeout goes first: switching to WAL takes an exclusive lock, and
     // without a timeout already set, a second process opening the same new
     // database fails at once with "database is locked" instead of waiting.
-    this.db.exec(
-      "PRAGMA busy_timeout = 5000;" +
-        "PRAGMA journal_mode = WAL;" +
-        "CREATE TABLE IF NOT EXISTS quads (" +
-        "  skey TEXT NOT NULL," +
-        "  pkey TEXT NOT NULL," +
-        "  okey TEXT NOT NULL," +
-        "  gkey TEXT NOT NULL," +
-        "  payload TEXT NOT NULL," +
-        "  PRIMARY KEY (skey, pkey, okey, gkey)" +
-        ") STRICT;" +
-        "CREATE INDEX IF NOT EXISTS idx_quads_pkey ON quads (pkey);" +
-        "CREATE INDEX IF NOT EXISTS idx_quads_okey ON quads (okey);" +
-        "CREATE INDEX IF NOT EXISTS idx_quads_gkey ON quads (gkey);",
-    );
+    this.db.exec(SQLITE_STORE_INIT_SQL);
   }
 
   /** createTransaction returns a fresh transaction over this store. */
@@ -373,58 +145,14 @@ export class SqliteStore implements rdfjs.Store<rdfjs.Quad> {
     object?: rdfjs.Term | null,
     graph?: rdfjs.Term | null,
   ): rdfjs.Quad[] {
-    const where: string[] = [];
-    const args: Array<string | number> = [];
-    const bind = (
-      column: string,
-      term: rdfjs.Term | null | undefined,
-    ): void => {
-      if (term != null) {
-        where.push(`${column} = ?`);
-        args.push(termKey(term));
-      }
-    };
-    bind("skey", subject);
-    bind("pkey", predicate);
-    bind("okey", object);
-    bind("gkey", graph);
-
-    const pageSize = Math.max(
-      1,
-      Math.floor(
-        this.options.matchPageSize ?? DEFAULT_SQLITE_MATCH_PAGE_SIZE,
-      ),
+    return queryQuads(
+      this.db,
+      this.options.matchPageSize,
+      subject,
+      predicate,
+      object,
+      graph,
     );
-    const quads: rdfjs.Quad[] = [];
-    let anchor: [string, string, string, string] | undefined;
-
-    for (;;) {
-      const pageWhere = [...where];
-      const pageArgs: Array<string | number> = [...args];
-      if (anchor) {
-        pageWhere.push("(skey, pkey, okey, gkey) > (?, ?, ?, ?)");
-        pageArgs.push(...anchor);
-      }
-      const sql = "SELECT payload, skey, pkey, okey, gkey FROM quads" +
-        (pageWhere.length > 0 ? " WHERE " + pageWhere.join(" AND ") : "") +
-        " ORDER BY skey, pkey, okey, gkey LIMIT ?";
-      pageArgs.push(pageSize);
-      const rows = this.db.prepare(sql).all(...pageArgs) as Array<
-        Record<string, string>
-      >;
-      if (rows.length === 0) {
-        break;
-      }
-      for (const row of rows) {
-        quads.push(fromQuadRecord(JSON.parse(row.payload)));
-        anchor = [row.skey, row.pkey, row.okey, row.gkey];
-      }
-      if (rows.length < pageSize) {
-        break;
-      }
-    }
-
-    return quads;
   }
 
   public countQuads(
@@ -470,42 +198,11 @@ export class SqliteStore implements rdfjs.Store<rdfjs.Quad> {
 
   /** insertQuad writes one row (upsert semantics). */
   public insertQuad(quad: rdfjs.Quad): void {
-    this.db.prepare(
-      "INSERT OR REPLACE INTO quads (skey, pkey, okey, gkey, payload)" +
-        " VALUES (?, ?, ?, ?, ?)",
-    ).run(
-      termKey(quad.subject),
-      termKey(quad.predicate),
-      termKey(quad.object),
-      termKey(quad.graph),
-      quadToPayloadJson(quad),
-    );
+    insertQuadRow(this.db, quad);
   }
 
   /** removeQuadByKey deletes one row by its four-position key. */
   public removeQuadByKey(key: string): void {
-    const [skey, pkey, okey, gkey] = key.split("\u0000");
-    this.db.prepare(
-      "DELETE FROM quads WHERE skey = ? AND pkey = ? AND okey = ? AND gkey = ?",
-    ).run(skey, pkey, okey, gkey);
+    deleteQuadRow(this.db, key);
   }
-}
-
-/**
- * quadToPayloadJson serializes a quad to the store's lossless JSON payload
- * format. Exported so the L2 commit path (commitPatchToSqlite) writes rows in
- * exactly the same encoding the store reads back.
- */
-export function quadToPayloadJson(quad: rdfjs.Quad): string {
-  return JSON.stringify(toQuadRecord(quad));
-}
-
-/**
- * quadFromPayloadJson reconstructs a quad from the store's lossless JSON
- * payload format. Exported so the L2 rebuild path can page over the quads
- * table directly while keeping the payload format's single source of truth
- * here.
- */
-export function quadFromPayloadJson(payload: string): rdfjs.Quad {
-  return fromQuadRecord(JSON.parse(payload) as QuadRecord);
 }
