@@ -42,63 +42,28 @@
  */
 import type * as rdfjs from "@rdfjs/types";
 import { DataFactory } from "@wazoo/sparql-engine";
-import type {
-  AnySyncSqliteHandle,
-  SyncSqliteHandleFactory,
-} from "@/sqlite/any-sync-sqlite-handle.ts";
-import { termKey } from "@/sqlite/term/term-key.ts";
+import type { AnySyncSqliteHandle } from "@/sqlite/any-sync-sqlite-handle.ts";
 import { MemoryStream } from "@/sqlite/rdfjs-store/memory-stream.ts";
 import { openNodeSqliteHandle } from "@/sqlite/rdfjs-store/sqlite-store-handle.ts";
-import {
-  quadKey,
-  quadToPayloadJson,
-} from "@/sqlite/rdfjs-store/sqlite-store-codec.ts";
+import { quadKey } from "@/sqlite/rdfjs-store/sqlite-store-codec.ts";
 import {
   type SqliteTransaction,
   SqliteTransactionImpl,
 } from "@/sqlite/rdfjs-store/sqlite-store-tx.ts";
+import type { SqliteStoreOptions } from "@/sqlite/rdfjs-store/sqlite-store-options.ts";
 import { queryQuads } from "@/sqlite/rdfjs-store/sqlite-store-query.ts";
-import { SQLITE_STORE_INIT_SQL } from "@/sqlite/rdfjs-store/sqlite-store-sql.ts";
+import {
+  deleteQuadRow,
+  insertQuadRow,
+  SQLITE_STORE_INIT_SQL,
+} from "@/sqlite/rdfjs-store/sqlite-store-sql.ts";
 
 export type { SqliteTransaction };
+export type { SqliteStoreOptions };
 export {
   quadFromPayloadJson,
   quadToPayloadJson,
 } from "@/sqlite/rdfjs-store/sqlite-store-codec.ts";
-
-/** SqliteStoreOptions configures SqliteStore. */
-export interface SqliteStoreOptions {
-  /** Path to the SQLite database file, or ":memory:" for a temp database. */
-  path: string;
-
-  /**
-   * Pre-created synchronous SQLite handle to share instead of opening a new
-   * one: a node:sqlite DatabaseSync, a bun:sqlite Database, or any other
-   * AnySyncSqliteHandle. Used by createSqliteWorldsSdk so the L2 quad store,
-   * search layer, and RDF/JS read path share a single handle (required for
-   * ":memory:" and for a handle opened with allowExtension so sqlite-vec can
-   * load). When provided, `path` is ignored.
-   */
-  db?: AnySyncSqliteHandle;
-
-  /**
-   * createHandle supplies the default handle when `db` is absent — the
-   * injectable construction seam. Defaults to opening a node:sqlite
-   * DatabaseSync for `path`; Bun callers can pass a factory over
-   * bun:sqlite's Database instead. When provided, `path` is used as its
-   * argument.
-   */
-  createHandle?: SyncSqliteHandleFactory;
-
-  /** matchPageSize limits rows per getQuads SQL round-trip (default 1000). */
-  matchPageSize?: number;
-
-  /**
-   * Test seam invoked inside commit(), after BEGIN IMMEDIATE and before any
-   * row is written. Throw to exercise the atomic-rollback path.
-   */
-  beforeCommit?: (db: AnySyncSqliteHandle) => void;
-}
 
 /**
  * SqliteStore is a durable RDF/JS Store. It implements the read side of
@@ -233,23 +198,11 @@ export class SqliteStore implements rdfjs.Store<rdfjs.Quad> {
 
   /** insertQuad writes one row (upsert semantics). */
   public insertQuad(quad: rdfjs.Quad): void {
-    this.db.prepare(
-      "INSERT OR REPLACE INTO quads (skey, pkey, okey, gkey, payload)" +
-        " VALUES (?, ?, ?, ?, ?)",
-    ).run(
-      termKey(quad.subject),
-      termKey(quad.predicate),
-      termKey(quad.object),
-      termKey(quad.graph),
-      quadToPayloadJson(quad),
-    );
+    insertQuadRow(this.db, quad);
   }
 
   /** removeQuadByKey deletes one row by its four-position key. */
   public removeQuadByKey(key: string): void {
-    const [skey, pkey, okey, gkey] = key.split("\u0000");
-    this.db.prepare(
-      "DELETE FROM quads WHERE skey = ? AND pkey = ? AND okey = ? AND gkey = ?",
-    ).run(skey, pkey, okey, gkey);
+    deleteQuadRow(this.db, key);
   }
 }
