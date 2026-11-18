@@ -26,7 +26,10 @@
     "@wazoo/sparql-engine/term": "jsr:@wazoo/sparql-engine@^0.4.4/term",
     "@worlds/sdk": "jsr:@worlds/sdk@^0.6.1"
   },
-  "minimumDependencyAge": 0,
+  "minimumDependencyAge": {
+    "age": "P1D",
+    "exclude": ["jsr:@wazoo/sparql-engine", "jsr:@worlds/sdk"]
+  },
   "publish": {
     "include": [
       "src/",
