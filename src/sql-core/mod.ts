@@ -31,3 +31,26 @@ export type {
 export { buildSearchResultId } from "./search-result-id.ts";
 export type { BuildSearchResultIdOptions } from "./search-result-id.ts";
 export type { SqlBindValue, SqlStatement } from "./sql-statement.ts";
+export { commitSqlPatch } from "./commit/commit-sql-patch.ts";
+export {
+  DEFAULT_REBUILD_PAGE_SIZE,
+  rebuildSqlSearchIndex,
+} from "./commit/rebuild-sql-search-index.ts";
+export {
+  DEFAULT_MAX_ATOMIC_STATEMENTS,
+  DEFAULT_WRITE_BATCH_SIZE,
+  writeCommitStatements,
+  writeInBatches,
+} from "./commit/write-commit-statements.ts";
+export type {
+  CommitCleanup,
+  SqlWriteLimits,
+} from "./commit/write-commit-statements.ts";
+export type {
+  SqlCommitDriver,
+  SqlCommitOptions,
+  SqlCommitSummary,
+  SqlDialect,
+  SqlProjectionOptions,
+  SqlQuadPage,
+} from "./commit/commit-types.ts";
