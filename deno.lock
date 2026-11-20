@@ -11,7 +11,7 @@
     "jsr:@wazoo/sparql-engine@0.5.0": "0.5.0",
     "jsr:@worlds/client@0.1": "0.1.0",
     "jsr:@worlds/sdk@~0.9.1": "0.9.1",
-    "npm:@jsr/wazoo__sparql-engine@~0.4.4": "0.4.4",
+    "npm:@jsr/wazoo__sparql-engine@0.5": "0.5.0",
     "npm:@langchain/textsplitters@^1.0.1": "1.0.1_@langchain+core@1.2.8",
     "npm:@rdfjs/types@^2.0.1": "2.0.1",
     "npm:@tensorflow/tfjs-backend-wasm@^4.22.0": "4.22.0_@tensorflow+tfjs-core@4.22.0",
@@ -96,12 +96,12 @@
     "@cfworker/json-schema@4.1.1": {
       "integrity": "sha512-gAmrUZSGtKc3AiBL71iNWxDsyUC5uMaKKGdvzYsBoTW/xi42JQHl7eKV2OYzCUqvc+D2RCcf7EXY2iCyFIk6og=="
     },
-    "@jsr/wazoo__sparql-engine@0.4.4": {
-      "integrity": "sha512-Qk6Sj1LyLQvyzA12cYOSuHN5hvJnr/BJPCyHsWAXFkKuifVV/t+trfLKaxbL8BHq3znDW6bL5uB0P39qfy9yIA==",
+    "@jsr/wazoo__sparql-engine@0.5.0": {
+      "integrity": "sha512-tmAzzSg1UvKAwWZyB8kXjHJcS10sdiiyH5hSX5MFaFb/XwcqomZEvcrmhq7l2BZGzz9YMWp9ilZWpetOQOUKJQ==",
       "dependencies": [
         "@rdfjs/types"
       ],
-      "tarball": "https://npm.jsr.io/~/11/@jsr/wazoo__sparql-engine/0.4.4.tgz"
+      "tarball": "https://npm.jsr.io/~/11/@jsr/wazoo__sparql-engine/0.5.0.tgz"
     },
     "@langchain/core@1.2.8": {
       "integrity": "sha512-ppi2UaCYKqM4LEY8NWQ/JZ0Of0MAngHRvclceVeEQklcD/M6QKanlHPWblDnLO2m4vz7987b1Z4r33Ps6lf/ig==",
@@ -667,7 +667,7 @@
     ],
     "packageJson": {
       "dependencies": [
-        "npm:@jsr/wazoo__sparql-engine@~0.4.4",
+        "npm:@jsr/wazoo__sparql-engine@0.5",
         "npm:n3@^2.2.11"
       ]
     }
