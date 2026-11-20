@@ -8,12 +8,15 @@
  * between SqliteStore and the engine's MemoryStore).
  */
 import { assertEquals } from "@std/assert";
-import type * as rdfjs from "@rdfjs/types";
 import { DataFactory as N3 } from "n3";
 import { WorldsSdk } from "@worlds/sdk";
 import { RdfjsQuadStore, RdfjsSearchIndex } from "@worlds/sdk/rdfjs";
 import { MemoryStore, WazooSparqlEngine } from "@wazoo/sparql-engine";
 import type { SparqlBinding, SparqlResponse } from "@worlds/sdk/sparql-engine";
+import type { RdfjsStoreLike } from "@worlds/sdk/quad-store";
+
+/** EngineStore is the store shape WazooSparqlEngine 0.5 accepts (read plus addQuad/removeQuad). */
+type EngineStore = ConstructorParameters<typeof WazooSparqlEngine>[0]["store"];
 import { SqliteStore } from "@/sqlite/rdfjs-store/sqlite-store.ts";
 
 const { quad, namedNode, literal } = N3;
@@ -49,7 +52,9 @@ function normalizeBindings(bindings: SparqlBinding[]): unknown {
 }
 
 /** Wires the full Client facade over one shared RDF/JS store + WazooSparqlEngine. */
-function createWazooClient(store: rdfjs.Store & { size: number }): WorldsSdk {
+function createWazooClient(
+  store: EngineStore & RdfjsStoreLike & { size: number },
+): WorldsSdk {
   return new WorldsSdk({
     quadStore: new RdfjsQuadStore({ store }),
     sparqlEngine: new WazooSparqlEngine({ store }),
