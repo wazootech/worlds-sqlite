@@ -12,6 +12,8 @@ import {
   importViaTransaction,
   Transaction,
 } from "@worlds/sdk/quad-store";
+import type { SearchIndexOnImport } from "@worlds/sdk/search-index";
+import { planSearchIndexing } from "@worlds/sdk/search-index";
 import type { SqliteConnectionDriver } from "../sqlite-connection-driver.ts";
 import { SqliteBatchExecutor } from "../sqlite-batch-executor.ts";
 import type { SqliteStore } from "../rdfjs-store/sqlite-store.ts";
@@ -46,7 +48,7 @@ export interface SqliteQuadStoreOptions extends QuadFilter {
    * import: "incremental" (default), "deferred" (one rebuild pass after the
    * import), or "disabled".
    */
-  searchIndexOnImport?: "incremental" | "deferred" | "disabled";
+  searchIndexOnImport?: SearchIndexOnImport;
 }
 
 /**
@@ -86,12 +88,11 @@ export class SqliteQuadStore implements QuadStoreInterface {
   public createTransaction(): Transaction {
     return new Transaction({
       commit: async (patch, context) => {
-        const isImport = context?.importMode !== undefined;
-        const searchIndexOnImport = this.options.searchIndexOnImport ??
-          "incremental";
-        const skipSearchIndexProjection =
-          this.options.searchIndexOnImport === "disabled" ||
-          (isImport && searchIndexOnImport === "deferred");
+        const plan = planSearchIndexing(
+          this.options.searchIndexOnImport,
+          context,
+        );
+        const projector = this.options.searchIndexProjector;
 
         const { novelInsertions, novelQuadIds } = await commitPatchToSqlite(
           patch,
@@ -99,12 +100,9 @@ export class SqliteQuadStore implements QuadStoreInterface {
           context,
         );
 
-        if (!skipSearchIndexProjection && this.options.searchIndexProjector) {
+        if (plan.projectDuringCommit && projector) {
           try {
-            await this.options.searchIndexProjector.projectNovelQuads(
-              novelInsertions,
-              novelQuadIds,
-            );
+            await projector.projectNovelQuads(novelInsertions, novelQuadIds);
           } catch (error) {
             // Clean up persisted quads if search projection fails.
             await this.rollbackNovelQuads(novelInsertions);
@@ -112,11 +110,8 @@ export class SqliteQuadStore implements QuadStoreInterface {
           }
         }
 
-        if (
-          isImport && searchIndexOnImport === "deferred" &&
-          this.options.searchIndexProjector
-        ) {
-          await this.options.searchIndexProjector.reindexAll();
+        if (plan.reindexAfterCommit && projector) {
+          await projector.reindexAll();
         }
       },
     });

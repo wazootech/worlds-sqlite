@@ -1,5 +1,4 @@
 import { RecursiveCharacterTextSplitter } from "@langchain/textsplitters";
-import type * as rdfjs from "@rdfjs/types";
 import type { QuadCriteria, WorldsSdkInterface } from "@worlds/sdk";
 import { WorldsSdk } from "@worlds/sdk";
 import type { SearchIndexOnImport } from "@worlds/sdk/search-index";
@@ -178,7 +177,7 @@ export async function createSqliteWorldsSdk(
   });
 
   const sparqlEngine = new WazooSparqlEngine({
-    store: store as unknown as rdfjs.Store,
+    store,
     createTransaction: () => quadStore.createTransaction(),
   });
 

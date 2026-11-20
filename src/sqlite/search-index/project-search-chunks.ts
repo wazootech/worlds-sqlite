@@ -1,8 +1,5 @@
-import type {
-  ChunkRowPayload,
-  TextSplitterInterface,
-} from "@worlds/sdk/search-index/quad-chunker";
-import { chunkQuads } from "@worlds/sdk/search-index/quad-chunker";
+import type { TextSplitterInterface } from "@worlds/sdk/search-index/quad-chunker";
+import { chunkAndEmbedQuads } from "@worlds/sdk/search-index/quad-chunker";
 import type { EmbeddingService } from "@worlds/sdk/search-index/embedding-service";
 import type { QuadFilter } from "@worlds/sdk/quad-store";
 import { hashQuads } from "@worlds/sdk/quad-store";
@@ -148,73 +145,32 @@ async function projectChunks(
     );
   }
 
-  let chunks: ChunkRowPayload[];
-  try {
-    chunks = await chunkQuads(quads, textSplitter, quadIds);
-  } catch (cause) {
-    throw new Error("failed to chunk novel textual facts", { cause });
-  }
+  // Chunk and embed before any chunk row is written. Keyword-only degradation:
+  // never call the embedding service when the vec0 table does not exist, since
+  // there is nowhere to store the vectors.
+  const { rows } = await chunkAndEmbedQuads(quads, quadIds, {
+    textSplitter,
+    embeddingService: options.searchQueryBuilder.vectorSupported
+      ? options.embeddingService
+      : undefined,
+    ftsValueOf: buildChunkFtsValue,
+    vectorDimensions: options.searchQueryBuilder.vectorDimensions,
+  });
 
-  if (chunks.length === 0) {
-    return { chunkRowCount: 0, vecStatements };
-  }
-
-  const chunksWithFtsValue = chunks.map((chunk) => ({
-    chunk,
-    fts_value: buildChunkFtsValue(chunk),
-  }));
-
-  let vectorLookupMap: Map<string, Float32Array | number[]> | undefined;
-
-  // Keyword-only degradation: never call the embedding service when the vec0
-  // table does not exist — there is nowhere to store the vectors.
-  if (options.embeddingService && options.searchQueryBuilder.vectorSupported) {
-    const uniqueTexts = Array.from(
-      new Set(
-        chunksWithFtsValue.flatMap(({ chunk, fts_value }) => [
-          fts_value,
-          chunk.value,
-        ]),
-      ),
-    );
-    let uniqueVectors: Array<Float32Array | number[]>;
-    try {
-      uniqueVectors = await options.embeddingService.embed(uniqueTexts);
-      for (const projectedVector of uniqueVectors) {
-        const embeddingLength = projectedVector.length;
-        if (
-          embeddingLength !== options.searchQueryBuilder.vectorDimensions
-        ) {
-          throw new Error(
-            `embedding length ${embeddingLength} does not match configured vectorDimensions ${options.searchQueryBuilder.vectorDimensions}`,
-          );
-        }
-      }
-    } catch (cause) {
-      throw new Error("failed to vectorize literal chunk blocks", { cause });
-    }
-
-    vectorLookupMap = new Map<string, Float32Array | number[]>();
-    for (let textIndex = 0; textIndex < uniqueTexts.length; textIndex++) {
-      vectorLookupMap.set(uniqueTexts[textIndex], uniqueVectors[textIndex]!);
-    }
-  }
-
-  for (const { chunk, fts_value } of chunksWithFtsValue) {
+  for (const { chunk, ftsValue, vector } of rows) {
     const insertStatement = options.searchQueryBuilder.buildInsertChunk({
       quad_id: chunk.quad_id,
       subject: chunk.subject,
       predicate: chunk.predicate,
       graph: chunk.graph,
       value: chunk.value,
-      fts_value,
+      fts_value: ftsValue,
     });
     const resultSet = await options.connection.execute<{ id: number | bigint }>(
       insertStatement,
     );
     const chunkId = resultSet.rows[0]?.id;
 
-    const vector = vectorLookupMap?.get(fts_value);
     if (vector && chunkId != null) {
       vecStatements.push(
         options.searchQueryBuilder.buildInsertVecChunk({
@@ -225,5 +181,5 @@ async function projectChunks(
     }
   }
 
-  return { chunkRowCount: chunksWithFtsValue.length, vecStatements };
+  return { chunkRowCount: rows.length, vecStatements };
 }
