@@ -38,6 +38,7 @@
     ],
     "exclude": [
       "src/**/*.test.ts",
+      "src/**/*.fake.ts",
       "tools/run-examples.ts",
       "test/"
     ]
