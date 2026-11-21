@@ -97,9 +97,6 @@ export interface SqlCommitSummary {
 
   /** rebuilt is true when a deferred import ran a full search-index rebuild. */
   rebuilt: boolean;
-
-  /** embeddingError is set when embedding failed and `onEmbeddingFailure` is "degrade". */
-  embeddingError?: unknown;
 }
 
 /** SqlCommitOptions configures one backend's commit. Every field is optional. */

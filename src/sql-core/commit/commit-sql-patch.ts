@@ -47,8 +47,7 @@ function limitsFor<S>(
  * 2. `selectNovelQuads` with `driver.lookupExisting` and `dialect.keyOf`.
  * 3. `planSearchIndexing`: project chunks in this commit, rebuild after it, or neither.
  * 4. `chunkAndEmbedQuads` for the novel quads, before any write: an embedding
- *    failure writes nothing (or, with `onEmbeddingFailure: "degrade"`, stores
- *    keyword-only chunks and reports the error in the summary).
+ *    failure always throws and writes nothing.
  * 5. One statement list: replace-import wipe, deletions, clean-slate deletes and
  *    inserts for the novel quads, chunk rows.
  * 6. `writeCommitStatements`: one atomic batch, or chunked batches with cleanup
@@ -74,11 +73,10 @@ export async function commitSqlPatch<S>(
   });
 
   let rows: EmbeddedChunk[] = [];
-  let embeddingError: unknown;
   if (
     novelQuadIds.length > 0 && plan.projectDuringCommit && options.projection
   ) {
-    ({ rows, embeddingError } = await chunkAndEmbedQuads(
+    ({ rows } = await chunkAndEmbedQuads(
       novelInsertions,
       novelQuadIds,
       options.projection,
@@ -119,7 +117,6 @@ export async function commitSqlPatch<S>(
     novelQuads: novelKeys.length,
     chunkRows: rows.length,
     rebuilt: false,
-    embeddingError,
   };
   await options.afterWrite?.(summary);
   if (plan.reindexAfterCommit && options.projection) {
