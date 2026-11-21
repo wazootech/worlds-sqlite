@@ -114,6 +114,11 @@ export class FakeSqlStore {
         this.clearCount++;
         this.chunks = [];
         break;
+      case "deleteChunks":
+        this.chunks = this.chunks.filter((c) =>
+          !statement.hashes.includes(c.quadId)
+        );
+        break;
       case "delete":
       case "cleanup":
         for (const key of statement.keys) this.quads.delete(key);

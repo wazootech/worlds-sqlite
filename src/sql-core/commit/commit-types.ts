@@ -63,6 +63,14 @@ export interface SqlDialect<S> {
   /** buildClearChunks removes every chunk row, at the start of a full rebuild. */
   buildClearChunks(): S[];
 
+  /**
+   * buildDeleteChunks removes the chunk rows of the quads with these content
+   * hashes (a chunk's `quad_id`), leaving every other row. A scoped rebuild
+   * needs it; a backend that omits it supports only the clear-all rebuild. The
+   * backend chunks its own IN clauses.
+   */
+  buildDeleteChunks?(hashes: string[]): S[];
+
   /** buildDeletions removes the quads with these keys and their chunk rows. */
   buildDeletions(keys: string[], hashes: string[]): S[];
 
