@@ -88,11 +88,12 @@ import { SqliteStore } from "https://esm.sh/jsr/@worlds/sqlite@0.4.0?pin=v172410
   identity (`termKey`/`sameRdfTerm`), crash-recovery + term-key-parity suites.
 - **Landed (Layer 2):** `createSqliteWorldsSdk` (root export) plus
   `./quad-store`, `./search-index`, and `./schema` subpaths — `SqliteQuadStore`,
-  `SqliteSearchIndex` / `SqliteSearchIndexProjector` /
-  `SqliteSearchQueryBuilder` (FTS5 + optional sqlite-vec hybrid with JS-side RRF
-  `1/(60+rank)`), `SqliteSchemaBuilder`, and `commitPatchToSqlite`
-  (content-addressed dedup, replace-mode wipe, chunked batches). Keyword-only
-  FTS5 is fully functional without the `sqlite-vec` extension.
+  `SqliteSearchIndex` / `SqliteSearchQueryBuilder` (FTS5 + optional sqlite-vec
+  hybrid with JS-side RRF `1/(60+rank)`), `SqliteSchemaBuilder`, and
+  `createSqliteCommit` (the sqlite driver and dialect for the shared
+  `commitSqlPatch`: quads, chunks and a replace-import wipe commit in one atomic
+  transaction). Keyword-only FTS5 is fully functional without the `sqlite-vec`
+  extension.
 - **Landed (`./sql-core`):** the driver-free SQL plan layer shared across the
   SQLite-family backends — `sanitizeFtsQuery`/stopwords, `buildChunkFtsValue`,
   `buildSearchResultId`, the `chunks`/`chunks_fts` DDL emitters, keyword FTS5

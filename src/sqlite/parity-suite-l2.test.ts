@@ -2,7 +2,7 @@
  * Layer 2 parity suite (workspace#64, #72) — runs the shared fixture corpus
  * with reference = createMemoryWorldsSdk (the portable in-memory reference) and
  * candidate = createSqliteWorldsSdk over the materialized L2 surface (FTS5 keyword
- * search + optional sqlite-vec hybrid, commitPatchToSqlite, quad store).
+ * search + optional sqlite-vec hybrid, the shared commit core, quad store).
  *
  * Exemptions (explicit, documented on workspace#72 — never silent):
  *   - chunkBoundaryWorld is excluded via the harness's fixtures override:

@@ -493,7 +493,8 @@ export class SqliteStore implements rdfjs.Store<rdfjs.Quad> {
 
 /**
  * quadToPayloadJson serializes a quad to the store's lossless JSON payload
- * format. Exported so the L2 commit path (commitPatchToSqlite) writes rows in
+ * format. Exported so the L2 commit path (the sqlite commit dialect) writes
+ * rows in
  * exactly the same encoding the store reads back.
  */
 export function quadToPayloadJson(quad: rdfjs.Quad): string {

@@ -8,7 +8,6 @@ import type {
 } from "@worlds/sdk/testing";
 import { SqliteQuadStore } from "@/sqlite/quad-store/sqlite-quad-store.ts";
 import { SqliteStore } from "@/sqlite/rdfjs-store/sqlite-store.ts";
-import { SqliteSearchIndexProjector } from "@/sqlite/search-index/mod.ts";
 import {
   SqliteConnectionDriver,
   type SqlResult,
@@ -22,22 +21,26 @@ import {
 } from "./sqlite-test-fixtures.ts";
 
 /**
- * sqlite's commit path is NOT atomic across quads and chunks: quads go in one
- * BEGIN IMMEDIATE batch, then each chunk row is its own statement, and a failed
- * projection is cleaned up by deleting the quads just written (so an embedding
- * failure still leaves nothing). A replace import wipes in its own committed
- * batch first, so a failed write after it leaves an empty graph.
+ * sqlite runs the shared commitSqlPatch: `connection.batch` is one BEGIN
+ * IMMEDIATE transaction, so quads, chunk rows and a replace-import wipe commit
+ * together (or not at all) up to the shared atomic limit, and an embedding
+ * failure throws before anything is written.
  */
 const sqliteContract: CommitConformanceContract = {
-  atomic: false,
+  atomic: true,
   embeddingFailure: "throws",
-  replaceImportFailure: "empties-graph",
+  replaceImportFailure: "keeps-old-graph",
   defaultSearchIndexOnImport: "incremental",
 };
 
-/** FaultyConnection fails the next write that inserts rows, once, when armed. */
+/**
+ * FaultyConnection fails the next write that inserts rows, once, when armed,
+ * and counts the full search-index rebuilds (a batch that clears the chunks
+ * without wiping the quads).
+ */
 class FaultyConnection extends SqliteConnectionDriver {
   public armed = false;
+  public rebuilds = 0;
 
   private failIfArmed(statements: readonly SqlStatement[]): void {
     if (this.armed && statements.some((s) => /^\s*INSERT/i.test(s.sql))) {
@@ -47,6 +50,12 @@ class FaultyConnection extends SqliteConnectionDriver {
   }
 
   public override batch(statements: readonly SqlStatement[]): Promise<void> {
+    const sqls = statements.map((s) => s.sql);
+    if (
+      sqls.includes("DELETE FROM chunks") && !sqls.includes("DELETE FROM quads")
+    ) {
+      this.rebuilds++;
+    }
     try {
       this.failIfArmed(statements);
     } catch (error) {
@@ -67,16 +76,6 @@ class FaultyConnection extends SqliteConnectionDriver {
   }
 }
 
-/** CountingProjector counts the full rebuilds a deferred import triggers. */
-class CountingProjector extends SqliteSearchIndexProjector {
-  public rebuilds = 0;
-
-  public override async reindexAll(): Promise<void> {
-    this.rebuilds++;
-    await super.reindexAll();
-  }
-}
-
 async function createSubject(
   options: Parameters<
     Parameters<typeof runCommitConformanceSuite>[0]["create"]
@@ -88,18 +87,13 @@ async function createSubject(
   const connection = new FaultyConnection(db, { vectorSupported });
   await setupSqliteSchemaForTest(connection);
   const searchQueryBuilder = testSearchQueryBuilderFor(connection);
-  const projector = new CountingProjector({
-    connection,
-    searchQueryBuilder,
-    textSplitter: sharedTextSplitter,
-    embeddingService: options.embeddingService,
-  });
   const store = new SqliteStore({ path: ":memory:", db });
   const quadStore = new SqliteQuadStore({
     connection,
     store,
     searchQueryBuilder,
-    searchIndexProjector: projector,
+    textSplitter: sharedTextSplitter,
+    embeddingService: options.embeddingService,
     searchIndexOnImport: options.searchIndexOnImport,
   });
   return {
@@ -123,7 +117,7 @@ async function createSubject(
     failNextWrite() {
       connection.armed = true;
     },
-    fullRebuildCount: () => projector.rebuilds,
+    fullRebuildCount: () => connection.rebuilds,
   };
 }
 

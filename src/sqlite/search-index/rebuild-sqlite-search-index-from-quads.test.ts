@@ -3,7 +3,6 @@ import { assertEquals } from "@std/assert";
 import { DataFactory } from "n3";
 import { SqliteStore } from "@/sqlite/rdfjs-store/sqlite-store.ts";
 import { SqliteQuadStore } from "@/sqlite/quad-store/sqlite-quad-store.ts";
-import { SqliteSearchIndexProjector } from "./sqlite-search-index-projector.ts";
 import { rebuildSqliteSearchIndexFromQuads } from "./rebuild-sqlite-search-index-from-quads.ts";
 import { SqliteSearchIndex } from "./sqlite-search-index.ts";
 import {
@@ -116,7 +115,7 @@ Deno.test(
 );
 
 Deno.test(
-  "SqliteSearchIndexProjector - reindexAll rebuilds the entire index",
+  "SqliteSearchIndex - reindex rebuilds the entire index",
   async () => {
     const db = new DatabaseSync(":memory:", { allowExtension: true });
     const connection = createTestSqliteConnectionDriver(db, {
@@ -125,11 +124,6 @@ Deno.test(
     await setupSqliteSchemaForTest(connection);
 
     const store = new SqliteStore({ path: ":memory:", db });
-    const projector = new SqliteSearchIndexProjector({
-      connection,
-      searchQueryBuilder: testSearchQueryBuilderFor(connection),
-      textSplitter: sharedTextSplitter,
-    });
     const quadStore = new SqliteQuadStore({
       connection,
       store,
@@ -150,12 +144,12 @@ Deno.test(
       },
     });
 
-    await projector.reindexAll();
-
     const searchIndex = new SqliteSearchIndex({
       connection,
       searchQueryBuilder: testSearchQueryBuilderFor(connection),
+      textSplitter: sharedTextSplitter,
     });
+    await searchIndex.reindex();
     const response = await searchIndex.search({ query: "needle" });
     assertEquals(response.results?.length, 1);
   },
