@@ -85,7 +85,7 @@ Deno.test("SqliteSearchQueryBuilder - keyword-only builder never emits vec0 SQL"
   assertEquals(vecDeletions[0].sql.startsWith("DELETE FROM chunks_vec"), true);
 });
 
-Deno.test("SqliteSearchQueryBuilder - chunk insert returns rowid and vec insert binds bigint rowid", () => {
+Deno.test("SqliteSearchQueryBuilder - vec insert pairs with the last inserted chunk row", () => {
   const insert = builder.buildInsertChunk({
     quad_id: "q1",
     subject: "s",
@@ -94,8 +94,9 @@ Deno.test("SqliteSearchQueryBuilder - chunk insert returns rowid and vec insert 
     value: "v",
     fts_value: "v",
   });
-  assertEquals(insert.sql.includes("RETURNING id"), true);
+  assertEquals(insert.args?.length, 6);
 
-  const vec = builder.buildInsertVecChunk({ chunkId: 1, vectorJson: "[0,0]" });
-  assertEquals(vec.args[0], 1n);
+  const vec = builder.buildInsertVecForLastChunk("[0,0]");
+  assertEquals(vec.sql.includes("last_insert_rowid()"), true);
+  assertEquals(vec.args, ["[0,0]"]);
 });

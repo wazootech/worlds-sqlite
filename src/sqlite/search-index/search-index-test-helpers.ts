@@ -33,21 +33,15 @@ export async function insertChunkRowForTest(
     value: options.value,
     fts_value: options.value,
   });
-  const resultSet = await connection.execute<{ id: number | bigint }>(
-    insertStatement,
-  );
-  const chunkId = resultSet.rows[0]?.id;
+  await connection.execute(insertStatement);
 
-  if (options.vector && chunkId != null) {
+  if (options.vector) {
     const padded = new Array(TEST_VECTOR_DIMENSIONS).fill(0);
     for (let index = 0; index < options.vector.length; index++) {
       padded[index] = options.vector[index]!;
     }
     await connection.execute(
-      queryBuilder.buildInsertVecChunk({
-        chunkId: BigInt(chunkId),
-        vectorJson: JSON.stringify(padded),
-      }),
+      queryBuilder.buildInsertVecForLastChunk(JSON.stringify(padded)),
     );
   }
 }

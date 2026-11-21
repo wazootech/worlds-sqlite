@@ -2,7 +2,6 @@ import { DatabaseSync } from "node:sqlite";
 import { assertEquals } from "@std/assert";
 import { DataFactory } from "n3";
 import { SqliteStore } from "@/sqlite/rdfjs-store/sqlite-store.ts";
-import { SqliteSearchIndexProjector } from "@/sqlite/search-index/mod.ts";
 import { SqliteSearchIndex } from "@/sqlite/search-index/mod.ts";
 import { SqliteQuadStore } from "./sqlite-quad-store.ts";
 import {
@@ -23,17 +22,12 @@ async function createQuadStore(
   });
   await setupSqliteSchemaForTest(connection);
   const store = new SqliteStore({ path: ":memory:", db });
-  const searchIndexProjector = new SqliteSearchIndexProjector({
-    connection,
-    searchQueryBuilder: testSearchQueryBuilderFor(connection),
-    textSplitter: sharedTextSplitter,
-  });
   const searchQueryBuilder = testSearchQueryBuilderFor(connection);
   const quadStore = new SqliteQuadStore({
     connection,
     store,
     searchQueryBuilder,
-    searchIndexProjector,
+    textSplitter: sharedTextSplitter,
     searchIndexOnImport,
   });
   return { db, connection, store, quadStore };

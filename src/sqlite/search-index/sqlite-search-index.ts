@@ -11,7 +11,7 @@ import type { SqliteConnectionDriver } from "@/sqlite/sqlite-connection-driver.t
 import type { SqliteSearchQueryBuilder } from "./sqlite-search-query-builder.ts";
 import type { SqliteSearchPlan } from "./sqlite-search-query-builder.ts";
 import { rebuildSqliteSearchIndexFromQuads } from "./rebuild-sqlite-search-index-from-quads.ts";
-import type { ProjectSearchChunksOptions } from "./project-search-chunks.ts";
+import type { SqliteCommitCoreOptions } from "@/sqlite/commit/create-sqlite-commit.ts";
 
 /**
  * SearchRequestWithProfile extends SearchRequest with memory profile
@@ -24,7 +24,7 @@ interface SearchRequestWithProfile extends SearchRequest {
 }
 
 /** SqliteSearchIndexOptions configures the sqlite search engine. */
-export interface SqliteSearchIndexOptions extends ProjectSearchChunksOptions {
+export interface SqliteSearchIndexOptions extends SqliteCommitCoreOptions {
   /** connection is the SqliteConnectionDriver wrapping the SQLite handle. */
   connection: SqliteConnectionDriver;
 

@@ -82,8 +82,8 @@ export class SqliteSearchQueryBuilder {
   }
 
   /**
-   * buildInsertChunk builds a chunks insert that returns the new rowid so the
-   * projector can pair it with a chunks_vec insert when sqlite-vec is active.
+   * buildInsertChunk builds one chunks insert. When a vector follows, the next
+   * statement is buildInsertVecForLastChunk, which pairs with this row.
    */
   public buildInsertChunk(insertOptions: {
     quad_id: string;
@@ -92,11 +92,11 @@ export class SqliteSearchQueryBuilder {
     graph: string;
     value: string;
     fts_value: string;
-  }): { sql: string; args: string[] } {
+  }): SqlStatement {
     return {
       sql:
         `INSERT INTO chunks (quad_id, subject, predicate, graph, value, fts_value)
-          VALUES (?, ?, ?, ?, ?, ?) RETURNING id`,
+          VALUES (?, ?, ?, ?, ?, ?)`,
       args: [
         insertOptions.quad_id,
         insertOptions.subject,
@@ -109,21 +109,27 @@ export class SqliteSearchQueryBuilder {
   }
 
   /**
-   * buildInsertVecChunk inserts one embedding into the vec0 chunks_vec table
-   * keyed by the owning chunks rowid.
-   *
-   * The rowid must be bound as an integer: sqlite-vec rejects non-INTEGER
-   * rowid bindings, and Deno's node:sqlite binds JS numbers as REAL — only
-   * bigint binds as INTEGER.
+   * buildInsertVecForLastChunk inserts one embedding into the vec0 chunks_vec
+   * table, keyed by the chunks row the previous statement on the same
+   * connection inserted (`last_insert_rowid()`; the FTS trigger does not
+   * change it). That pairing lets chunk and vec rows share one atomic batch.
    */
-  public buildInsertVecChunk(insertOptions: {
-    chunkId: number | bigint;
-    vectorJson: string;
-  }): { sql: string; args: (string | bigint)[] } {
+  public buildInsertVecForLastChunk(vectorJson: string): SqlStatement {
     return {
-      sql: "INSERT INTO chunks_vec (rowid, embedding) VALUES (?, ?)",
-      args: [BigInt(insertOptions.chunkId), insertOptions.vectorJson],
+      sql:
+        "INSERT INTO chunks_vec (rowid, embedding) VALUES (last_insert_rowid(), ?)",
+      args: [vectorJson],
     };
+  }
+
+  /** buildClearChunks removes every chunk row (and vec row), for a full rebuild. */
+  public buildClearChunks(): SqlStatement[] {
+    return [
+      ...(this.vectorSupported
+        ? [{ sql: "DELETE FROM chunks_vec", args: [] }]
+        : []),
+      { sql: "DELETE FROM chunks", args: [] },
+    ];
   }
 
   /**

@@ -13,10 +13,7 @@ import { SqliteConnectionDriver } from "./sqlite-connection-driver.ts";
 import { initializeSqliteSchema } from "./initialize-sqlite-schema.ts";
 import { SqliteSchemaBuilder } from "./schema/sqlite-schema-builder.ts";
 import { SqliteSearchQueryBuilder } from "./search-index/sqlite-search-query-builder.ts";
-import {
-  SqliteSearchIndex,
-  SqliteSearchIndexProjector,
-} from "./search-index/mod.ts";
+import { SqliteSearchIndex } from "./search-index/mod.ts";
 import { SqliteQuadStore } from "./quad-store/mod.ts";
 import { SqliteStore } from "./rdfjs-store/mod.ts";
 
@@ -155,13 +152,6 @@ export async function createSqliteWorldsSdk(
     textSplitter,
   });
 
-  const searchIndexProjector = new SqliteSearchIndexProjector({
-    ...options,
-    connection,
-    searchQueryBuilder: searchQuery,
-    textSplitter,
-  });
-
   const store = new SqliteStore({
     path: options.path,
     db,
@@ -173,7 +163,7 @@ export async function createSqliteWorldsSdk(
     connection,
     store,
     searchQueryBuilder: searchQuery,
-    searchIndexProjector,
+    textSplitter,
   });
 
   const sparqlEngine = new WazooSparqlEngine({
