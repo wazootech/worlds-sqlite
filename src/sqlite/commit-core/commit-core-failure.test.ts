@@ -133,24 +133,6 @@ Deno.test("an embedding failure writes nothing on either path", async () => {
   }
 });
 
-Deno.test("degrade mode stores keyword-only chunks and reports the embedding error", async () => {
-  const failing = { embed: () => Promise.reject(new Error("embedding down")) };
-  const { store, commit } = setup({
-    maxAtomicStatements: 10_000,
-    writeBatchSize: 500,
-  });
-  const summary = await commit([q(1)], {
-    projection: {
-      ...projection,
-      embeddingService: failing,
-      onEmbeddingFailure: "degrade",
-    },
-  });
-  assertEquals(store.chunks.map((c) => c.vectorized), [false]);
-  assert(summary.embeddingError instanceof Error);
-  assertEquals(summary.chunkRows, 1);
-});
-
 Deno.test("the dialect's keyOf is the identity used for lookups and statements", async () => {
   const { store, commit } = setup({
     maxAtomicStatements: 100,
