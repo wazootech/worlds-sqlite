@@ -35,6 +35,11 @@ export { commitSqlPatch } from "./commit/commit-sql-patch.ts";
 export {
   DEFAULT_REBUILD_PAGE_SIZE,
   rebuildSqlSearchIndex,
+  rebuildSqlSearchIndexWithCounts,
+} from "./commit/rebuild-sql-search-index.ts";
+export type {
+  SqlRebuildOptions,
+  SqlRebuildResult,
 } from "./commit/rebuild-sql-search-index.ts";
 export {
   DEFAULT_MAX_ATOMIC_STATEMENTS,

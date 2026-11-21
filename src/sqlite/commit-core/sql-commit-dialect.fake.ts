@@ -6,6 +6,7 @@ import type { SqlDialect } from "@/sql-core/mod.ts";
 export type FakeStatement =
   | { kind: "wipe" }
   | { kind: "clearChunks" }
+  | { kind: "deleteChunks"; hashes: string[] }
   | { kind: "delete"; keys: string[]; hashes: string[] }
   | { kind: "insert"; key: string; quad: rdfjs.Quad; hash: string }
   | { kind: "chunk"; quadId: string; text: string; vectorized: boolean }
@@ -19,6 +20,7 @@ export function createFakeDialect(
     keyOf: (_quad, hash) => keyPrefix + hash,
     buildWipe: () => [{ kind: "wipe" }],
     buildClearChunks: () => [{ kind: "clearChunks" }],
+    buildDeleteChunks: (hashes) => [{ kind: "deleteChunks", hashes }],
     buildDeletions: (keys, hashes) => [{ kind: "delete", keys, hashes }],
     buildInserts: (quads, keys, hashes) =>
       quads.map((quad, i) => ({
