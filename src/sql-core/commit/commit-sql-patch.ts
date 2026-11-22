@@ -1,14 +1,5 @@
 import type { Patch, TransactionContext } from "@worlds/sdk/quad-store";
-import {
-  isReplaceImportCommit,
-  preparePatch,
-  selectNovelQuads,
-} from "@worlds/sdk/quad-store";
-import { planSearchIndexing } from "@worlds/sdk/search-index";
-import {
-  chunkAndEmbedQuads,
-  type EmbeddedChunk,
-} from "@worlds/sdk/search-index/quad-chunker";
+import { prepareCommit } from "@worlds/sdk/search-index";
 import type {
   SqlCommitDriver,
   SqlCommitOptions,
@@ -43,16 +34,16 @@ function limitsFor<S>(
 /**
  * commitSqlPatch is the one commit sequence every SQL backend runs:
  *
- * 1. `preparePatch`: filter and hash (a failure here touches nothing).
- * 2. `selectNovelQuads` with `driver.lookupExisting` and `dialect.keyOf`.
- * 3. `planSearchIndexing`: project chunks in this commit, rebuild after it, or neither.
- * 4. `chunkAndEmbedQuads` for the novel quads, before any write: an embedding
- *    failure always throws and writes nothing.
- * 5. One statement list: replace-import wipe, deletions, clean-slate deletes and
+ * 1. `prepareCommit` from `@worlds/sdk`, entirely before any write: filter and
+ *    hash, plan (project chunks in this commit, rebuild after it, or neither),
+ *    select the novel quads with `driver.lookupExisting` and `dialect.keyOf`,
+ *    then chunk and embed them. An embedding failure always throws and writes
+ *    nothing.
+ * 2. One statement list: replace-import wipe, deletions, clean-slate deletes and
  *    inserts for the novel quads, chunk rows.
- * 6. `writeCommitStatements`: one atomic batch, or chunked batches with cleanup
+ * 3. `writeCommitStatements`: one atomic batch, or chunked batches with cleanup
  *    (see its contract).
- * 7. `afterWrite`, then a full rebuild if the plan asked for one.
+ * 4. `afterWrite`, then a full rebuild if the plan asked for one.
  */
 export async function commitSqlPatch<S>(
   patch: Patch,
@@ -61,27 +52,19 @@ export async function commitSqlPatch<S>(
   dialect: SqlDialect<S>,
   options: SqlCommitOptions = {},
 ): Promise<SqlCommitSummary> {
-  const replacing = isReplaceImportCommit(context);
-  const prepared = preparePatch(patch, options.filter);
-  const { novelInsertions, novelQuadIds } = await selectNovelQuads(prepared, {
-    replacing,
-    keyOf: (quad, hash) => dialect.keyOf(quad, hash),
-    lookupExisting: (keys) => driver.lookupExisting(keys),
-  });
-  const plan = planSearchIndexing(options.searchIndexOnImport, context, {
-    defaultMode: options.defaultSearchIndexOnImport,
-  });
-
-  let rows: EmbeddedChunk[] = [];
-  if (
-    novelQuadIds.length > 0 && plan.projectDuringCommit && options.projection
-  ) {
-    ({ rows } = await chunkAndEmbedQuads(
-      novelInsertions,
-      novelQuadIds,
-      options.projection,
-    ));
-  }
+  const { prepared, plan, novel, rows, replacing } = await prepareCommit(
+    patch,
+    {
+      ...options.filter,
+      context,
+      searchIndexOnImport: options.searchIndexOnImport,
+      defaultMode: options.defaultSearchIndexOnImport,
+      keyOf: (quad, hash) => dialect.keyOf(quad, hash),
+      lookupExisting: (keys) => driver.lookupExisting(keys),
+      projection: options.projection,
+    },
+  );
+  const { novelInsertions, novelQuadIds } = novel;
 
   const novelKeys = novelInsertions.map((q, i) =>
     dialect.keyOf(q, novelQuadIds[i]!)
