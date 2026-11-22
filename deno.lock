@@ -8,9 +8,8 @@
     "jsr:@std/path@^1.1.5": "1.1.6",
     "jsr:@std/path@^1.1.6": "1.1.6",
     "jsr:@wazoo/sparql-engine@0.5": "0.5.0",
-    "jsr:@wazoo/sparql-engine@0.5.0": "0.5.0",
     "jsr:@worlds/client@0.1": "0.1.0",
-    "jsr:@worlds/sdk@~0.9.1": "0.9.1",
+    "jsr:@worlds/sdk@0.10": "0.10.0",
     "npm:@jsr/wazoo__sparql-engine@0.5": "0.5.0",
     "npm:@langchain/textsplitters@^1.0.1": "1.0.1_@langchain+core@1.2.8",
     "npm:@rdfjs/types@^2.0.1": "2.0.1",
@@ -19,8 +18,8 @@
     "npm:@types/n3@1.26.1": "1.26.1",
     "npm:@types/node@^26.2.0": "26.2.0",
     "npm:ai@^6.0.195": "6.0.333_zod@4.6.7",
-    "npm:n3@^2.0.3": "2.2.11",
-    "npm:n3@^2.2.11": "2.2.11",
+    "npm:n3@^2.0.3": "2.13.12",
+    "npm:n3@^2.2.11": "2.13.12",
     "npm:sqlite-vec@~0.1.9": "0.1.9"
   },
   "jsr": {
@@ -51,12 +50,12 @@
     "@worlds/client@0.1.0": {
       "integrity": "0f55a9cdeb6316417233129e9fa000c92d79739b7317a8e1a33704cf2bb2b458"
     },
-    "@worlds/sdk@0.9.1": {
-      "integrity": "533a1787a2aaebf6746ae12bbb49840c67f5db86f1c80b32f5c3447bb47470ba",
+    "@worlds/sdk@0.10.0": {
+      "integrity": "8b4536cb7052a7be91dea1947ead6de5e89197759ca82a6142da049bc27d7b74",
       "dependencies": [
         "jsr:@std/encoding",
         "jsr:@std/path@^1.1.5",
-        "jsr:@wazoo/sparql-engine@0.5",
+        "jsr:@wazoo/sparql-engine",
         "jsr:@worlds/client",
         "npm:@rdfjs/types",
         "npm:@tensorflow/tfjs",
@@ -485,8 +484,8 @@
       "integrity": "sha512-71ippSywq5Yb7/tVYyGbkBggbU8H3u5Rz56fH60jGFgr8uHwxs+aSKeqmluIVzM0m0kB7xQjKS6qPfd0b2ZoqQ==",
       "bin": true
     },
-    "n3@2.2.11": {
-      "integrity": "sha512-La460srjrwM4wQ6I+IrWhXeaIn4sPV2B61SjPhABWNg9iUTLY7WK9MCxVhyoY05z/oq2ucayxtzIfQOO2Gz10g==",
+    "n3@2.13.12": {
+      "integrity": "sha512-z944NsyJi58WXcYevtNkUL2JhVr0KP6nvED9AgymQq5V35TDaNn1N8kO+OWJk/kj4PR0L/ilWB3d7/bWceg1CQ==",
       "dependencies": [
         "buffer",
         "readable-stream"
@@ -517,8 +516,8 @@
     "process@0.11.10": {
       "integrity": "sha512-cdGef/drWFoydD1JsMzuFf8100nZl+GT+yacc2bEced5f9Rjk4z+WtFUTBu9PhOi9j/jfmBPu0mMEY4wIdAF8A=="
     },
-    "readable-stream@4.7.0": {
-      "integrity": "sha512-oIGGmcpTLwPga8Bn6/Z75SVaH1z5dUut2ibSyAMVhmUggWpmDn2dapB0n7f8nwaSiRtepAsfJyfXIO5DCVAODg==",
+    "readable-stream@4.8.0": {
+      "integrity": "sha512-2jhTTU3Eilp/2DMT71gbcoqC35eQHasMJH0RHkYxwlxIv3+FR6Y5xAFZIwEGLxKkjZYEFlsiMNIdwUqjK2lLHQ==",
       "dependencies": [
         "abort-controller",
         "buffer",
@@ -657,7 +656,7 @@
       "jsr:@std/assert@^1.0.19",
       "jsr:@std/path@^1.1.6",
       "jsr:@wazoo/sparql-engine@0.5",
-      "jsr:@worlds/sdk@~0.9.1",
+      "jsr:@worlds/sdk@0.10",
       "npm:@langchain/textsplitters@^1.0.1",
       "npm:@rdfjs/types@^2.0.1",
       "npm:@types/n3@1.26.1",

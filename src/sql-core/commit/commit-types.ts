@@ -107,7 +107,7 @@ export interface SqlCommitOptions {
   /** searchIndexOnImport is the indexing mode; unset uses `defaultSearchIndexOnImport`. */
   searchIndexOnImport?: SearchIndexOnImport;
 
-  /** defaultSearchIndexOnImport is the backend's default mode ("incremental" when omitted; D1 uses "deferred"). */
+  /** defaultSearchIndexOnImport is the backend's default mode ("incremental" when omitted, including on D1). */
   defaultSearchIndexOnImport?: SearchIndexOnImport;
 
   /** projection enables chunk rows; without it no chunks are written or rebuilt. */
