@@ -61,7 +61,6 @@ export function createSqliteCommit(
       connection,
       keys,
       lookupChunkSize,
-      filter,
       onScanned,
     }),
     dialect: createSqliteCommitDialect({
