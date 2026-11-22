@@ -1,7 +1,7 @@
 {
   "name": "@worlds/sqlite",
   "description": "Synchronous SQLite-family durable backend for the Worlds client (developer-supplied node:sqlite / bun:sqlite handle) — RDF/JS quad primitive packaged with the worlds impl.",
-  "version": "0.8.0",
+  "version": "0.8.1",
   "license": "WTFPL",
   "nodeModulesDir": "auto",
   "exports": {
@@ -24,7 +24,7 @@
     "sqlite-vec": "npm:sqlite-vec@^0.1.9",
     "@wazoo/sparql-engine": "jsr:@wazoo/sparql-engine@^0.5.0",
     "@wazoo/sparql-engine/term": "jsr:@wazoo/sparql-engine@^0.5.0/term",
-    "@worlds/sdk": "jsr:@worlds/sdk@^0.10.0"
+    "@worlds/sdk": "jsr:@worlds/sdk@^0.11.0"
   },
   "minimumDependencyAge": {
     "age": "P1D",
