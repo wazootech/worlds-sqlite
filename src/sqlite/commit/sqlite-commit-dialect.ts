@@ -63,6 +63,17 @@ export function createSqliteCommitDialect(
         vectorSupported: builder.vectorSupported,
       }),
     buildClearChunks: () => builder.buildClearChunks(),
+    buildDeleteChunks: (hashes) => {
+      const statements: SqlStatement[] = [];
+      for (let at = 0; at < hashes.length; at += lookupChunkSize) {
+        statements.push(
+          ...builder.buildDeleteByQuadIds(
+            hashes.slice(at, at + lookupChunkSize),
+          ),
+        );
+      }
+      return statements;
+    },
     buildDeletions,
     buildInserts: (quads, keyStrings) =>
       buildBulkInsertQuads(

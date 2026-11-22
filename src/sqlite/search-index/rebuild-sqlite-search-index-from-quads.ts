@@ -24,6 +24,11 @@ export interface ReadProjectSearchChunksOptions
  * rebuildSqlSearchIndex (keyset-paged over the composite primary key, each
  * page chunked and embedded before it is written).
  *
+ * An include/exclude filter (from `options`) scopes the rebuild: it replaces
+ * only the chunk rows of the matching quads and leaves every other row alone,
+ * and `processedQuadCount` still counts every stored quad scanned. A filter
+ * with no criteria is not a scope: the rebuild clears and rebuilds everything.
+ *
  * Use after schema upgrades, label predicate changes, or discovery-index
  * tuning so existing corpora pick up refreshed `fts_value` and vectors.
  */
@@ -31,7 +36,7 @@ export async function rebuildSqliteSearchIndexFromQuads(
   options: ReadProjectSearchChunksOptions,
 ): Promise<RebuildSqliteSearchIndexFromQuadsResult> {
   let processedQuadCount = 0;
-  const { driver, dialect, projection } = createSqliteCommit(
+  const { driver, dialect, projection, filter } = createSqliteCommit(
     options,
     (count) => processedQuadCount += count,
   );
@@ -44,7 +49,7 @@ export async function rebuildSqliteSearchIndexFromQuads(
     driver,
     dialect,
     projection,
-    { pageSize: options.readPageSize },
+    { pageSize: options.readPageSize, scope: filter },
   );
   return { processedQuadCount, chunkRowCount };
 }

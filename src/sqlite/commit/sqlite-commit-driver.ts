@@ -1,5 +1,4 @@
 import type * as rdfjs from "@rdfjs/types";
-import { filterQuads, type QuadFilter } from "@worlds/sdk/quad-store";
 import {
   DEFAULT_MAX_ATOMIC_STATEMENTS,
   DEFAULT_WRITE_BATCH_SIZE,
@@ -27,9 +26,6 @@ export interface SqliteCommitDriverOptions {
   /** lookupChunkSize caps the IN-clause width of a presence lookup. */
   lookupChunkSize: number;
 
-  /** filter limits a full rebuild to matching quads. */
-  filter?: QuadFilter;
-
   /** onScanned receives the number of stored quads each rebuild page read. */
   onScanned?: (count: number) => void;
 }
@@ -43,7 +39,6 @@ export function createSqliteCommitDriver(
   options: SqliteCommitDriverOptions,
 ): SqlCommitDriver<SqlStatement> {
   const { connection, keys, lookupChunkSize } = options;
-  const matcher = filterQuads(options.filter ?? {});
   return {
     maxAtomicStatements: DEFAULT_MAX_ATOMIC_STATEMENTS,
     writeBatchSize: DEFAULT_WRITE_BATCH_SIZE,
@@ -73,8 +68,7 @@ export function createSqliteCommitDriver(
       const quads: rdfjs.Quad[] = [];
       for (const row of rows) {
         try {
-          const quad = quadFromPayloadJson(String(row.payload));
-          if (matcher(quad)) quads.push(quad);
+          quads.push(quadFromPayloadJson(String(row.payload)));
         } catch (error) {
           console.warn(
             `sqlite rebuild: skipping corrupt row s="${row.skey}"`,
