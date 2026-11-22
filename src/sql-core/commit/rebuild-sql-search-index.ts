@@ -1,6 +1,8 @@
-import { filterQuads, hashQuads } from "@worlds/sdk/quad-store";
 import type { QuadFilter } from "@worlds/sdk/quad-store";
-import { chunkAndEmbedQuads } from "@worlds/sdk/search-index/quad-chunker";
+import {
+  type ChunkRebuildDriver,
+  rebuildSearchIndex,
+} from "@worlds/sdk/search-index";
 import type {
   SqlCommitDriver,
   SqlDialect,
@@ -72,40 +74,25 @@ export async function rebuildSqlSearchIndexWithCounts<S>(
       "a scoped rebuild needs dialect.buildDeleteChunks to replace rows by quad",
     );
   }
-  const inScope = scoped ? filterQuads(scope) : () => true;
-  const pageSize = Math.max(1, options.pageSize ?? DEFAULT_REBUILD_PAGE_SIZE);
   const batchSize = options.writeBatchSize ?? driver.writeBatchSize ??
     DEFAULT_WRITE_BATCH_SIZE;
-  const result = { processedQuadCount: 0, chunkRowCount: 0 };
-  let after: unknown;
-  let cleared = false;
-  for (;;) {
-    const page = await driver.streamQuads({ after, pageSize });
-    result.processedQuadCount += page.quads.length;
-    const quads = page.quads.filter(inScope);
-    if (quads.length > 0) {
-      const hashes = hashQuads(quads);
-      const { rows } = await chunkAndEmbedQuads(quads, hashes, projection);
-      const prefix = scoped
-        ? dialect.buildDeleteChunks!(hashes)
-        : cleared
-        ? []
-        : dialect.buildClearChunks();
-      cleared = true;
+  const pages: ChunkRebuildDriver = {
+    pageQuads: ({ after, pageSize }) => driver.streamQuads({ after, pageSize }),
+    writePage: async (writeScope, rows, first) => {
+      const prefix = "all" in writeScope
+        ? (first ? dialect.buildClearChunks() : [])
+        : dialect.buildDeleteChunks!(writeScope.hashes);
       await writeInBatches(
         driver,
         [...prefix, ...dialect.buildChunkRows(rows)],
         batchSize,
       );
-      result.chunkRowCount += rows.length;
-    }
-    if (page.next === undefined) break;
-    after = page.next;
-  }
-  if (!cleared && !scoped) {
-    await driver.executeBatch(dialect.buildClearChunks());
-  }
-  return result;
+    },
+  };
+  return await rebuildSearchIndex(pages, projection, {
+    pageSize: options.pageSize ?? DEFAULT_REBUILD_PAGE_SIZE,
+    scope,
+  });
 }
 
 /**
