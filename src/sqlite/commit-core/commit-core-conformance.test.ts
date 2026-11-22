@@ -1,4 +1,4 @@
-import { assert } from "@std/assert";
+import { assert, assertEquals } from "@std/assert";
 import { RecursiveCharacterTextSplitter } from "@langchain/textsplitters";
 import { runCommitConformanceSuite } from "@worlds/sdk/testing";
 import type {
@@ -14,9 +14,10 @@ type CreateOptions = Parameters<
   Parameters<typeof runCommitConformanceSuite>[0]["create"]
 >[0];
 
-function subjectFor(limits: FakeLimits) {
+function subjectFor(limits: FakeLimits, created: FakeSqlStore[] = []) {
   return (options: CreateOptions): CommitConformanceSubject => {
     const store = new FakeSqlStore(limits);
+    created.push(store);
     return {
       async commit(patch, context) {
         await commitSqlPatch(patch, context, store.driver, store.dialect, {
@@ -32,6 +33,7 @@ function subjectFor(limits: FakeLimits) {
         Promise.resolve([...store.quads.values()].map((v) => v.quad)),
       chunkedQuadIds: () => Promise.resolve(store.chunks.map((c) => c.quadId)),
       failNextWrite: () => store.failNextInsertBatch(),
+      failLaterWrite: () => store.failLaterWrite(),
       fullRebuildCount: () => store.clearCount,
     };
   };
@@ -40,9 +42,10 @@ function subjectFor(limits: FakeLimits) {
 async function runSuite(
   limits: FakeLimits,
   contract: CommitConformanceContract,
-): Promise<void> {
+): Promise<LaterWriteRecord> {
+  const created: FakeSqlStore[] = [];
   const report = await runCommitConformanceSuite({
-    create: subjectFor(limits),
+    create: subjectFor(limits, created),
     contract,
   });
   const failed = report.results.filter((r) => !r.ok);
@@ -52,10 +55,27 @@ async function runSuite(
       failed.map((r) => `${r.name}: ${r.failures.join("; ")}`).join(" | ")
     }`,
   );
+  const skipped = (report.notes ?? []).filter((note) => /skip/i.test(note));
+  assertEquals(skipped, [], "no conformance case may be skipped");
+  assert(
+    report.results.some((r) => r.name.startsWith("later-write failure")),
+    "the later-write case must run",
+  );
+  const fired = created.flatMap((store) =>
+    store.laterInjections.map((injection) => ({ store, injection }))
+  );
+  assertEquals(fired.length, 1, "the later write failed exactly once");
+  return fired[0]!;
+}
+
+/** LaterWriteRecord is the store and injection of the one later-write failure a suite run fired. */
+interface LaterWriteRecord {
+  store: FakeSqlStore;
+  injection: FakeSqlStore["laterInjections"][number];
 }
 
 Deno.test("the core passes the conformance suite on the atomic path", async () => {
-  await runSuite(
+  const { store, injection } = await runSuite(
     { maxAtomicStatements: 10_000, writeBatchSize: 500 },
     {
       atomic: true,
@@ -64,11 +84,23 @@ Deno.test("the core passes the conformance suite on the atomic path", async () =
       defaultSearchIndexOnImport: "incremental",
     },
   );
+  // One atomic batch: the quad writes ran in it before the chunk write failed,
+  // then the whole batch rolled back, so no cleanup statement was needed.
+  assert(injection.index > 0, "the chunk write follows others in its batch");
+  assert(
+    injection.precedingKinds.includes("insert"),
+    "quad writes were applied before the failing chunk write",
+  );
+  assert(
+    store.batches[injection.batchNumber - 1]!.some((s) => s.kind === "insert"),
+    "the quad writes and the failing chunk write share one batch",
+  );
+  assertEquals(store.executed("cleanup").length, 0, "atomic needs no cleanup");
 });
 
 Deno.test("the core passes the conformance suite on the chunked fallback path", async () => {
   // maxAtomicStatements 0 sends every commit down the fallback, one statement per batch.
-  await runSuite(
+  const { store, injection } = await runSuite(
     { maxAtomicStatements: 0, writeBatchSize: 1 },
     {
       atomic: false,
@@ -77,6 +109,14 @@ Deno.test("the core passes the conformance suite on the chunked fallback path", 
       defaultSearchIndexOnImport: "incremental",
     },
   );
+  // Batch size 1: the quad writes were committed by earlier batches, so only
+  // the core's compensating cleanup can have removed them.
+  assertEquals(injection.index, 0, "the chunk write is a batch of its own");
+  assert(
+    injection.precedingKinds.includes("insert"),
+    "quad writes were committed before the failing chunk write",
+  );
+  assert(store.executed("cleanup").length > 0, "the core's cleanup ran");
 });
 
 Deno.test("the suite catches a wrong atomic declaration on the fallback path", async () => {
