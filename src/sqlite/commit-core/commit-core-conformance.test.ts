@@ -7,6 +7,7 @@ import type {
 } from "@worlds/sdk/testing";
 import { commitSqlPatch } from "@/sql-core/mod.ts";
 import { type FakeLimits, FakeSqlStore } from "./sql-commit.fake.ts";
+import { fakeStatementWeight } from "./sql-commit-dialect.fake.ts";
 
 const splitter = new RecursiveCharacterTextSplitter({ chunkSize: 1000 });
 
@@ -132,4 +133,29 @@ Deno.test("the suite catches a wrong atomic declaration on the fallback path", a
     },
   });
   assert(!report.ok, "a fallback backend declaring atomic: true must fail");
+});
+
+Deno.test("the core passes the conformance suite when the weight budget drives the chunked path", async () => {
+  // Count limits are generous; a budget of 1 puts every statement in a batch of its own (chunk rows weigh 10, over budget, so they go alone)
+  // so only the weight budget makes the commit non-atomic.
+  const { store, injection } = await runSuite(
+    {
+      maxAtomicStatements: 10_000,
+      writeBatchSize: 500,
+      statementWeight: fakeStatementWeight,
+      maxBatchWeight: 1,
+    },
+    {
+      atomic: false,
+      embeddingFailure: "throws",
+      replaceImportFailure: "empties-graph",
+      defaultSearchIndexOnImport: "incremental",
+    },
+  );
+  assertEquals(injection.index, 0, "the chunk write is a batch of its own");
+  assert(
+    injection.precedingKinds.includes("insert"),
+    "quad writes were committed before the failing chunk write",
+  );
+  assert(store.executed("cleanup").length > 0, "the core's cleanup ran");
 });

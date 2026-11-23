@@ -1,4 +1,9 @@
 import type { SqlCommitDriver, SqlDialect } from "./commit-types.ts";
+import {
+  batchWeighing,
+  fitsOneBatch,
+  partitionBatches,
+} from "./partition-batches.ts";
 
 /** DEFAULT_MAX_ATOMIC_STATEMENTS is the atomic limit the SQLite-family drivers use (10,000, the largest batch they sent before worlds-libsql#66). */
 export const DEFAULT_MAX_ATOMIC_STATEMENTS = 10_000;
@@ -20,8 +25,10 @@ export interface CommitCleanup {
 
 /**
  * writeInBatches runs `statements` as consecutive `executeBatch` calls of at
- * most `size`. Each call is atomic; the sequence is not. `onCommitted` is called
- * after each call that succeeded.
+ * most `size` statements and, when the driver declares `statementWeight` and
+ * `maxBatchWeight`, at most that weight (see `partitionBatches`: a statement
+ * heavier than the budget goes alone). Each call is atomic; the sequence is not.
+ * `onCommitted` is called after each call that succeeded.
  */
 export async function writeInBatches<S>(
   driver: SqlCommitDriver<S>,
@@ -29,9 +36,9 @@ export async function writeInBatches<S>(
   size: number,
   onCommitted?: () => void,
 ): Promise<void> {
-  const step = Math.max(1, size);
-  for (let start = 0; start < statements.length; start += step) {
-    await driver.executeBatch(statements.slice(start, start + step));
+  const batches = partitionBatches(statements, size, batchWeighing(driver));
+  for (const batch of batches) {
+    await driver.executeBatch(batch);
     onCommitted?.();
   }
 }
@@ -39,10 +46,13 @@ export async function writeInBatches<S>(
 /**
  * writeCommitStatements writes a commit's statements.
  *
- * Up to `maxAtomicStatements` they go in one `executeBatch`, which commits or
- * rolls back as a whole: no cleanup, no double-failure case, and a replace
- * import keeps its old graph on failure. Above that (or when the limit is 0)
- * they are written in batches of `writeBatchSize`, which is NOT atomic: if a
+ * When they fit in ONE batch under every limit the driver declares (at most
+ * `maxAtomicStatements` statements and, if the driver sets `statementWeight`
+ * and `maxBatchWeight`, at most that total weight) they go in one
+ * `executeBatch`, which commits or rolls back as a whole: no cleanup, no
+ * double-failure case, and a replace import keeps its old graph on failure.
+ * Otherwise (or when the limit is 0) they are written in batches filled up to
+ * `writeBatchSize` statements and the weight budget, which is NOT atomic: if a
  * later batch fails, earlier batches stay committed, so `dialect.buildCleanup`
  * removes the novel quads written so far. That cleanup cannot restore deletions
  * or a replace-import wipe an earlier batch already applied (the graph is left
@@ -57,7 +67,10 @@ export async function writeCommitStatements<S>(
   dialect: SqlDialect<S>,
   limits: SqlWriteLimits,
 ): Promise<void> {
-  if (statements.length <= limits.maxAtomicStatements) {
+  if (
+    statements.length <= limits.maxAtomicStatements &&
+    fitsOneBatch(statements, batchWeighing(driver))
+  ) {
     await driver.executeBatch(statements);
     return;
   }

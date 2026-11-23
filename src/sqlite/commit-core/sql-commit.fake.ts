@@ -15,6 +15,9 @@ export type { FakeStatement };
 export interface FakeLimits {
   maxAtomicStatements: number;
   writeBatchSize: number;
+  /** statementWeight and maxBatchWeight opt the fake driver into byte-aware batches. */
+  statementWeight?: (statement: FakeStatement) => number;
+  maxBatchWeight?: number;
 }
 
 /** LaterWriteInjection records where `failLaterWrite` landed. */

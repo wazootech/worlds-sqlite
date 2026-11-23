@@ -12,6 +12,11 @@ export type FakeStatement =
   | { kind: "chunk"; quadId: string; text: string; vectorized: boolean }
   | { kind: "cleanup"; keys: string[]; hashes: string[] };
 
+/** fakeStatementWeight models a chunk row as 10 units and every other statement as 1. */
+export function fakeStatementWeight(statement: FakeStatement): number {
+  return statement.kind === "chunk" ? 10 : 1;
+}
+
 /** createFakeDialect builds the fake backend's statements; `keyPrefix` makes keys differ from content hashes. */
 export function createFakeDialect(
   keyPrefix: string,
