@@ -23,14 +23,31 @@ export interface SqlQuadPage {
 export interface SqlCommitDriver<S> {
   /**
    * maxAtomicStatements is the most statements one commit may hold and still be
-   * written as a single `executeBatch` call. Larger commits take the chunked,
+   * written as a single `executeBatch` call (with `maxBatchWeight`, it must also
+   * fit that weight in the one batch). Larger commits take the chunked,
    * non-atomic fallback. Use 0 for a backend that cannot write a whole commit
    * atomically at all.
    */
   readonly maxAtomicStatements: number;
 
-  /** writeBatchSize is the statements per `executeBatch` call on the fallback path. */
+  /** writeBatchSize is the most statements per `executeBatch` call on the fallback path. */
   readonly writeBatchSize: number;
+  /**
+   * statementWeight estimates the cost of one statement in the unit
+   * `maxBatchWeight` is expressed in (for D1, serialized bytes). Optional and
+   * only used together with `maxBatchWeight`; a driver that sets one without the
+   * other is treated as unweighted. It should be cheap, pure, and err high.
+   */
+  statementWeight?(statement: S): number;
+  /**
+   * maxBatchWeight is the most total `statementWeight` one `executeBatch` call
+   * may carry, in addition to the statement-count limits. A commit is atomic
+   * only if it fits in one batch under both; the fallback fills each batch up to
+   * both, and a single statement over the budget goes alone in its own batch
+   * (the driver then accepts or rejects it). Cleanup and rebuild batches obey it
+   * too. Omit it for a backend with no byte-like limit.
+   */
+  readonly maxBatchWeight?: number;
 
   /**
    * executeBatch runs the statements as one unit: all of them apply or none do.
