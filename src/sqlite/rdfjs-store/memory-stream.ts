@@ -3,8 +3,8 @@ import type * as rdfjs from "@rdfjs/types";
 type Listener = (...args: unknown[]) => void;
 
 /**
- * MemoryStream is a minimal, zero-dependency RDF/JS Stream that replays a
- * fixed set of quads with Node Readable-compatible semantics:
+ * MemoryStream is a minimal, zero-dependency RDF/JS Stream that consumes an
+ * iterable of quads with Node Readable-compatible semantics:
  *
  * - attaching a `data` listener switches to flow mode and drains the quads,
  * - attaching a `readable` listener (or calling `read()`) enables pull mode,
@@ -23,27 +23,33 @@ export class MemoryStream implements rdfjs.Stream<rdfjs.Quad> {
   private _flowing = false;
   private _readStarted = false;
 
-  public constructor(private readonly quads: rdfjs.Quad[]) {}
+  // defines an iterator that will be used to read quads from the provided iterable
+  private readonly _iterator: Iterator<rdfjs.Quad>;
+  private _buffered?: rdfjs.Quad;
+
+  public constructor(quads: Iterable<rdfjs.Quad>) {
+    this._iterator = quads[Symbol.iterator]();
+  }
 
   public read(): rdfjs.Quad | null {
     this._readStarted = true;
-    const quad = this.quads.shift();
-    if (quad === undefined) {
-      this._end();
-      return null;
-    }
-    return quad;
+    const quad = this._buffered;
+    this._buffered = undefined;
+    return quad ?? this._readAndNotify();
   }
 
-  public [Symbol.iterator](): Iterator<rdfjs.Quad> {
-    return this.quads[Symbol.iterator]();
+  public *[Symbol.iterator](): IterableIterator<rdfjs.Quad> {
+    let quad: rdfjs.Quad | null;
+    while ((quad = this.read()) !== null) {
+      yield quad;
+    }
   }
 
   public destroy(error?: Error): void {
+    this._stop();
     if (error) {
       this.emit("error", error);
     }
-    this._ended = true;
     this.removeAllListeners();
   }
 
@@ -61,13 +67,13 @@ export class MemoryStream implements rdfjs.Stream<rdfjs.Quad> {
     if (eventName === "data" && !this._ended && !this._flowing) {
       this._startFlowing();
     }
-    if (eventName === "readable" && !this._ended && this.quads.length > 0) {
+    if (eventName === "readable" && !this._ended) {
       queueMicrotask(() => {
-        if (
-          !this._ended && this.quads.length > 0 &&
-          this.listenerCount("readable") > 0
-        ) {
-          this.emit("readable");
+        if (!this._ended && this.listenerCount("readable") > 0) {
+          this._buffered ??= this._readAndNotify() ?? undefined;
+          if (this._buffered) {
+            this.emit("readable");
+          }
         }
       });
     }
@@ -180,18 +186,51 @@ export class MemoryStream implements rdfjs.Stream<rdfjs.Quad> {
   }
 
   private _drain(): void {
-    if (this._ended || !this._flowing) {
-      return;
-    }
-    while (this.listenerCount("data") > 0) {
-      const quad = this.quads.shift();
-      if (quad === undefined) {
-        break;
+    try {
+      while (!this._ended && this.listenerCount("data") > 0) {
+        const quad = this.read();
+        if (quad === null) {
+          break;
+        }
+        this.emit("data", quad);
       }
-      this.emit("data", quad);
+    } finally {
+      this._flowing = false;
     }
-    if (this.quads.length === 0) {
+  }
+
+  private _nextQuad(): rdfjs.Quad | null {
+    const next = this._iterator.next();
+    return next.done ? null : next.value;
+  }
+
+  // used to read the next quad if current buffer is empty. returns null if none
+  // found, which happens when iterator is exhausted or stream ended, or error occurs.
+  private _readAndNotify(): rdfjs.Quad | null {
+    if (this._ended) {
+      return null;
+    }
+    let quad: rdfjs.Quad | null;
+    try {
+      quad = this._nextQuad();
+    } catch (error) {
+      this._stop();
+      if (!this.emit("error", error)) {
+        throw error;
+      }
+      return null;
+    }
+    if (quad === null) {
       this._end();
+    }
+    return quad;
+  }
+
+  private _stop(): void {
+    if (!this._ended) {
+      this._ended = true;
+      this._buffered = undefined;
+      this._iterator.return?.();
     }
   }
 
@@ -199,7 +238,7 @@ export class MemoryStream implements rdfjs.Stream<rdfjs.Quad> {
     if (this._ended) {
       return;
     }
-    this._ended = true;
+    this._stop();
     this.emit("end");
   }
 }
