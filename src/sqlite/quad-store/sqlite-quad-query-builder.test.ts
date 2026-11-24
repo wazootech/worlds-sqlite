@@ -8,15 +8,12 @@ import {
   buildSelectExistingQuadKeys,
   buildSqliteQuadPatternWhereClause,
   buildWipeAllGraphDataStatements,
-  generatePlaceholders,
   quadKeyFor,
 } from "./sqlite-quad-query-builder.ts";
 
 const { quad, namedNode, literal } = DataFactory;
 
-Deno.test("SqliteQuadQueryBuilder - placeholders and match SQL shape", () => {
-  assertEquals(generatePlaceholders(3), "?, ?, ?");
-
+Deno.test("SqliteQuadQueryBuilder - match SQL shape", () => {
   const pattern = {
     subject: namedNode("urn:s"),
     predicate: null,

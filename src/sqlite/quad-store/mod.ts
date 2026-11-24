@@ -1,3 +1,4 @@
+export { generatePlaceholders } from "@/sql-core/mod.ts";
 export { SqliteQuadStore } from "./sqlite-quad-store.ts";
 export type { SqliteQuadStoreOptions } from "./sqlite-quad-store.ts";
 export {
@@ -10,7 +11,6 @@ export {
   buildSqliteQuadPatternWhereClause,
   buildWipeAllGraphDataStatements,
   DEFAULT_SQLITE_MATCH_PAGE_SIZE,
-  generatePlaceholders,
   quadKeyFor,
   quadKeyString,
 } from "./sqlite-quad-query-builder.ts";

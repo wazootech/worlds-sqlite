@@ -54,10 +54,6 @@ export interface SqliteQuadPatternWhereClause {
   args: (string | null)[];
 }
 
-export function generatePlaceholders(count: number): string {
-  return Array(count).fill("?").join(", ");
-}
-
 /**
  * buildSqliteQuadPatternWhereClause binds each bound pattern position by its
  * term-equality key — the same equality the L1 store's match() uses, so SQL
