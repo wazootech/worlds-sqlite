@@ -409,25 +409,21 @@ export class SqliteStore implements rdfjs.Store<rdfjs.Quad> {
     );
     let afterKey: QuadKey | undefined;
 
-    for (;;) {
+    let rows: Array<Record<string, string>>;
+    do {
       const { sql, args } = buildMatchQuadsQuery(pattern, {
         afterKey,
         limit: pageSize,
       });
-      const rows = this.db.prepare(sql).all(...args) as Array<
-        Record<string, string>
-      >;
+      rows = this.db.prepare(sql).all(...args) as typeof rows;
 
       for (const row of rows) {
         yield quadFromPayloadJson(row.payload);
       }
-      if (rows.length < pageSize) {
-        return;
-      }
 
-      const last = rows[rows.length - 1]!;
-      afterKey = [last.skey, last.pkey, last.okey, last.gkey];
-    }
+      const last = rows.at(-1);
+      if (last) afterKey = [last.skey, last.pkey, last.okey, last.gkey];
+    } while (rows.length === pageSize);
   }
 
   public countQuads(
