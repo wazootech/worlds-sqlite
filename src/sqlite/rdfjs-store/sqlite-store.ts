@@ -192,6 +192,13 @@ function fromQuadRecord(rec: QuadRecord): rdfjs.Quad {
   );
 }
 
+/** quadsFromRows parses stored payloads one at a time, as they are pulled. */
+function* quadsFromRows(
+  rows: ReadonlyArray<{ payload: string }>,
+): IterableIterator<rdfjs.Quad> {
+  for (const row of rows) yield quadFromPayloadJson(row.payload);
+}
+
 /** SqliteStoreOptions configures SqliteStore. */
 export interface SqliteStoreOptions {
   /** Path to the SQLite database file, or ":memory:" for a temp database. */
@@ -442,7 +449,11 @@ export class SqliteStore implements rdfjs.Store<rdfjs.Quad> {
     return Number(row?.count ?? 0);
   }
 
-  /** removeMatches deletes matching rows and returns a completion stream. */
+  /**
+   * removeMatches deletes the matching rows at once, whether or not the result
+   * is read, and returns a stream of the removed quads. Only their payload
+   * strings are held; each quad is parsed as the stream is consumed.
+   */
   public removeMatches(
     subject: rdfjs.Term | null = null,
     predicate: rdfjs.Term | null = null,
@@ -456,8 +467,10 @@ export class SqliteStore implements rdfjs.Store<rdfjs.Quad> {
       graph,
     });
     const where = conditions.length ? ` WHERE ${conditions.join(" AND ")}` : "";
-    this.db.prepare(`DELETE FROM quads${where}`).run(...args);
-    return new MemoryStream([]);
+    const rows = this.db
+      .prepare(`DELETE FROM quads${where} RETURNING payload`)
+      .all(...args) as Array<{ payload: string }>;
+    return new MemoryStream(quadsFromRows(rows));
   }
 
   public deleteGraph(graph: rdfjs.Quad_Graph | string): MemoryStream {

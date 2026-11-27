@@ -108,7 +108,7 @@ Deno.test("SqliteStore - removeMatches deletes a graph with one filtered stateme
     assertEquals(statements.length, 1);
     assertEquals(
       statements[0],
-      "DELETE FROM quads WHERE pkey = ? AND gkey = ?",
+      "DELETE FROM quads WHERE pkey = ? AND gkey = ? RETURNING payload",
     );
     assertEquals(store.getQuads().map((q) => q.subject.value), ["urn:other"]);
 
@@ -116,6 +116,39 @@ Deno.test("SqliteStore - removeMatches deletes a graph with one filtered stateme
       removed.on("end", resolve);
       removed.on("error", reject);
     });
+  } finally {
+    store.close();
+  }
+});
+
+Deno.test("SqliteStore - removeMatches streams exactly the removed quads", async () => {
+  const { store } = seedStore();
+  try {
+    const expected = store.getQuads(null, predicate, null, graph);
+    const removed: string[] = [];
+    await new Promise<void>((resolve, reject) => {
+      store.removeMatches(null, predicate, null, graph)
+        .on(
+          "data",
+          (q) =>
+            removed.push((q as { subject: { value: string } }).subject.value),
+        )
+        .on("end", resolve)
+        .on("error", reject);
+    });
+    assertEquals(removed.sort(), expected.map((q) => q.subject.value).sort());
+    assertEquals(removed.length, 5);
+    assertEquals(store.size, 1);
+  } finally {
+    store.close();
+  }
+});
+
+Deno.test("SqliteStore - removeMatches deletes even if the stream is ignored", () => {
+  const { store } = seedStore();
+  try {
+    store.deleteGraph(graph);
+    assertEquals(store.size, 1);
   } finally {
     store.close();
   }
