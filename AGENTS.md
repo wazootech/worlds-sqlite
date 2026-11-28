@@ -15,7 +15,7 @@
   first sentence; file names match the dominant exported symbol).
 - Set up with `bun install` (Bun 1.4.5 or newer). Run `bun run fmt` before
   committing, then `bun run ci` before merging. Benchmarks that could shift with
-  query changes: run `bun run bench:check`.
+  query changes: check the CI bench gate (see `benchmarks/README.md`).
 - `code-health.yml` fails on a file over 120 lines of code (300 for tests);
   files that were already over it are listed there with a ceiling that only
   shrinks. A `TODO`/`FIXME` without an issue link only warns. The family-wide
