@@ -17,7 +17,6 @@ import { mkdtempSync } from "node:fs";
 import { tmpdir } from "node:os";
 import process from "node:process";
 import { fileURLToPath } from "node:url";
-import { runtimeArgs } from "../../../test/runtime-args.ts";
 import { test } from "node:test";
 import { assertEquals } from "@std/assert";
 import { dirname, join, resolve } from "@std/path";
@@ -36,7 +35,7 @@ function runChild(
 ): Promise<{ code: number; stderr: string }> {
   const child = spawn(
     process.execPath,
-    [...runtimeArgs(), CHILD_SCRIPT, ...args],
+    [CHILD_SCRIPT, ...args],
     { cwd: REPO_ROOT, stdio: ["ignore", "ignore", "pipe"] },
   );
   let stderr = "";

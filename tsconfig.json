@@ -1,7 +1,35 @@
 {
   "compilerOptions": {
+    "target": "ES2022",
+    "lib": [
+      "ES2023",
+      "DOM"
+    ],
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+    "allowImportingTsExtensions": true,
+    "strict": true,
+    "noEmit": true,
+    "skipLibCheck": true,
+    "types": [
+      "node"
+    ],
     "paths": {
-      "@/*": ["./src/*"]
+      "@/*": [
+        "./src/*"
+      ]
     }
-  }
+  },
+  "include": [
+    "src",
+    "benchmarks",
+    "examples",
+    "tools",
+    "test",
+    "scripts"
+  ],
+  "exclude": [
+    "node_modules",
+    "src/sqlite/runtime-portability/bun-handle.portability.test.ts"
+  ]
 }

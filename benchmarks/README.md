@@ -15,10 +15,10 @@ parity/benchmark definition
 
 ## Tasks
 
-- `deno task bench` — run all benches.
-- `deno task bench:record` — re-record `baseline.json` from a clean run (commit
+- `bun run bench` — run all benches.
+- `bun run bench:record` — re-record `baseline.json` from a clean run (commit
   it).
-- `deno task bench:check` — the L3 gate: fails on missing groups or a ≥50%
+- `bun run bench:check` — the L3 gate: fails on missing groups or a ≥50%
   regression vs the committed baseline (new benches are reported as
   baseline-pending, not failed).
 

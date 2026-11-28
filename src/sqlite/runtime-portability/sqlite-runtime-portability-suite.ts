@@ -5,15 +5,15 @@
  * rather than asserted once.
  *
  * The body is deliberately runtime-agnostic:
- * - it never imports Deno or bun APIs — tests are registered through the
+ * - it never imports runtime-specific APIs — tests are registered through the
  *   injected registrar (node:test's or bun:test's `test`);
  * - it asserts with node:assert (a zero-dependency builtin on Node, Bun, and
- *   Deno's node-compat layer) instead of @std/assert, keeping the Bun CI job
+ *   Deno) instead of @std/assert, keeping the Bun CI job
  *   free of jsr-only test dependencies;
  * - handles come from the injected `makeHandle` / `createHandleFromPath`, so
  *   each runtime wrapper supplies its own builtin.
  *
- * Every case mirrors an existing Deno-side test (sqlite-store.test.ts /
+ * Every case mirrors an existing test in (sqlite-store.test.ts /
  * sqlite-connection-driver.test.ts) so the two suites can drift apart loudly.
  */
 import { strict as assert } from "node:assert/strict";

@@ -8,11 +8,10 @@
 import { spawn } from "node:child_process";
 import process from "node:process";
 import { test } from "node:test";
-import { runtimeArgs } from "../test/runtime-args.ts";
 import { assertEquals } from "@std/assert";
 
 function runExample(relativePath: string): Promise<string> {
-  const child = spawn(process.execPath, [...runtimeArgs(), relativePath], {
+  const child = spawn(process.execPath, [relativePath], {
     cwd: process.cwd(),
     stdio: ["ignore", "pipe", "pipe"],
   });

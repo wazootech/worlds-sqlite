@@ -96,7 +96,7 @@ test("SqliteStore - match emits a deferred SQLite read error", async () => {
   await assertRejects(() =>
     new Promise<void>((resolve, reject) => {
       stream.on("data", () => {});
-      stream.on("end", resolve);
+      stream.on("end", () => resolve());
       stream.on("error", reject);
     })
   );
@@ -114,7 +114,7 @@ test("SqliteStore - removeMatches deletes a graph with one filtered statement", 
     assertEquals(store.getQuads().map((q) => q.subject.value), ["urn:other"]);
 
     await new Promise<void>((resolve, reject) => {
-      removed.on("end", resolve);
+      removed.on("end", () => resolve());
       removed.on("error", reject);
     });
   } finally {
@@ -134,7 +134,7 @@ test("SqliteStore - removeMatches streams exactly the removed quads", async () =
           (q) =>
             removed.push((q as { subject: { value: string } }).subject.value),
         )
-        .on("end", resolve)
+        .on("end", () => resolve())
         .on("error", reject);
     });
     assertEquals(removed.sort(), expected.map((q) => q.subject.value).sort());

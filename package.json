@@ -2,8 +2,46 @@
   "name": "@worlds/sqlite",
   "private": true,
   "type": "module",
+  "description": "Bun toolchain manifest for @worlds/sqlite. The published package is described by jsr.json; scripts/check-manifests.ts keeps the two in sync.",
+  "packageManager": "bun@1.4.5",
+  "exports": {
+    ".": "./src/mod.ts",
+    "./sql-core": "./src/sql-core/mod.ts",
+    "./quad-store": "./src/sqlite/quad-store/mod.ts",
+    "./search-index": "./src/sqlite/search-index/mod.ts",
+    "./rdfjs-store": "./src/sqlite/rdfjs-store/mod.ts",
+    "./schema": "./src/sqlite/schema/sqlite-schema-builder.ts"
+  },
+  "scripts": {
+    "fmt": "bun fmt --no-script",
+    "fmt:check": "bun fmt --no-script --check",
+    "lint": "oxlint --deny-warnings",
+    "check": "bun check --no-script",
+    "check:manifests": "bun scripts/check-manifests.ts",
+    "test": "bun test --timeout 120000",
+    "examples:check": "bun test --timeout 120000 ./tools/run-examples.ts",
+    "sql-core:purity": "bun tools/sql-core-purity.ts",
+    "bench": "bun benchmarks/hybrid-search.bench.ts && bun benchmarks/idempotency-guard.bench.ts && bun benchmarks/index-maintenance.bench.ts && bun benchmarks/sparql-perf-sqlite.bench.ts && bun benchmarks/sparql-perf-large-sqlite.bench.ts && bun benchmarks/synchronization.bench.ts",
+    "bench:record": "bun benchmarks/bench-record.ts",
+    "bench:check": "bun benchmarks/bench-check.ts",
+    "publish:dry": "jsr publish --dry-run --allow-dirty",
+    "ci": "bun run fmt:check && bun run lint && bun run check && bun run check:manifests && bun run test && bun run examples:check && bun run sql-core:purity"
+  },
   "dependencies": {
+    "@langchain/textsplitters": "^1.0.1",
+    "@rdfjs/types": "^2.0.1",
+    "@types/n3": "1.26.1",
+    "@types/node": "^26.2.0",
     "@wazoo/sparql-engine": "npm:@jsr/wazoo__sparql-engine@^0.5.0",
-    "n3": "^2.2.11"
+    "@worlds/sdk": "npm:@jsr/worlds__sdk@^0.11.0",
+    "n3": "^2.2.11",
+    "sqlite-vec": "^0.1.9"
+  },
+  "devDependencies": {
+    "@std/assert": "npm:@jsr/std__assert@^1.0.19",
+    "@std/path": "npm:@jsr/std__path@^1.1.6",
+    "jsr": "0.14.3",
+    "mitata": "1.0.34",
+    "oxlint": "1.95.0"
   }
 }

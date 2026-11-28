@@ -1,5 +1,5 @@
 /**
- * bench is the one harness for the bench files, in place of `Deno.bench`: a
+ * bench is the one harness for the bench files: a
  * file registers benches with `bench(definition, fn, setup?)` and ends with
  * `await runBenches()`. mitata measures each in turn. `setup` builds a fresh
  * argument for every iteration and is not timed.

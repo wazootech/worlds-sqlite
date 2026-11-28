@@ -3,7 +3,6 @@ import { spawnSync } from "node:child_process";
 import { readdirSync } from "node:fs";
 import process from "node:process";
 import { fileURLToPath } from "node:url";
-import { runtimeArgs } from "../../test/runtime-args.ts";
 import type { BenchResult } from "./bench.ts";
 
 const BENCH_DIRECTORY = fileURLToPath(new URL("../", import.meta.url));
@@ -21,7 +20,7 @@ export function opsPerSecond(): Record<string, number> {
   for (const file of benchFiles()) {
     const run = spawnSync(
       process.execPath,
-      [...runtimeArgs(), `${BENCH_DIRECTORY}${file}`, "--json"],
+      [`${BENCH_DIRECTORY}${file}`, "--json"],
       { encoding: "utf8", maxBuffer: 64 * 1024 * 1024 },
     );
     if (run.status !== 0) {

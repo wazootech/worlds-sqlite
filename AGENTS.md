@@ -6,11 +6,12 @@
 - **`src/sql-core/` must stay driver-free.** Modules there may only emit inert
   `{sql, args}` plans or pure strings — never import `node:sqlite`,
   `@libsql/client`, `sqlite-vec`, or any other driver/extension. The
-  allowlist-based gate is `deno task sql-core:purity`; extend its allowlist only
+  allowlist-based gate is `bun run sql-core:purity`; extend its allowlist only
   for shared, driver-free dependencies.
-- Public exports should live in `deno.json`; keep `src/mod.ts` as the root
-  barrel and `src/sql-core/mod.ts` as the `./sql-core` barrel.
+- Public exports live in `jsr.json` and are mirrored in `package.json`; keep
+  `src/mod.ts` as the root barrel and `src/sql-core/mod.ts` as the
+  `./sql-core` barrel.
 - Follow the existing JSDoc and naming style in the source files (symbol-name
   first sentence; file names match the dominant exported symbol).
-- Run `deno fmt` before committing, then `deno task ci` before merging.
-  Benchmarks that could shift with query changes: run `deno task bench:check`.
+- Set up with `bun install` (Bun 1.4.5 or newer). Run `bun run fmt` before
+  committing, then `bun run ci` before merging. Benchmarks that could shift with query changes: run `bun run bench:check`.

@@ -1,0 +1,39 @@
+{
+  "name": "@worlds/sqlite",
+  "description": "Synchronous SQLite-family durable backend for the Worlds client (developer-supplied node:sqlite / bun:sqlite handle) \u2014 RDF/JS quad primitive packaged with the worlds impl.",
+  "version": "0.8.2",
+  "license": "WTFPL",
+  "exports": {
+    ".": "./src/mod.ts",
+    "./sql-core": "./src/sql-core/mod.ts",
+    "./quad-store": "./src/sqlite/quad-store/mod.ts",
+    "./search-index": "./src/sqlite/search-index/mod.ts",
+    "./rdfjs-store": "./src/sqlite/rdfjs-store/mod.ts",
+    "./schema": "./src/sqlite/schema/sqlite-schema-builder.ts"
+  },
+  "imports": {
+    "@/": "./src/",
+    "@rdfjs/types": "npm:@rdfjs/types@^2.0.1",
+    "@types/node": "npm:@types/node@^26.2.0",
+    "@types/n3": "npm:@types/n3@1.26.1",
+    "n3": "npm:n3@^2.2.11",
+    "@langchain/textsplitters": "npm:@langchain/textsplitters@^1.0.1",
+    "sqlite-vec": "npm:sqlite-vec@^0.1.9",
+    "@wazoo/sparql-engine": "jsr:@wazoo/sparql-engine@^0.5.0",
+    "@wazoo/sparql-engine/term": "jsr:@wazoo/sparql-engine@^0.5.0/term",
+    "@worlds/sdk": "jsr:@worlds/sdk@^0.11.0"
+  },
+  "publish": {
+    "include": [
+      "src/",
+      "README.md",
+      "LICENSE"
+    ],
+    "exclude": [
+      "src/**/*.test.ts",
+      "src/**/*.fake.ts",
+      "tools/run-examples.ts",
+      "test/"
+    ]
+  }
+}

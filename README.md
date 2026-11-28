@@ -128,7 +128,7 @@ where `node:sqlite` is unavailable (e.g. Bun 1.3.x).
 The claim is enforced, not asserted: the shared runtime-portability suite
 (`src/sqlite/runtime-portability/`) runs the core `SqliteStore` +
 `SqliteConnectionDriver` surface over both builtins — the `node:sqlite` leg in
-the Deno CI job, the `bun:sqlite` leg in a pinned Bun CI job (see
+the main CI job, the `bun:sqlite` leg in a pinned Bun CI job (see
 `.github/workflows/ci.yml`). Any new runtime that provides an
 `AnySyncSqliteHandle` can reuse the same suite via its own wrapper.
 
@@ -146,10 +146,10 @@ intentionally stay backend-local.
 symbol emits inert `{sql, args}` plans or plain strings — no database handle, no
 I/O. Backends execute the plans through their own connection drivers, which is
 why synchronous `node:sqlite` and asynchronous LibSQL can share the same
-emitters. The guardrail is enforced in CI by `deno task sql-core:purity`
+emitters. The guardrail is enforced in CI by `bun run sql-core:purity`
 (allowlist-based import check); keep new sql-core modules on that allowlist
 (`@worlds/sdk`, `@wazoo/sparql-engine`, `@rdfjs/types`, intra-package imports,
-and `@std/assert` in tests only).
+and `@std/assert` and `node:test` in tests only).
 
 ## Setup
 
@@ -160,18 +160,15 @@ npx jsr add @worlds/sqlite
 ## Releases
 
 Every push to `main` runs the [Publish workflow](.github/workflows/publish.yml),
-which publishes only when `deno.json`'s `version` is not yet on JSR:
+which publishes only when `jsr.json`'s `version` is not yet on JSR:
 
 - **Release PR** (bumps `version`): merging it publishes the new version of
   `@worlds/sqlite`.
 - **Routine PR** (no bump): the Publish job skips green with a notice. That is
   expected, not a failure.
 
-To release, bump `version` in `deno.json` (minor for additive public API, patch
-for fixes) in the PR that should ship. If the package ever imports a pinned
-`jsr:@worlds/sqlite@<version>` of itself, commit that entry to `deno.lock`;
-otherwise a cold CI run rewrites the lockfile and `deno publish` aborts on the
-dirty tree.
+To release, bump `version` in `jsr.json` (minor for additive public API, patch
+for fixes) in the PR that should ship.
 
 ## License
 

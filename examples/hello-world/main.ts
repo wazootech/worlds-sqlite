@@ -3,7 +3,7 @@
  *
  * Run from the repo root:
  *
- *   deno run --allow-all examples/hello-world/main.ts
+ *   bun examples/hello-world/main.ts
  *
  * This example exercises the Layer 1 surface directly: a durable
  * `rdfjs.Store` over a synchronous SQLite handle, wired through
