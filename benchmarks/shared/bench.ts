@@ -38,8 +38,9 @@ export function bench<T>(
   setup?: () => T,
 ): void {
   const run: Run = async () => {
-    // mitata awaits only a function declared async, so the wrappers must be.
-    if (!setup) return (await measure(async () => await fn())).avg;
+    // A wrapper with no parameters: mitata reads a function that declares any
+    // as an iterator bench. It awaits whenever the call returns a promise.
+    if (!setup) return (await measure(() => fn())).avg;
     // mitata's computed parameter: `[0]` is recomputed outside the timing.
     const stats = await measure(function* () {
       yield { [0]: setup, bench: async (input: T) => await fn(input) };
