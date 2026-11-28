@@ -18,12 +18,14 @@ const ALLOWED_SPECIFIER_PATTERNS = [
   /^@worlds\/sdk/,
   /^@wazoo\/sparql-engine/,
   /^@rdfjs\/types$/,
-  /^@std\/assert$/, // test-only assertion surface
-  /^node:test$/, // test-only runner
 ];
 
-/** ImportSpecifierPattern matches static and dynamic module specifiers. */
-const IMPORT_SPECIFIER_PATTERN = /(?:from\s+|import\s*\(\s*)["']([^"']+)["']/g;
+/** TestOnlySpecifierPatterns are allowed in `*.test.ts` files and nowhere else. */
+const TEST_ONLY_SPECIFIER_PATTERNS = [/^@std\/assert$/, /^node:test$/];
+
+/** ImportSpecifierPattern matches static, bare and dynamic module specifiers. */
+const IMPORT_SPECIFIER_PATTERN =
+  /(?:\bfrom\s+|\bimport\s*\(?\s*)["']([^"']+)["']/g;
 
 async function collectSqlCoreFiles(directory: string): Promise<string[]> {
   const files: string[] = [];
@@ -43,11 +45,12 @@ const violations: string[] = [];
 
 for (const file of sqlCoreFiles) {
   const source = await readFile(file, "utf8");
+  const patterns = file.endsWith(".test.ts")
+    ? [...ALLOWED_SPECIFIER_PATTERNS, ...TEST_ONLY_SPECIFIER_PATTERNS]
+    : ALLOWED_SPECIFIER_PATTERNS;
   for (const match of source.matchAll(IMPORT_SPECIFIER_PATTERN)) {
     const specifier = match[1]!;
-    const allowed = ALLOWED_SPECIFIER_PATTERNS.some((pattern) =>
-      pattern.test(specifier),
-    );
+    const allowed = patterns.some((pattern) => pattern.test(specifier));
     if (!allowed) {
       violations.push(`${file}: disallowed import "${specifier}"`);
     }
