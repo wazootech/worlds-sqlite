@@ -47,7 +47,7 @@ jobs:
             echo "::error file=$f::$n lines of code (limit $max${cap:+, ceiling $cap})"
             echo "- \`$f\`: $n (limit $max)" >> "$GITHUB_STEP_SUMMARY"
             fail=1
-          done < <(git ls-files '*.ts' '*.tsx' '*.js' '*.mjs' | grep -vE '(^|/)(node_modules|dist|generated|fixtures|\.next)/|\.d\.ts$|\.gen\.|openapi|snapshot|schema')
+          done < <(git ls-files '*.ts' '*.tsx' '*.js' '*.mjs' | grep -vE '(^|/)(node_modules|dist|generated|fixtures|\.next)/|\.d\.ts$|\.gen\.|openapi|snapshot')
           exit "$fail"
       - name: TODO/FIXME without an issue link (warn-only)
         run: |
