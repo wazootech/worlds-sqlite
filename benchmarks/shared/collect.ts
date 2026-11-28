@@ -28,7 +28,10 @@ export function opsPerSecond(): Record<string, number> {
     }
     const last = run.stdout.trim().split("\n").at(-1) ?? "[]";
     for (const result of JSON.parse(last) as BenchResult[]) {
-      if (result.avg > 0) ops[result.name] = 1e9 / result.avg;
+      if (!(result.avg > 0)) {
+        throw new Error(`${file}: no timing for "${result.name}"`);
+      }
+      ops[result.name] = 1e9 / result.avg;
     }
   }
   return ops;

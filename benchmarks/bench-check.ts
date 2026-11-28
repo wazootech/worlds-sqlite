@@ -8,7 +8,9 @@
  *   2. FAILS if any bench regresses >=50% vs the committed baseline
  *      (benchmarks/baseline.json) — throughput drops to <=50% of recorded
  *      ops/sec.
- *   3. New benches absent from the baseline are reported as "baseline
+ *   3. FAILS if a bench in the baseline was not measured (renamed or dropped),
+ *      so it cannot leave the gate unnoticed.
+ *   4. New benches absent from the baseline are reported as "baseline
  *      pending" and do not fail the gate.
  *
  * Re-record the baseline with: bun run bench:record
@@ -81,6 +83,16 @@ for (const [name, current] of Object.entries(results)) {
       )} (${(ratio * 100).toFixed(0)}%)`,
     );
   }
+}
+
+// 3. Every baseline bench must have been measured.
+const unmeasured = Object.keys(baseline).filter((name) => !(name in results));
+if (unmeasured.length > 0) {
+  failures += unmeasured.length;
+  for (const name of unmeasured) {
+    console.error(`❌ ${name}: in the baseline but not measured`);
+  }
+  console.error("If a bench was renamed or removed, re-record the baseline.");
 }
 
 if (regressions > 0) {

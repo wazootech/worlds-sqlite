@@ -19,8 +19,8 @@ parity/benchmark definition
 - `bun run bench:record` — re-record `baseline.json` from a clean run (commit
   it).
 - `bun run bench:check` — the L3 gate: fails on missing groups or a ≥50%
-  regression vs the committed baseline (new benches are reported as
-  baseline-pending, not failed).
+  regression vs the committed baseline, or on a baseline bench that was not
+  measured (new benches are reported as baseline-pending, not failed).
 
 ## Honest status (2026-08-19)
 
