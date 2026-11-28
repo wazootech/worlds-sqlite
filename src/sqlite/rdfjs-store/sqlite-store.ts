@@ -50,7 +50,14 @@ import type {
 import { termKey } from "@/sqlite/term/term-key.ts";
 import { requireBase } from "@/sqlite/rdfjs-store/require-base.ts";
 import { MemoryStream } from "@/sqlite/rdfjs-store/memory-stream.ts";
-import { DEFAULT_SQLITE_MATCH_PAGE_SIZE } from "@/sqlite/quad-store/sqlite-quad-query-builder.ts";
+import {
+  buildCountQuadsQuery,
+  buildMatchQuadsQuery,
+  buildSqliteQuadPatternWhereClause,
+  DEFAULT_SQLITE_MATCH_PAGE_SIZE,
+  type QuadKey,
+  type SqliteQuadPattern,
+} from "@/sqlite/quad-store/sqlite-quad-query-builder.ts";
 
 /**
  * openNodeSqliteHandle opens the default node:sqlite DatabaseSync for a path.
@@ -185,6 +192,13 @@ function fromQuadRecord(rec: QuadRecord): rdfjs.Quad {
   );
 }
 
+/** quadsFromRows parses stored payloads one at a time, as they are pulled. */
+function* quadsFromRows(
+  rows: ReadonlyArray<{ payload: string }>,
+): IterableIterator<rdfjs.Quad> {
+  for (const row of rows) yield quadFromPayloadJson(row.payload);
+}
+
 /** SqliteStoreOptions configures SqliteStore. */
 export interface SqliteStoreOptions {
   /** Path to the SQLite database file, or ":memory:" for a temp database. */
@@ -209,7 +223,7 @@ export interface SqliteStoreOptions {
    */
   createHandle?: SyncSqliteHandleFactory;
 
-  /** matchPageSize limits rows per getQuads SQL round-trip (default 1000). */
+  /** matchPageSize limits rows per quad read (default 1000). */
   matchPageSize?: number;
 
   /**
@@ -358,95 +372,101 @@ export class SqliteStore implements rdfjs.Store<rdfjs.Quad> {
     return stream;
   }
 
+  // NOTE: in match(), getQuads(), countQuads(), and removeMatches(),
+  // initialize args as null by default early so we know their value early on
+  // (which can save us some headache during debugging) and
+  // type check any potential undefined values before processing further
+
   public match(
-    subject?: rdfjs.Term | null,
-    predicate?: rdfjs.Term | null,
-    object?: rdfjs.Term | null,
-    graph?: rdfjs.Term | null,
+    subject: rdfjs.Term | null = null,
+    predicate: rdfjs.Term | null = null,
+    object: rdfjs.Term | null = null,
+    graph: rdfjs.Term | null = null,
   ): MemoryStream {
-    return new MemoryStream(this.getQuads(subject, predicate, object, graph));
+    return new MemoryStream(
+      this.iterateQuads({ subject, predicate, object, graph }),
+    );
   }
 
   public getQuads(
-    subject?: rdfjs.Term | null,
-    predicate?: rdfjs.Term | null,
-    object?: rdfjs.Term | null,
-    graph?: rdfjs.Term | null,
+    subject: rdfjs.Term | null = null,
+    predicate: rdfjs.Term | null = null,
+    object: rdfjs.Term | null = null,
+    graph: rdfjs.Term | null = null,
   ): rdfjs.Quad[] {
-    const where: string[] = [];
-    const args: Array<string | number> = [];
-    const bind = (
-      column: string,
-      term: rdfjs.Term | null | undefined,
-    ): void => {
-      if (term != null) {
-        where.push(`${column} = ?`);
-        args.push(termKey(term));
-      }
-    };
-    bind("skey", subject);
-    bind("pkey", predicate);
-    bind("okey", object);
-    bind("gkey", graph);
+    return [...this.iterateQuads({ subject, predicate, object, graph })];
+  }
 
+  /** iterateQuads yields matching quads in key order, one SQLite page at a time. */
+  private *iterateQuads(
+    pattern: SqliteQuadPattern,
+  ): IterableIterator<rdfjs.Quad> {
     const pageSize = Math.max(
       1,
       Math.floor(
         this.options.matchPageSize ?? DEFAULT_SQLITE_MATCH_PAGE_SIZE,
       ),
     );
-    const quads: rdfjs.Quad[] = [];
-    let anchor: [string, string, string, string] | undefined;
+    let afterKey: QuadKey | undefined;
 
-    for (;;) {
-      const pageWhere = [...where];
-      const pageArgs: Array<string | number> = [...args];
-      if (anchor) {
-        pageWhere.push("(skey, pkey, okey, gkey) > (?, ?, ?, ?)");
-        pageArgs.push(...anchor);
-      }
-      const sql = "SELECT payload, skey, pkey, okey, gkey FROM quads" +
-        (pageWhere.length > 0 ? " WHERE " + pageWhere.join(" AND ") : "") +
-        " ORDER BY skey, pkey, okey, gkey LIMIT ?";
-      pageArgs.push(pageSize);
-      const rows = this.db.prepare(sql).all(...pageArgs) as Array<
-        Record<string, string>
-      >;
-      if (rows.length === 0) {
-        break;
-      }
+    let rows: Array<Record<string, string>>;
+    do {
+      const { sql, args } = buildMatchQuadsQuery(pattern, {
+        afterKey,
+        limit: pageSize,
+      });
+      rows = this.db.prepare(sql).all(...args) as typeof rows;
+
       for (const row of rows) {
-        quads.push(fromQuadRecord(JSON.parse(row.payload)));
-        anchor = [row.skey, row.pkey, row.okey, row.gkey];
+        yield quadFromPayloadJson(row.payload);
       }
-      if (rows.length < pageSize) {
-        break;
-      }
-    }
 
-    return quads;
+      const last = rows.at(-1);
+      if (last) afterKey = [last.skey, last.pkey, last.okey, last.gkey];
+    } while (rows.length === pageSize);
   }
 
   public countQuads(
-    subject?: rdfjs.Term | null,
-    predicate?: rdfjs.Term | null,
-    object?: rdfjs.Term | null,
-    graph?: rdfjs.Term | null,
+    subject: rdfjs.Term | null = null,
+    predicate: rdfjs.Term | null = null,
+    object: rdfjs.Term | null = null,
+    graph: rdfjs.Term | null = null,
   ): number {
-    return this.getQuads(subject, predicate, object, graph).length;
+    const { sql, args } = buildCountQuadsQuery({
+      subject,
+      predicate,
+      object,
+      graph,
+    });
+    const row = this.db.prepare(sql).get(...args) as
+      | { count: number | bigint }
+      | null
+      | undefined;
+    return Number(row?.count ?? 0);
   }
 
+  /**
+   * removeMatches deletes the matching rows at once, whether or not the result
+   * is read, and returns a stream of the removed quads. Only their payload
+   * strings are held; each quad is parsed as the stream is consumed.
+   */
   public removeMatches(
-    subject?: rdfjs.Term | null,
-    predicate?: rdfjs.Term | null,
-    object?: rdfjs.Term | null,
-    graph?: rdfjs.Term | null,
+    subject: rdfjs.Term | null = null,
+    predicate: rdfjs.Term | null = null,
+    object: rdfjs.Term | null = null,
+    graph: rdfjs.Term | null = null,
   ): MemoryStream {
-    const matches = this.getQuads(subject, predicate, object, graph);
-    for (const quad of matches) {
-      this.removeQuad(quad);
-    }
-    return new MemoryStream(matches);
+    const { conditions, args } = buildSqliteQuadPatternWhereClause({
+      subject,
+      predicate,
+      object,
+      graph,
+    });
+    const where = conditions.length ? ` WHERE ${conditions.join(" AND ")}` : "";
+    const rows = this.db
+      .prepare(`DELETE FROM quads${where} RETURNING payload`)
+      .all(...args) as Array<{ payload: string }>;
+    return new MemoryStream(quadsFromRows(rows));
   }
 
   public deleteGraph(graph: rdfjs.Quad_Graph | string): MemoryStream {
@@ -457,10 +477,7 @@ export class SqliteStore implements rdfjs.Store<rdfjs.Quad> {
   }
 
   public get size(): number {
-    const row = this.db.prepare("SELECT COUNT(*) AS n FROM quads").get() as
-      | Record<string, number>
-      | undefined;
-    return row?.n ?? 0;
+    return this.countQuads();
   }
 
   /** close releases the underlying database handle. */
