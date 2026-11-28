@@ -38,7 +38,7 @@ const queryBuilder = new SqliteSearchQueryBuilder(VECTOR_DIMENSIONS, {
 });
 await initializeSqliteSchema(connection, schemaBuilder);
 
-const vectorArray = new Array(VECTOR_DIMENSIONS).fill(0);
+const vectorArray = Array.from({ length: VECTOR_DIMENSIONS }, () => 0);
 vectorArray[0] = 1.0;
 const vectorJsonString = JSON.stringify(vectorArray);
 

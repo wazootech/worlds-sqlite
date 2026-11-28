@@ -166,7 +166,8 @@ export class MemoryStream implements rdfjs.Stream<rdfjs.Quad> {
     if (!list || list.length === 0) {
       return false;
     }
-    for (const fn of [...list]) {
+    // A snapshot: a once() listener removes itself while this loop runs.
+    for (const fn of list.slice()) {
       fn.apply(this, args);
     }
     return true;
