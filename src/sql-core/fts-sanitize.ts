@@ -70,11 +70,7 @@ export const FTS_STOPWORDS: ReadonlySet<string> = new Set([
 export function sanitizeFtsQuery(query: string): string {
   const tokens = query
     .split(/\s+/)
-    .map((token) =>
-      token
-        .toLowerCase()
-        .replace(/[^\p{L}\p{N}\p{M}]+/gu, "")
-    )
+    .map((token) => token.toLowerCase().replace(/[^\p{L}\p{N}\p{M}]+/gu, ""))
     .filter((token) => token.length > 0);
 
   const filteredTokens = tokens.filter((token) => !FTS_STOPWORDS.has(token));

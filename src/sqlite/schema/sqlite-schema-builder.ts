@@ -44,9 +44,9 @@ export class SqliteSchemaBuilder {
       dimensions > SQLITE_SCHEMA_BUILDER_MAX_VECTOR_DIMENSIONS
     ) {
       throw new Error(
-        `vectorDimensions must be a finite integer in [1, ${SQLITE_SCHEMA_BUILDER_MAX_VECTOR_DIMENSIONS}], received: ${
-          String(vectorDimensions)
-        }`,
+        `vectorDimensions must be a finite integer in [1, ${SQLITE_SCHEMA_BUILDER_MAX_VECTOR_DIMENSIONS}], received: ${String(
+          vectorDimensions,
+        )}`,
       );
     }
     this.vectorDimensions = dimensions;

@@ -80,7 +80,9 @@ export class MemoryStream implements rdfjs.Stream<rdfjs.Quad> {
     if (eventName === "end" && !this._ended) {
       queueMicrotask(() => {
         if (
-          !this._ended && !this._flowing && !this._readStarted &&
+          !this._ended &&
+          !this._flowing &&
+          !this._readStarted &&
           this.listenerCount("data") === 0 &&
           this.listenerCount("readable") === 0
         ) {
@@ -166,7 +168,8 @@ export class MemoryStream implements rdfjs.Stream<rdfjs.Quad> {
     if (!list || list.length === 0) {
       return false;
     }
-    for (const fn of [...list]) {
+    // A snapshot: a once() listener removes itself while this loop runs.
+    for (const fn of list.slice()) {
       fn.apply(this, args);
     }
     return true;

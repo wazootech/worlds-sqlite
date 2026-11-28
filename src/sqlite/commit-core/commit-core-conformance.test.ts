@@ -1,3 +1,4 @@
+import { test } from "node:test";
 import { assert, assertEquals } from "@std/assert";
 import { RecursiveCharacterTextSplitter } from "@langchain/textsplitters";
 import { runCommitConformanceSuite } from "@worlds/sdk/testing";
@@ -52,9 +53,9 @@ async function runSuite(
   const failed = report.results.filter((r) => !r.ok);
   assert(
     report.ok,
-    `conformance failures: ${
-      failed.map((r) => `${r.name}: ${r.failures.join("; ")}`).join(" | ")
-    }`,
+    `conformance failures: ${failed
+      .map((r) => `${r.name}: ${r.failures.join("; ")}`)
+      .join(" | ")}`,
   );
   const skipped = (report.notes ?? []).filter((note) => /skip/i.test(note));
   assertEquals(skipped, [], "no conformance case may be skipped");
@@ -63,7 +64,7 @@ async function runSuite(
     "the later-write case must run",
   );
   const fired = created.flatMap((store) =>
-    store.laterInjections.map((injection) => ({ store, injection }))
+    store.laterInjections.map((injection) => ({ store, injection })),
   );
   assertEquals(fired.length, 1, "the later write failed exactly once");
   return fired[0]!;
@@ -75,7 +76,7 @@ interface LaterWriteRecord {
   injection: FakeSqlStore["laterInjections"][number];
 }
 
-Deno.test("the core passes the conformance suite on the atomic path", async () => {
+test("the core passes the conformance suite on the atomic path", async () => {
   const { store, injection } = await runSuite(
     { maxAtomicStatements: 10_000, writeBatchSize: 500 },
     {
@@ -99,7 +100,7 @@ Deno.test("the core passes the conformance suite on the atomic path", async () =
   assertEquals(store.executed("cleanup").length, 0, "atomic needs no cleanup");
 });
 
-Deno.test("the core passes the conformance suite on the chunked fallback path", async () => {
+test("the core passes the conformance suite on the chunked fallback path", async () => {
   // maxAtomicStatements 0 sends every commit down the fallback, one statement per batch.
   const { store, injection } = await runSuite(
     { maxAtomicStatements: 0, writeBatchSize: 1 },
@@ -120,7 +121,7 @@ Deno.test("the core passes the conformance suite on the chunked fallback path", 
   assert(store.executed("cleanup").length > 0, "the core's cleanup ran");
 });
 
-Deno.test("the suite catches a wrong atomic declaration on the fallback path", async () => {
+test("the suite catches a wrong atomic declaration on the fallback path", async () => {
   // A fallback backend that claims to be atomic must fail the suite: the
   // replace-import case expects the old graph to survive.
   const report = await runCommitConformanceSuite({
@@ -135,7 +136,7 @@ Deno.test("the suite catches a wrong atomic declaration on the fallback path", a
   assert(!report.ok, "a fallback backend declaring atomic: true must fail");
 });
 
-Deno.test("the core passes the conformance suite when the weight budget drives the chunked path", async () => {
+test("the core passes the conformance suite when the weight budget drives the chunked path", async () => {
   // Count limits are generous; a budget of 1 puts every statement in a batch of its own (chunk rows weigh 10, over budget, so they go alone)
   // so only the weight budget makes the commit non-atomic.
   const { store, injection } = await runSuite(

@@ -1,3 +1,4 @@
+import { test } from "node:test";
 import { DatabaseSync } from "node:sqlite";
 import { assertEquals, assertRejects } from "@std/assert";
 import { SqliteConnectionDriver } from "./sqlite-connection-driver.ts";
@@ -8,7 +9,7 @@ function freshDriver(options?: { vectorSupported?: boolean }) {
   return { db, connection };
 }
 
-Deno.test("SqliteConnectionDriver - execute returns rows for SELECT and RETURNING", async () => {
+test("SqliteConnectionDriver - execute returns rows for SELECT and RETURNING", async () => {
   const { connection } = freshDriver();
   await connection.execute({
     sql: "CREATE TABLE t (id INTEGER PRIMARY KEY AUTOINCREMENT, v TEXT)",
@@ -32,7 +33,7 @@ Deno.test("SqliteConnectionDriver - execute returns rows for SELECT and RETURNIN
   assertEquals(written.rows, []);
 });
 
-Deno.test("SqliteConnectionDriver - batch commits atomically and rolls back on failure", async () => {
+test("SqliteConnectionDriver - batch commits atomically and rolls back on failure", async () => {
   const { connection } = freshDriver();
   await connection.execute({ sql: "CREATE TABLE t (v TEXT)" });
 
@@ -43,7 +44,10 @@ Deno.test("SqliteConnectionDriver - batch commits atomically and rolls back on f
   const rows = await connection.execute<{ v: string }>({
     sql: "SELECT v FROM t ORDER BY v",
   });
-  assertEquals(rows.rows.map((r) => r.v), ["a", "b"]);
+  assertEquals(
+    rows.rows.map((r) => r.v),
+    ["a", "b"],
+  );
 
   // A failing statement rolls the whole batch back.
   await assertRejects(() =>
@@ -51,15 +55,18 @@ Deno.test("SqliteConnectionDriver - batch commits atomically and rolls back on f
       { sql: "INSERT INTO t (v) VALUES (?)", args: ["c"] },
       { sql: "INSERT INTO t (v) VALUES (?)", args: ["d"] },
       { sql: "INSERT INTO missing (v) VALUES (?)", args: ["e"] },
-    ])
+    ]),
   );
   const after = await connection.execute<{ v: string }>({
     sql: "SELECT v FROM t ORDER BY v",
   });
-  assertEquals(after.rows.map((r) => r.v), ["a", "b"]);
+  assertEquals(
+    after.rows.map((r) => r.v),
+    ["a", "b"],
+  );
 });
 
-Deno.test("SqliteConnectionDriver - transaction runs fn atomically", async () => {
+test("SqliteConnectionDriver - transaction runs fn atomically", async () => {
   const { connection } = freshDriver();
   await connection.execute({ sql: "CREATE TABLE t (v TEXT)" });
 
@@ -70,21 +77,27 @@ Deno.test("SqliteConnectionDriver - transaction runs fn atomically", async () =>
   const rows = await connection.execute<{ v: string }>({
     sql: "SELECT v FROM t ORDER BY v",
   });
-  assertEquals(rows.rows.map((r) => r.v), ["x", "y"]);
+  assertEquals(
+    rows.rows.map((r) => r.v),
+    ["x", "y"],
+  );
 
   await assertRejects(() =>
     connection.transaction(async (tx) => {
       await tx.execute({ sql: "INSERT INTO t (v) VALUES (?)", args: ["z"] });
       throw new Error("boom");
-    })
+    }),
   );
   const after = await connection.execute<{ v: string }>({
     sql: "SELECT v FROM t ORDER BY v",
   });
-  assertEquals(after.rows.map((r) => r.v), ["x", "y"]);
+  assertEquals(
+    after.rows.map((r) => r.v),
+    ["x", "y"],
+  );
 });
 
-Deno.test("SqliteConnectionDriver - reports vector support flag", () => {
+test("SqliteConnectionDriver - reports vector support flag", () => {
   assertEquals(freshDriver().connection.hasVectorSupport(), false);
   assertEquals(
     freshDriver({ vectorSupported: true }).connection.hasVectorSupport(),
@@ -92,7 +105,7 @@ Deno.test("SqliteConnectionDriver - reports vector support flag", () => {
   );
 });
 
-Deno.test("SqliteConnectionDriver - close releases the handle", async () => {
+test("SqliteConnectionDriver - close releases the handle", async () => {
   const { connection } = freshDriver();
   await connection.execute({ sql: "CREATE TABLE t (v TEXT)" });
   await connection.close();

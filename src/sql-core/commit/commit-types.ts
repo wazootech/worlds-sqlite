@@ -60,9 +60,10 @@ export interface SqlCommitDriver<S> {
   lookupExisting(keys: string[]): Promise<Set<string>>;
 
   /** streamQuads returns one page of every stored quad, in a stable order. */
-  streamQuads(
-    request: { after?: unknown; pageSize: number },
-  ): Promise<SqlQuadPage>;
+  streamQuads(request: {
+    after?: unknown;
+    pageSize: number;
+  }): Promise<SqlQuadPage>;
 }
 
 /**

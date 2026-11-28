@@ -9,14 +9,20 @@
 //   4. two concurrent writers → both datasets land in full (busy_timeout
 //      serializes them; no interleaved partial commits).
 //
-// Each scenario runs in its own child Deno process via Deno.Command, so the
+// Each scenario runs in its own child process, so the
 // parent can never accidentally share in-memory state with the "crashing"
 // writer.
+import { spawn } from "node:child_process";
+import { mkdtempSync } from "node:fs";
+import { tmpdir } from "node:os";
+import process from "node:process";
+import { fileURLToPath } from "node:url";
+import { test } from "node:test";
 import { assertEquals } from "@std/assert";
-import { dirname, fromFileUrl, join, resolve } from "@std/path";
+import { dirname, join, resolve } from "@std/path";
 import { SqliteStore } from "@/sqlite/rdfjs-store/sqlite-store.ts";
 
-const REPO_ROOT = resolve(dirname(fromFileUrl(import.meta.url)), "../../..");
+const REPO_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "../../..");
 const CHILD_SCRIPT = join(REPO_ROOT, "test", "sqlite-recovery-child.ts");
 
 /**
@@ -24,22 +30,26 @@ const CHILD_SCRIPT = join(REPO_ROOT, "test", "sqlite-recovery-child.ts");
  * stderr (stderr is attached to assertion messages so a child failure is
  * diagnosable — the child prints the underlying SQLite error).
  */
-async function runChild(
+function runChild(
   ...args: string[]
 ): Promise<{ code: number; stderr: string }> {
-  const command = new Deno.Command(Deno.execPath(), {
-    args: ["run", "--allow-all", CHILD_SCRIPT, ...args],
+  const child = spawn(process.execPath, [CHILD_SCRIPT, ...args], {
     cwd: REPO_ROOT,
-    stdout: "piped",
-    stderr: "piped",
+    stdio: ["ignore", "ignore", "pipe"],
   });
-  const { code, stderr } = await command.output();
-  return { code, stderr: new TextDecoder().decode(stderr) };
+  let stderr = "";
+  child.stderr?.setEncoding("utf8").on("data", (chunk: string) => {
+    stderr += chunk;
+  });
+  return new Promise((resolve, reject) => {
+    child.on("error", reject);
+    child.on("close", (code) => resolve({ code: code ?? -1, stderr }));
+  });
 }
 
 /** tempDbPath returns a fresh temp db path for one scenario. */
 function tempDbPath(): string {
-  const dir = Deno.makeTempDirSync();
+  const dir = mkdtempSync(join(tmpdir(), "recovery-"));
   return `${dir}/recovery.sqlite`;
 }
 
@@ -53,7 +63,7 @@ function collectQuads(path: string): unknown[] {
   }
 }
 
-Deno.test("SqliteStore recovery - committed update survives a hard process exit", async () => {
+test("SqliteStore recovery - committed update survives a hard process exit", async () => {
   const path = tempDbPath();
   // The child commits then dies without close().
   const { code, stderr } = await runChild("commit-exit", path);
@@ -66,7 +76,7 @@ Deno.test("SqliteStore recovery - committed update survives a hard process exit"
   );
 });
 
-Deno.test("SqliteStore recovery - uncommitted buffered writes roll back", async () => {
+test("SqliteStore recovery - uncommitted buffered writes roll back", async () => {
   const path = tempDbPath();
   // The child buffers writes in a transaction and exits before commit.
   const { code, stderr } = await runChild("buffered-exit", path);
@@ -74,7 +84,7 @@ Deno.test("SqliteStore recovery - uncommitted buffered writes roll back", async 
   assertEquals(collectQuads(path).length, 0);
 });
 
-Deno.test("SqliteStore recovery - kill mid-BEGIN IMMEDIATE rolls back on reopen", async () => {
+test("SqliteStore recovery - kill mid-BEGIN IMMEDIATE rolls back on reopen", async () => {
   const path = tempDbPath();
   // The child writes raw WAL frames inside an uncommitted transaction.
   const { code, stderr } = await runChild("raw-mid-transaction", path);
@@ -82,7 +92,7 @@ Deno.test("SqliteStore recovery - kill mid-BEGIN IMMEDIATE rolls back on reopen"
   assertEquals(collectQuads(path).length, 0);
 });
 
-Deno.test("SqliteStore recovery - concurrent writers never interleave partial commits", async () => {
+test("SqliteStore recovery - concurrent writers never interleave partial commits", async () => {
   const path = tempDbPath();
   // Two writers race on the write lock; busy_timeout serializes them.
   const [writerA, writerB] = await Promise.all([

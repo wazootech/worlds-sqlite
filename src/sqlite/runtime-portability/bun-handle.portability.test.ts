@@ -4,16 +4,14 @@
  * handles under Bun (the runtime the AnySyncSqliteHandle seam exists for:
  * Bun 1.3.x does not resolve node:sqlite at all).
  *
- * This file is bun-only: `deno test` discovery excludes it via deno.json's
- * `test.exclude`, and CI runs it with `bun test`. The file is unreachable
- * from any package export and is not typechecked by `deno check` — the real
- * protection is Bun's own runtime + typecheck on `bun test`.
+ * This file is bun-only: tsconfig.json leaves it out of `bun check` (there are
+ * no types here for `bun:sqlite`), and it is unreachable from any package
+ * export. CI runs it on the pinned Bun 1.3.x job, and `bun test` also picks it
+ * up in the main job.
  */
 import { Database } from "bun:sqlite";
 import { test } from "bun:test";
-import {
-  runSqliteRuntimePortabilitySuite,
-} from "./sqlite-runtime-portability-suite.ts";
+import { runSqliteRuntimePortabilitySuite } from "./sqlite-runtime-portability-suite.ts";
 
 runSqliteRuntimePortabilitySuite(test, {
   label: "bun:sqlite",

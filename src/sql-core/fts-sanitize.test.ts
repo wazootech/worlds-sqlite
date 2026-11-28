@@ -1,7 +1,8 @@
+import { test } from "node:test";
 import { assertEquals } from "@std/assert";
 import { sanitizeFtsQuery } from "./fts-sanitize.ts";
 
-Deno.test("sanitizeFtsQuery - strips punctuation, stopwords, and lowercases", () => {
+test("sanitizeFtsQuery - strips punctuation, stopwords, and lowercases", () => {
   assertEquals(
     sanitizeFtsQuery("Ethan is the Explorer!"),
     '"ethan" "explorer"',

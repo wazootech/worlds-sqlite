@@ -39,9 +39,7 @@ export interface SqliteQuadStoreOptions extends SqliteCommitCoreOptions {
  * the shared L1 SqliteStore.
  */
 export class SqliteQuadStore implements QuadStoreInterface {
-  public constructor(
-    private readonly options: SqliteQuadStoreOptions,
-  ) {}
+  public constructor(private readonly options: SqliteQuadStoreOptions) {}
 
   /**
    * import merges or replaces the underlying store with provided RDF source

@@ -1,3 +1,4 @@
+import { bench, runBenches } from "./shared/bench.ts";
 import { DatabaseSync } from "node:sqlite";
 import { FakeEmbeddingService } from "@worlds/sdk/search-index/embedding-service";
 import type { EmbeddingService } from "@worlds/sdk/search-index/embedding-service";
@@ -37,17 +38,14 @@ const queryBuilder = new SqliteSearchQueryBuilder(VECTOR_DIMENSIONS, {
 });
 await initializeSqliteSchema(connection, schemaBuilder);
 
-const vectorArray = new Array(VECTOR_DIMENSIONS).fill(0);
+const vectorArray = Array.from({ length: VECTOR_DIMENSIONS }, () => 0);
 vectorArray[0] = 1.0;
 const vectorJsonString = JSON.stringify(vectorArray);
 
-async function insertChunkRow(
-  index: number,
-): Promise<void> {
+async function insertChunkRow(index: number): Promise<void> {
   const text = `Document payload text index ${index} with unique keywords.`;
   const inserted = await connection.execute<{ id: number | bigint }>({
-    sql:
-      "INSERT INTO chunks (quad_id, subject, predicate, graph, value, fts_value) VALUES (?, ?, ?, ?, ?, ?) RETURNING id",
+    sql: "INSERT INTO chunks (quad_id, subject, predicate, graph, value, fts_value) VALUES (?, ?, ?, ?, ?, ?) RETURNING id",
     args: [
       `id-${index}`,
       `urn:entity:${index}`,
@@ -89,32 +87,34 @@ const fallbackSearchIndex = new SqliteSearchIndex({
   searchQueryBuilder: queryBuilder,
 });
 
-Deno.bench({
-  name: "Search: FTS5 Keyword-Only Search (Vectorless Mode)",
-  group: "Hybrid Search Performance",
-  async fn(benchContext) {
-    benchContext.start();
+bench(
+  {
+    name: "Search: FTS5 Keyword-Only Search (Vectorless Mode)",
+    group: "Hybrid Search Performance",
+  },
+  async () => {
     await ftsSearchIndex.search({ query: "unique keywords" });
-    benchContext.end();
   },
-});
+);
 
-Deno.bench({
-  name: "Search: Hybrid RRF Fusion Search (Vector + FTS5)",
-  group: "Hybrid Search Performance",
-  async fn(benchContext) {
-    benchContext.start();
+bench(
+  {
+    name: "Search: Hybrid RRF Fusion Search (Vector + FTS5)",
+    group: "Hybrid Search Performance",
+  },
+  async () => {
     await hybridSearchIndex.search({ query: "unique keywords" });
-    benchContext.end();
   },
-});
+);
 
-Deno.bench({
-  name: "Search: Graceful Degradation (Fallback to FTS5 on Error)",
-  group: "Hybrid Search Performance",
-  async fn(benchContext) {
-    benchContext.start();
-    await fallbackSearchIndex.search({ query: "unique keywords" });
-    benchContext.end();
+bench(
+  {
+    name: "Search: Graceful Degradation (Fallback to FTS5 on Error)",
+    group: "Hybrid Search Performance",
   },
-});
+  async () => {
+    await fallbackSearchIndex.search({ query: "unique keywords" });
+  },
+);
+
+await runBenches();

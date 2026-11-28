@@ -1,3 +1,4 @@
+import { bench, runBenches } from "./shared/bench.ts";
 import { DataFactory } from "n3";
 import { createSqliteWorldsSdkForBench } from "./shared/sparql-perf-shared.ts";
 
@@ -21,44 +22,43 @@ function generateBatchPayload(count: number) {
   return bulkQuads;
 }
 
-Deno.bench({
-  name: "Sync: Consolidated Batch Commit (10 Quads)",
-  group: "Consolidated Batch Ingestion",
-  async fn(benchContext) {
-    const payload = generateBatchPayload(10);
-
-    benchContext.start();
+bench(
+  {
+    name: "Sync: Consolidated Batch Commit (10 Quads)",
+    group: "Consolidated Batch Ingestion",
+  },
+  async (payload) => {
     await client.import({
       source: { kind: "quads", quads: payload },
     });
-    benchContext.end();
   },
-});
+  () => generateBatchPayload(10),
+);
 
-Deno.bench({
-  name: "Sync: Consolidated Batch Commit (100 Quads)",
-  group: "Consolidated Batch Ingestion",
-  async fn(benchContext) {
-    const payload = generateBatchPayload(100);
-
-    benchContext.start();
+bench(
+  {
+    name: "Sync: Consolidated Batch Commit (100 Quads)",
+    group: "Consolidated Batch Ingestion",
+  },
+  async (payload) => {
     await client.import({
       source: { kind: "quads", quads: payload },
     });
-    benchContext.end();
   },
-});
+  () => generateBatchPayload(100),
+);
 
-Deno.bench({
-  name: "Sync: Consolidated Batch Commit (1,000 Quads)",
-  group: "Consolidated Batch Ingestion",
-  async fn(benchContext) {
-    const payload = generateBatchPayload(1000);
-
-    benchContext.start();
+bench(
+  {
+    name: "Sync: Consolidated Batch Commit (1,000 Quads)",
+    group: "Consolidated Batch Ingestion",
+  },
+  async (payload) => {
     await client.import({
       source: { kind: "quads", quads: payload },
     });
-    benchContext.end();
   },
-});
+  () => generateBatchPayload(1000),
+);
+
+await runBenches();

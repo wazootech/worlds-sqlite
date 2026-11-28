@@ -3,7 +3,7 @@
  * SQLite-family durable backends (node:sqlite today, LibSQL/Turso via
  * `@worlds/libsql`, D1 later). Everything here emits inert `{sql, args}`
  * plans or pure text helpers — no database driver, no connection, no I/O.
- * The purity guardrail is enforced by `deno task sql-core:purity`.
+ * The purity guardrail is enforced by `bun run sql-core:purity`.
  *
  * Non-goals: quad storage layout (term-key hexastore vs column-per-position
  * rows) and vector search dialect (vec0 vs native libsql vectors) stay in

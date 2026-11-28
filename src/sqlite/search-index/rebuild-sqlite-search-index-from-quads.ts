@@ -13,8 +13,7 @@ export interface RebuildSqliteSearchIndexFromQuadsResult {
 }
 
 /** ReadProjectSearchChunksOptions extends the commit options with paging. */
-export interface ReadProjectSearchChunksOptions
-  extends SqliteCommitCoreOptions {
+export interface ReadProjectSearchChunksOptions extends SqliteCommitCoreOptions {
   readPageSize?: number;
 }
 
@@ -38,7 +37,7 @@ export async function rebuildSqliteSearchIndexFromQuads(
   let processedQuadCount = 0;
   const { driver, dialect, projection, filter } = createSqliteCommit(
     options,
-    (count) => processedQuadCount += count,
+    (count) => (processedQuadCount += count),
   );
   if (!projection) {
     throw new Error(

@@ -109,12 +109,12 @@ quads(skey, pkey, okey, gkey, payload)
   `close()` — proven by the crash-recovery suite, which kills real child
   processes at the failure points:
 
-| Scenario                                   | Child behavior                          | On reopen                          |
-| ------------------------------------------ | --------------------------------------- | ---------------------------------- |
-| Committed update, hard exit (no `close()`) | commit, then `Deno.exit(0)`             | quad intact                        |
-| Buffered writes, exit before `commit()`    | transaction buffer, then `Deno.exit(1)` | dataset untouched                  |
-| Kill mid-`BEGIN IMMEDIATE`                 | raw WAL frames, never committed         | interrupted txn rolled back        |
-| Two concurrent writers (`busy_timeout`)    | interleaved commit batches              | both datasets complete, no partial |
+| Scenario                                   | Child behavior                             | On reopen                          |
+| ------------------------------------------ | ------------------------------------------ | ---------------------------------- |
+| Committed update, hard exit (no `close()`) | commit, then `process.exit(0)`             | quad intact                        |
+| Buffered writes, exit before `commit()`    | transaction buffer, then `process.exit(1)` | dataset untouched                  |
+| Kill mid-`BEGIN IMMEDIATE`                 | raw WAL frames, never committed            | interrupted txn rolled back        |
+| Two concurrent writers (`busy_timeout`)    | interleaved commit batches                 | both datasets complete, no partial |
 
 ## Verified behavior (tests)
 
@@ -146,8 +146,8 @@ scanned pattern; if you can express the workload as `INSERT DATA`/`DELETE DATA`
 
 `node:sqlite` is a Node/Deno builtin, so `SqliteStore` is server-only. The
 engine keeps its zero-runtime-dependency claim: `src/mod.ts`'s graph stays free
-of `node:`/`npm:` imports, enforced by the engine's `deno task publish:check`
-and `deno publish --dry-run`.
+of `node:`/`npm:` imports, enforced by the engine's `publish:check`
+script and publish dry run.
 
 ## Alternatives considered
 

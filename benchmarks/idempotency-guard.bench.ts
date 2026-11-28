@@ -1,3 +1,4 @@
+import { bench, runBenches } from "./shared/bench.ts";
 import { DataFactory } from "n3";
 import { createSqliteWorldsSdk } from "@/sqlite/create-sqlite-sdk.ts";
 import { generateSyntheticQuads } from "./shared/synthetic-data.ts";
@@ -28,28 +29,29 @@ await client.import({
   source: { kind: "quads", quads: payload100 },
 });
 
-Deno.bench({
-  name: "Idempotency: Novel Insert (New Quads Ingested)",
-  group: "Idempotency Guard Performance",
-  async fn(benchContext) {
-    const freshPayload = generateFreshPayload(100);
-
-    benchContext.start();
+bench(
+  {
+    name: "Idempotency: Novel Insert (New Quads Ingested)",
+    group: "Idempotency Guard Performance",
+  },
+  async (freshPayload) => {
     await client.import({
       source: { kind: "quads", quads: freshPayload },
     });
-    benchContext.end();
   },
-});
+  () => generateFreshPayload(100),
+);
 
-Deno.bench({
-  name: "Idempotency: Redundant Insert (Duplicate Quads Suppressed)",
-  group: "Idempotency Guard Performance",
-  async fn(benchContext) {
-    benchContext.start();
+bench(
+  {
+    name: "Idempotency: Redundant Insert (Duplicate Quads Suppressed)",
+    group: "Idempotency Guard Performance",
+  },
+  async () => {
     await client.import({
       source: { kind: "quads", quads: payload100 },
     });
-    benchContext.end();
   },
-});
+);
+
+await runBenches();

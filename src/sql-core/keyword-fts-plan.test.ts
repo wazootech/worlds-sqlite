@@ -1,3 +1,4 @@
+import { test } from "node:test";
 import { assertEquals } from "@std/assert";
 import {
   buildIncludeExcludeFilterClauses,
@@ -6,12 +7,12 @@ import {
   RRF_FUSION_K,
 } from "./keyword-fts-plan.ts";
 
-Deno.test("generatePlaceholders - comma-delimited bound variables", () => {
+test("generatePlaceholders - comma-delimited bound variables", () => {
   assertEquals(generatePlaceholders(1), "?");
   assertEquals(generatePlaceholders(3), "?, ?, ?");
 });
 
-Deno.test("buildIncludeExcludeFilterClauses - renders IN/NOT IN with args", () => {
+test("buildIncludeExcludeFilterClauses - renders IN/NOT IN with args", () => {
   const { whereClauses, filterArgs } = buildIncludeExcludeFilterClauses(
     {
       include: { graphs: ["urn:g1", "urn:g2"] },
@@ -30,7 +31,7 @@ Deno.test("buildIncludeExcludeFilterClauses - renders IN/NOT IN with args", () =
   assertEquals(filterArgs, ["urn:secret", "urn:g1", "urn:g2"]);
 });
 
-Deno.test("buildKeywordFtsStatement - FTS5 plan with RRF scoring and stable arg order", () => {
+test("buildKeywordFtsStatement - FTS5 plan with RRF scoring and stable arg order", () => {
   const statement = buildKeywordFtsStatement({
     sanitizedQuery: '"needle"',
     limit: 5,

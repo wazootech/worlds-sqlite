@@ -56,9 +56,7 @@ interface SearchRow {
  * extension disables the vector branch entirely (no vec0 SQL is ever emitted).
  */
 export class SqliteSearchIndex implements SearchIndexInterface {
-  public constructor(
-    private readonly options: SqliteSearchIndexOptions,
-  ) {}
+  public constructor(private readonly options: SqliteSearchIndexOptions) {}
 
   /**
    * search executes a keyword and vector hybrid query against the current
@@ -130,9 +128,7 @@ export class SqliteSearchIndex implements SearchIndexInterface {
    * reindex rebuilds FTS/vector chunk rows from durable quads without
    * re-importing graph data.
    */
-  public async reindex(
-    request?: ReindexRequest,
-  ): Promise<ReindexResponse> {
+  public async reindex(request?: ReindexRequest): Promise<ReindexResponse> {
     const textSplitter = this.options.textSplitter;
     if (!textSplitter) {
       throw new Error(
@@ -161,12 +157,11 @@ export class SqliteSearchIndex implements SearchIndexInterface {
         return (await this.options.connection.execute(plan.statement))
           .rows as unknown as SearchRow[];
       case "hybrid": {
-        const keywordRows = (await this.options.connection.execute(
-          plan.keyword,
-        )).rows as unknown as SearchRow[];
-        const vectorRows = (await this.options.connection.execute(
-          plan.vector,
-        )).rows as unknown as SearchRow[];
+        const keywordRows = (
+          await this.options.connection.execute(plan.keyword)
+        ).rows as unknown as SearchRow[];
+        const vectorRows = (await this.options.connection.execute(plan.vector))
+          .rows as unknown as SearchRow[];
 
         // JS-side reciprocal rank fusion: each row carries its single-branch
         // RRF contribution (1 / (60 + rank)); overlapping chunk ids sum both.
@@ -179,8 +174,8 @@ export class SqliteSearchIndex implements SearchIndexInterface {
           const chunkId = Number(row.chunk_id);
           const existing = fused.get(chunkId);
           if (existing) {
-            existing.combined_rank = Number(existing.combined_rank) +
-              Number(row.combined_rank);
+            existing.combined_rank =
+              Number(existing.combined_rank) + Number(row.combined_rank);
           } else {
             fused.set(chunkId, { ...row, combined_rank: row.combined_rank });
           }
@@ -188,8 +183,8 @@ export class SqliteSearchIndex implements SearchIndexInterface {
 
         return [...fused.values()]
           .sort((a, b) => {
-            const scoreDelta = Number(b.combined_rank) -
-              Number(a.combined_rank);
+            const scoreDelta =
+              Number(b.combined_rank) - Number(a.combined_rank);
             if (scoreDelta !== 0) return scoreDelta;
             return String(a.subject).localeCompare(String(b.subject));
           })

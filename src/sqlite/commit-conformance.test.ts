@@ -1,3 +1,4 @@
+import { test } from "node:test";
 import { DatabaseSync } from "node:sqlite";
 import { assert, assertEquals, assertRejects } from "@std/assert";
 import { DataFactory } from "n3";
@@ -77,11 +78,12 @@ class FaultyConnection extends SqliteConnectionDriver {
   ): readonly SqlStatement[] {
     if (!this.laterArmed) return statements;
     const firstQuad = statements.findIndex((s) => QUAD_WRITE.test(s.sql));
-    const index = firstQuad < 0
-      ? -1
-      : statements.findIndex((s, i) =>
-        i > firstQuad && CHUNK_WRITE.test(s.sql)
-      );
+    const index =
+      firstQuad < 0
+        ? -1
+        : statements.findIndex(
+            (s, i) => i > firstQuad && CHUNK_WRITE.test(s.sql),
+          );
     if (index < 0) return statements;
     this.laterArmed = false;
     this.laterInjections.push({
@@ -92,10 +94,10 @@ class FaultyConnection extends SqliteConnectionDriver {
     return statements.map((s, i) =>
       i === index
         ? {
-          sql: "INSERT INTO injected_missing_table (x) VALUES (?)",
-          args: [1],
-        }
-        : s
+            sql: "INSERT INTO injected_missing_table (x) VALUES (?)",
+            args: [1],
+          }
+        : s,
     );
   }
 
@@ -109,7 +111,8 @@ class FaultyConnection extends SqliteConnectionDriver {
   public override batch(statements: readonly SqlStatement[]): Promise<void> {
     const sqls = statements.map((s) => s.sql);
     if (
-      sqls.includes("DELETE FROM chunks") && !sqls.includes("DELETE FROM quads")
+      sqls.includes("DELETE FROM chunks") &&
+      !sqls.includes("DELETE FROM quads")
     ) {
       this.rebuilds++;
     }
@@ -137,11 +140,10 @@ type CreateOptions = Parameters<
   Parameters<typeof runCommitConformanceSuite>[0]["create"]
 >[0];
 
-async function createFixture(
-  options: CreateOptions,
-): Promise<
-  { subject: CommitConformanceSubject; connection: FaultyConnection }
-> {
+async function createFixture(options: CreateOptions): Promise<{
+  subject: CommitConformanceSubject;
+  connection: FaultyConnection;
+}> {
   const db = new DatabaseSync(":memory:", { allowExtension: true });
   const vectorSupported = await tryLoadVectorExtension(db);
   assert(vectorSupported, "sqlite-vec must load for the conformance suite");
@@ -192,7 +194,7 @@ async function createSubject(
   return (await createFixture(options)).subject;
 }
 
-Deno.test("sqlite commit path passes the shared conformance suite", async () => {
+test("sqlite commit path passes the shared conformance suite", async () => {
   const report = await runCommitConformanceSuite({
     create: createSubject,
     contract: sqliteContract,
@@ -210,7 +212,7 @@ Deno.test("sqlite commit path passes the shared conformance suite", async () => 
   );
 });
 
-Deno.test("sqlite failLaterWrite lands on a chunk write after the quad writes", async () => {
+test("sqlite failLaterWrite lands on a chunk write after the quad writes", async () => {
   const { subject, connection } = await createFixture({
     searchIndexOnImport: "incremental",
     embeddingService: new FakeEmbeddingService(),

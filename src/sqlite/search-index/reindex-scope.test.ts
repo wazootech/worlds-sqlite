@@ -1,3 +1,4 @@
+import { test } from "node:test";
 import { DatabaseSync } from "node:sqlite";
 import { assertEquals } from "@std/assert";
 import { DataFactory } from "n3";
@@ -55,15 +56,18 @@ async function fixture() {
 
 type Db = DatabaseSync;
 const values = (db: Db, graph: string): string[] =>
-  db.prepare("SELECT value FROM chunks WHERE graph = ? ORDER BY value")
-    .all(graph).map((row) => String(row.value));
+  db
+    .prepare("SELECT value FROM chunks WHERE graph = ? ORDER BY value")
+    .all(graph)
+    .map((row) => String(row.value));
 const total = (db: Db): number =>
   Number(db.prepare("SELECT COUNT(*) AS n FROM chunks").get()!.n);
 
 /** tamper marks every chunk row so a refresh (or a survival) is observable. */
 function tamper(db: Db, column: "graph" | "predicate", value: string) {
-  db.prepare(`UPDATE chunks SET value = 'stale' WHERE ${column} = ?`)
-    .run(value);
+  db.prepare(`UPDATE chunks SET value = 'stale' WHERE ${column} = ?`).run(
+    value,
+  );
 }
 
 async function scopedCase(
@@ -77,9 +81,11 @@ async function scopedCase(
   tamper(db, outScope.column, outScope.value);
   const rows = (column: string, value: string) =>
     Number(
-      db.prepare(
-        `SELECT COUNT(*) AS n FROM chunks WHERE ${column} = ? AND value = 'stale'`,
-      ).get(value)!.n,
+      db
+        .prepare(
+          `SELECT COUNT(*) AS n FROM chunks WHERE ${column} = ? AND value = 'stale'`,
+        )
+        .get(value)!.n,
     );
   const outsideBefore = rows(outScope.column, outScope.value);
   const report = await index.reindex(request);
@@ -95,7 +101,7 @@ async function scopedCase(
   db.close();
 }
 
-Deno.test("sqlite reindex - include keeps out-of-scope chunk rows and refreshes in-scope", async () => {
+test("sqlite reindex - include keeps out-of-scope chunk rows and refreshes in-scope", async () => {
   await scopedCase(
     { include: { graphs: [gA.value] } },
     { column: "graph", value: gA.value },
@@ -104,7 +110,7 @@ Deno.test("sqlite reindex - include keeps out-of-scope chunk rows and refreshes 
   );
 });
 
-Deno.test("sqlite reindex - exclude keeps excluded chunk rows and refreshes the rest", async () => {
+test("sqlite reindex - exclude keeps excluded chunk rows and refreshes the rest", async () => {
   await scopedCase(
     { exclude: { predicates: [pY.value] } },
     { column: "predicate", value: pX.value },
@@ -113,7 +119,7 @@ Deno.test("sqlite reindex - exclude keeps excluded chunk rows and refreshes the 
   );
 });
 
-Deno.test("sqlite reindex - a request with no criteria is unscoped and rebuilds everything", async () => {
+test("sqlite reindex - a request with no criteria is unscoped and rebuilds everything", async () => {
   const { db, index } = await fixture();
   tamper(db, "graph", gA.value);
   tamper(db, "graph", gB.value);
@@ -124,7 +130,7 @@ Deno.test("sqlite reindex - a request with no criteria is unscoped and rebuilds 
   db.close();
 });
 
-Deno.test("sqlite reindex - unscoped reindex drops the stale chunk row of a deleted quad", async () => {
+test("sqlite reindex - unscoped reindex drops the stale chunk row of a deleted quad", async () => {
   const { db, index } = await fixture();
   db.prepare(
     "INSERT INTO chunks (quad_id, subject, predicate, graph, value, fts_value) VALUES ('gone', 's', 'p', 'g', 'ghost', 'ghost')",

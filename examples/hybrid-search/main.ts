@@ -3,7 +3,7 @@
  *
  * Run from the repo root:
  *
- *   deno run --allow-all examples/hybrid-search/main.ts
+ *   bun examples/hybrid-search/main.ts
  *
  * This example exercises the Layer 2 surface: `createSqliteWorldsSdk` with
  * an embedding service producing comparison vectors, then `import`, `search`,

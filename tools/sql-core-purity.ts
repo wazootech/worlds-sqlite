@@ -10,24 +10,30 @@
  * violation.
  */
 
+import { readdir, readFile } from "node:fs/promises";
+import process from "node:process";
+
 const ALLOWED_SPECIFIER_PATTERNS = [
   /^\.\/|^@\//,
   /^@worlds\/sdk/,
   /^@wazoo\/sparql-engine/,
   /^@rdfjs\/types$/,
-  /^@std\/assert$/, // test-only assertion surface
 ];
 
-/** ImportSpecifierPattern matches static and dynamic module specifiers. */
-const IMPORT_SPECIFIER_PATTERN = /(?:from\s+|import\s*\(\s*)["']([^"']+)["']/g;
+/** TestOnlySpecifierPatterns are allowed in `*.test.ts` files and nowhere else. */
+const TEST_ONLY_SPECIFIER_PATTERNS = [/^@std\/assert$/, /^node:test$/];
+
+/** ImportSpecifierPattern matches static, bare and dynamic module specifiers. */
+const IMPORT_SPECIFIER_PATTERN =
+  /(?:\bfrom\s+|\bimport\s*\(?\s*)["']([^"']+)["']/g;
 
 async function collectSqlCoreFiles(directory: string): Promise<string[]> {
   const files: string[] = [];
-  for await (const entry of Deno.readDir(directory)) {
+  for (const entry of await readdir(directory, { withFileTypes: true })) {
     const entryPath = `${directory}/${entry.name}`;
-    if (entry.isDirectory) {
-      files.push(...await collectSqlCoreFiles(entryPath));
-    } else if (entry.isFile && entry.name.endsWith(".ts")) {
+    if (entry.isDirectory()) {
+      files.push(...(await collectSqlCoreFiles(entryPath)));
+    } else if (entry.isFile() && entry.name.endsWith(".ts")) {
       files.push(entryPath);
     }
   }
@@ -38,12 +44,13 @@ const sqlCoreFiles = await collectSqlCoreFiles("src/sql-core");
 const violations: string[] = [];
 
 for (const file of sqlCoreFiles) {
-  const source = await Deno.readTextFile(file);
+  const source = await readFile(file, "utf8");
+  const patterns = file.endsWith(".test.ts")
+    ? [...ALLOWED_SPECIFIER_PATTERNS, ...TEST_ONLY_SPECIFIER_PATTERNS]
+    : ALLOWED_SPECIFIER_PATTERNS;
   for (const match of source.matchAll(IMPORT_SPECIFIER_PATTERN)) {
-    const specifier = match[1];
-    const allowed = ALLOWED_SPECIFIER_PATTERNS.some((pattern) =>
-      pattern.test(specifier)
-    );
+    const specifier = match[1]!;
+    const allowed = patterns.some((pattern) => pattern.test(specifier));
     if (!allowed) {
       violations.push(`${file}: disallowed import "${specifier}"`);
     }
@@ -58,7 +65,7 @@ if (violations.length > 0) {
   console.error(
     "\nsql-core must stay driver-free: emit inert {sql, args} plans only.",
   );
-  Deno.exit(1);
+  process.exit(1);
 }
 
 console.log(

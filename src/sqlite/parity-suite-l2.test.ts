@@ -16,6 +16,7 @@
  * Search ordering is compared set-wise (strictSearchOrder: false): bm25
  * ranking vs scan order is an engine detail, not a parity contract.
  */
+import { test } from "node:test";
 import { assertEquals } from "@std/assert";
 import { createMemoryWorldsSdk } from "@worlds/sdk/memory";
 import { parityCorpus, runParitySuite } from "@worlds/sdk/testing";
@@ -27,35 +28,32 @@ function createSqliteWorldsSdkForParity() {
   return createSqliteWorldsSdk({ path: ":memory:" });
 }
 
-Deno.test(
-  "parity suite - createSqliteWorldsSdk agrees with the in-memory reference on the corpus",
-  async () => {
-    const fixtures = parityCorpus.fixtures.filter(
-      (fixture) => fixture.name !== CHUNKER_DIVERGENT_FIXTURE,
-    );
+test("parity suite - createSqliteWorldsSdk agrees with the in-memory reference on the corpus", async () => {
+  const fixtures = parityCorpus.fixtures.filter(
+    (fixture) => fixture.name !== CHUNKER_DIVERGENT_FIXTURE,
+  );
 
-    const report = await runParitySuite({
-      reference: () => createMemoryWorldsSdk(),
-      candidate: () => createSqliteWorldsSdkForParity(),
-      fixtures,
-      strictSearchOrder: false,
-    });
+  const report = await runParitySuite({
+    reference: () => createMemoryWorldsSdk(),
+    candidate: () => createSqliteWorldsSdkForParity(),
+    fixtures,
+    strictSearchOrder: false,
+  });
 
-    assertEquals(
-      report.results.length,
-      fixtures.length + parityCorpus.replaceCases.length,
-      "every non-exempted corpus fixture and replace case runs on both",
-    );
-    assertEquals(
-      report.ok,
-      true,
-      report.results
-        .map(
-          (r) =>
-            `${r.name}: ${r.failures.join("; ")}` +
-            `${r.notes ? ` [notes: ${r.notes.join("; ")}]` : ""}`,
-        )
-        .join("\n"),
-    );
-  },
-);
+  assertEquals(
+    report.results.length,
+    fixtures.length + parityCorpus.replaceCases.length,
+    "every non-exempted corpus fixture and replace case runs on both",
+  );
+  assertEquals(
+    report.ok,
+    true,
+    report.results
+      .map(
+        (r) =>
+          `${r.name}: ${r.failures.join("; ")}` +
+          `${r.notes ? ` [notes: ${r.notes.join("; ")}]` : ""}`,
+      )
+      .join("\n"),
+  );
+});

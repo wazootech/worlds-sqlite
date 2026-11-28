@@ -36,7 +36,7 @@ export async function insertChunkRowForTest(
   await connection.execute(insertStatement);
 
   if (options.vector) {
-    const padded = new Array(TEST_VECTOR_DIMENSIONS).fill(0);
+    const padded = Array.from({ length: TEST_VECTOR_DIMENSIONS }, () => 0);
     for (let index = 0; index < options.vector.length; index++) {
       padded[index] = options.vector[index]!;
     }

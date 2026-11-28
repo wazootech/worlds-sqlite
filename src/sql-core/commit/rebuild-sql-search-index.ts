@@ -67,21 +67,25 @@ export async function rebuildSqlSearchIndexWithCounts<S>(
   options: SqlRebuildOptions = {},
 ): Promise<SqlRebuildResult> {
   const { scope } = options;
-  const scoped = scope !== undefined &&
+  const scoped =
+    scope !== undefined &&
     (hasCriteria(scope.include) || hasCriteria(scope.exclude));
   if (scoped && !dialect.buildDeleteChunks) {
     throw new Error(
       "a scoped rebuild needs dialect.buildDeleteChunks to replace rows by quad",
     );
   }
-  const batchSize = options.writeBatchSize ?? driver.writeBatchSize ??
-    DEFAULT_WRITE_BATCH_SIZE;
+  const batchSize =
+    options.writeBatchSize ?? driver.writeBatchSize ?? DEFAULT_WRITE_BATCH_SIZE;
   const pages: ChunkRebuildDriver = {
     pageQuads: ({ after, pageSize }) => driver.streamQuads({ after, pageSize }),
     writePage: async (writeScope, rows, first) => {
-      const prefix = "all" in writeScope
-        ? (first ? dialect.buildClearChunks() : [])
-        : dialect.buildDeleteChunks!(writeScope.hashes);
+      const prefix =
+        "all" in writeScope
+          ? first
+            ? dialect.buildClearChunks()
+            : []
+          : dialect.buildDeleteChunks!(writeScope.hashes);
       await writeInBatches(
         driver,
         [...prefix, ...dialect.buildChunkRows(rows)],

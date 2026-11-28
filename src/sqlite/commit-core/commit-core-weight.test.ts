@@ -1,3 +1,4 @@
+import { test } from "node:test";
 import { assert, assertEquals, assertRejects } from "@std/assert";
 import { DataFactory } from "n3";
 import { RecursiveCharacterTextSplitter } from "@langchain/textsplitters";
@@ -51,13 +52,13 @@ const sizes = (store: FakeSqlStore) => store.batches.map((b) => b.length);
 const weightOf = (batch: FakeStatement[]) =>
   batch.reduce((sum, s) => sum + fakeStatementWeight(s), 0);
 
-Deno.test("a list under both limits is one atomic batch", async () => {
+test("a list under both limits is one atomic batch", async () => {
   const { store, commit } = run(weighted(23), 2); // weight 1 + 2 + 20
   await commit();
   assertEquals(sizes(store), [5]);
 });
 
-Deno.test("a list over the weight limit only falls back, in batches filled by weight", async () => {
+test("a list over the weight limit only falls back, in batches filled by weight", async () => {
   const { store, commit } = run(weighted(22), 2);
   await commit();
   assertEquals(sizes(store), [4, 1]);
@@ -65,14 +66,14 @@ Deno.test("a list over the weight limit only falls back, in batches filled by we
   assertEquals(store.chunks.length, 2);
 });
 
-Deno.test("weights split the batches and no batch exceeds the budget", async () => {
+test("weights split the batches and no batch exceeds the budget", async () => {
   const { store, commit } = run(weighted(12), 3);
   await commit();
   assertEquals(sizes(store), [4, 1, 1, 1]);
   assert(store.batches.every((b) => weightOf(b) <= 12));
 });
 
-Deno.test("a single statement over the budget goes alone and the commit completes", async () => {
+test("a single statement over the budget goes alone and the commit completes", async () => {
   const { store, commit } = run(weighted(5), 2);
   await commit();
   assertEquals(sizes(store), [3, 1, 1]);
@@ -80,7 +81,7 @@ Deno.test("a single statement over the budget goes alone and the commit complete
   assertEquals(store.chunks.length, 2);
 });
 
-Deno.test("the driver can reject an over-budget statement; the earlier batches are cleaned up", async () => {
+test("the driver can reject an over-budget statement; the earlier batches are cleaned up", async () => {
   const { store, commit } = run(weighted(5), 2);
   store.failBatchNumber(2); // the first chunk, alone in its batch
   await assertRejects(commit, Error, "injected write failure");
@@ -88,7 +89,7 @@ Deno.test("the driver can reject an over-budget statement; the earlier batches a
   assertEquals(store.quads.size, 0);
 });
 
-Deno.test("the count limits still apply when the weight budget is generous", async () => {
+test("the count limits still apply when the weight budget is generous", async () => {
   const over = run(
     weighted(1000, { maxAtomicStatements: 4, writeBatchSize: 2 }),
     2,
@@ -100,17 +101,15 @@ Deno.test("the count limits still apply when the weight budget is generous", asy
   assertEquals(sizes(atMax.store), [5]);
 });
 
-Deno.test("a driver without a complete weight declaration behaves as before", async () => {
+test("a driver without a complete weight declaration behaves as before", async () => {
   let calls = 0;
   const counting = (s: FakeStatement) => (calls++, fakeStatementWeight(s));
   const base = { maxAtomicStatements: 4, writeBatchSize: 2 };
-  for (
-    const limits of [
-      base,
-      { ...base, statementWeight: counting }, // no budget
-      { ...base, maxBatchWeight: 1 }, // no estimator
-    ]
-  ) {
+  for (const limits of [
+    base,
+    { ...base, statementWeight: counting }, // no budget
+    { ...base, maxBatchWeight: 1 }, // no estimator
+  ]) {
     const { store, commit } = run(limits, 2);
     await commit();
     assertEquals(sizes(store), [2, 2, 1]);
@@ -118,7 +117,7 @@ Deno.test("a driver without a complete weight declaration behaves as before", as
   assertEquals(calls, 0, "weights are never computed without a budget");
 });
 
-Deno.test("cleanup batches obey the same weight limits", async () => {
+test("cleanup batches obey the same weight limits", async () => {
   // Cleanup statements weigh 5 each; the budget of 12 fits two per batch.
   const weight = (s: FakeStatement) =>
     s.kind === "cleanup" ? 5 : fakeStatementWeight(s);
@@ -149,7 +148,7 @@ Deno.test("cleanup batches obey the same weight limits", async () => {
   assertEquals(store.chunks.length, 0);
 });
 
-Deno.test("an embedding failure writes nothing with a weighted driver", async () => {
+test("an embedding failure writes nothing with a weighted driver", async () => {
   const { store } = run(weighted(12), 1);
   const failing = { embed: () => Promise.reject(new Error("embedding down")) };
   await assertRejects(

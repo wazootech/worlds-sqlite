@@ -66,7 +66,8 @@ export function partitionBatches<S>(
   let weight = 0;
   for (const statement of statements) {
     const w = weighing ? weighing.weigh(statement) : 0;
-    const full = current.length >= step ||
+    const full =
+      current.length >= step ||
       (weighing !== undefined && weight + w > weighing.max);
     if (current.length > 0 && full) {
       batches.push(current);

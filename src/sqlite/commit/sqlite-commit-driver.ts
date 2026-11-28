@@ -78,9 +78,10 @@ export function createSqliteCommitDriver(
       }
       options.onScanned?.(rows.length);
       const last = rows.at(-1);
-      const next = rows.length < pageSize || !last
-        ? undefined
-        : [last.skey, last.pkey, last.okey, last.gkey].map(String);
+      const next =
+        rows.length < pageSize || !last
+          ? undefined
+          : [last.skey, last.pkey, last.okey, last.gkey].map(String);
       return { quads, next };
     },
   };

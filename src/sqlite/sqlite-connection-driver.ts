@@ -106,17 +106,15 @@ export class SqliteConnectionDriver {
   /**
    * transaction runs the given function inside one atomic write transaction.
    */
-  public async transaction<T>(
-    fn: (tx: SqlExecutor) => Promise<T>,
-  ): Promise<T> {
+  public async transaction<T>(fn: (tx: SqlExecutor) => Promise<T>): Promise<T> {
     const tx: SqlExecutor = {
       execute: <Row = Record<string, unknown>>(
         statement: SqlStatement,
       ): Promise<SqlResult<Row>> => {
         try {
-          const rows = this.db.prepare(statement.sql).all(
-            ...(statement.args ?? []),
-          ) as Row[];
+          const rows = this.db
+            .prepare(statement.sql)
+            .all(...(statement.args ?? [])) as Row[];
           return Promise.resolve({ rows });
         } catch (error) {
           return Promise.reject(error);

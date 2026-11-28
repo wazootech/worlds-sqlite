@@ -1,3 +1,4 @@
+import { test } from "node:test";
 import { assertEquals, assertMatch, assertRejects } from "@std/assert";
 import { DatabaseSync } from "node:sqlite";
 import { DataFactory } from "n3";
@@ -31,7 +32,7 @@ function seedStore() {
   return { store, statements };
 }
 
-Deno.test("SqliteStore - counts a graph larger than a page with one aggregate", () => {
+test("SqliteStore - counts a graph larger than a page with one aggregate", () => {
   const { store, statements } = seedStore();
   try {
     assertEquals(store.countQuads(null, predicate, null, graph), 5);
@@ -45,7 +46,7 @@ Deno.test("SqliteStore - counts a graph larger than a page with one aggregate", 
   }
 });
 
-Deno.test("SqliteStore - match pulls ordered SQLite pages on demand", () => {
+test("SqliteStore - match pulls ordered SQLite pages on demand", () => {
   const { store, statements } = seedStore();
   try {
     const stream = store.match(null, null, null, graph);
@@ -54,18 +55,17 @@ Deno.test("SqliteStore - match pulls ordered SQLite pages on demand", () => {
     assertEquals(statements.length, 1);
     assertEquals(stream.read()?.subject.value, "urn:b");
     assertEquals(statements.length, 1);
-    assertEquals([...stream].map((q) => q.subject.value), [
-      "urn:c",
-      "urn:d",
-      "urn:e",
-    ]);
+    assertEquals(
+      [...stream].map((q) => q.subject.value),
+      ["urn:c", "urn:d", "urn:e"],
+    );
     assertEquals(statements.length, 3);
   } finally {
     store.close();
   }
 });
 
-Deno.test("SqliteStore - readable match streams can be stopped within the first page", async () => {
+test("SqliteStore - readable match streams can be stopped within the first page", async () => {
   const { store, statements } = seedStore();
   try {
     const stream = store.match(null, null, null, graph);
@@ -75,10 +75,7 @@ Deno.test("SqliteStore - readable match streams can be stopped within the first 
         stream.once("readable", () => resolve(stream.read()));
       },
     );
-    assertEquals(
-      first?.subject.value,
-      "urn:a",
-    );
+    assertEquals(first?.subject.value, "urn:a");
     stream.destroy();
     assertEquals(stream.read(), null);
     assertEquals(statements.length, 1);
@@ -87,21 +84,22 @@ Deno.test("SqliteStore - readable match streams can be stopped within the first 
   }
 });
 
-Deno.test("SqliteStore - match emits a deferred SQLite read error", async () => {
+test("SqliteStore - match emits a deferred SQLite read error", async () => {
   const { store } = seedStore();
   const stream = store.match(null, null, null, graph);
   store.close();
 
-  await assertRejects(() =>
-    new Promise<void>((resolve, reject) => {
-      stream.on("data", () => {});
-      stream.on("end", resolve);
-      stream.on("error", reject);
-    })
+  await assertRejects(
+    () =>
+      new Promise<void>((resolve, reject) => {
+        stream.on("data", () => {});
+        stream.on("end", () => resolve());
+        stream.on("error", reject);
+      }),
   );
 });
 
-Deno.test("SqliteStore - removeMatches deletes a graph with one filtered statement", async () => {
+test("SqliteStore - removeMatches deletes a graph with one filtered statement", async () => {
   const { store, statements } = seedStore();
   try {
     const removed = store.removeMatches(null, predicate, null, graph);
@@ -110,10 +108,13 @@ Deno.test("SqliteStore - removeMatches deletes a graph with one filtered stateme
       statements[0],
       "DELETE FROM quads WHERE pkey = ? AND gkey = ? RETURNING payload",
     );
-    assertEquals(store.getQuads().map((q) => q.subject.value), ["urn:other"]);
+    assertEquals(
+      store.getQuads().map((q) => q.subject.value),
+      ["urn:other"],
+    );
 
     await new Promise<void>((resolve, reject) => {
-      removed.on("end", resolve);
+      removed.on("end", () => resolve());
       removed.on("error", reject);
     });
   } finally {
@@ -121,19 +122,18 @@ Deno.test("SqliteStore - removeMatches deletes a graph with one filtered stateme
   }
 });
 
-Deno.test("SqliteStore - removeMatches streams exactly the removed quads", async () => {
+test("SqliteStore - removeMatches streams exactly the removed quads", async () => {
   const { store } = seedStore();
   try {
     const expected = store.getQuads(null, predicate, null, graph);
     const removed: string[] = [];
     await new Promise<void>((resolve, reject) => {
-      store.removeMatches(null, predicate, null, graph)
-        .on(
-          "data",
-          (q) =>
-            removed.push((q as { subject: { value: string } }).subject.value),
+      store
+        .removeMatches(null, predicate, null, graph)
+        .on("data", (q) =>
+          removed.push((q as { subject: { value: string } }).subject.value),
         )
-        .on("end", resolve)
+        .on("end", () => resolve())
         .on("error", reject);
     });
     assertEquals(removed.sort(), expected.map((q) => q.subject.value).sort());
@@ -144,7 +144,7 @@ Deno.test("SqliteStore - removeMatches streams exactly the removed quads", async
   }
 });
 
-Deno.test("SqliteStore - removeMatches deletes even if the stream is ignored", () => {
+test("SqliteStore - removeMatches deletes even if the stream is ignored", () => {
   const { store } = seedStore();
   try {
     store.deleteGraph(graph);

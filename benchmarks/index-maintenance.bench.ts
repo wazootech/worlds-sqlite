@@ -1,3 +1,4 @@
+import { bench, runBenches } from "./shared/bench.ts";
 import { DatabaseSync } from "node:sqlite";
 import { RecursiveCharacterTextSplitter } from "@langchain/textsplitters";
 import { FakeEmbeddingService } from "@worlds/sdk/search-index/embedding-service";
@@ -50,12 +51,14 @@ const maintenanceOptions = {
   textSplitter: new RecursiveCharacterTextSplitter({ chunkSize: 1000 }),
 };
 
-Deno.bench({
-  name: "Maintenance: Full Index Rebuild (1,000 Quads)",
-  group: "Index Maintenance",
-  async fn(benchContext) {
-    benchContext.start();
-    await rebuildSqliteSearchIndexFromQuads(maintenanceOptions);
-    benchContext.end();
+bench(
+  {
+    name: "Maintenance: Full Index Rebuild (1,000 Quads)",
+    group: "Index Maintenance",
   },
-});
+  async () => {
+    await rebuildSqliteSearchIndexFromQuads(maintenanceOptions);
+  },
+);
+
+await runBenches();

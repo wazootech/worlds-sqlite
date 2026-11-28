@@ -23,11 +23,11 @@ const CHUNKS_TABLE_COLUMNS: ColumnMapping = {
  */
 export type SqliteSearchPlan =
   | {
-    mode: "hybrid";
-    keyword: SqlStatement;
-    vector: SqlStatement;
-    limit: number;
-  }
+      mode: "hybrid";
+      keyword: SqlStatement;
+      vector: SqlStatement;
+      limit: number;
+    }
   | { mode: "keyword"; statement: SqlStatement; limit: number }
   | { mode: "vector"; statement: SqlStatement; limit: number }
   | { mode: "none"; limit: number };
@@ -67,9 +67,9 @@ export class SqliteSearchQueryBuilder {
       dimensions > SQLITE_QUERY_BUILDER_MAX_VECTOR_DIMENSIONS
     ) {
       throw new Error(
-        `vectorDimensions must be a finite integer in [1, ${SQLITE_QUERY_BUILDER_MAX_VECTOR_DIMENSIONS}], received: ${
-          String(vectorDimensions)
-        }`,
+        `vectorDimensions must be a finite integer in [1, ${SQLITE_QUERY_BUILDER_MAX_VECTOR_DIMENSIONS}], received: ${String(
+          vectorDimensions,
+        )}`,
       );
     }
     this.vectorDimensions = dimensions;
@@ -94,8 +94,7 @@ export class SqliteSearchQueryBuilder {
     fts_value: string;
   }): SqlStatement {
     return {
-      sql:
-        `INSERT INTO chunks (quad_id, subject, predicate, graph, value, fts_value)
+      sql: `INSERT INTO chunks (quad_id, subject, predicate, graph, value, fts_value)
           VALUES (?, ?, ?, ?, ?, ?)`,
       args: [
         insertOptions.quad_id,
@@ -116,8 +115,7 @@ export class SqliteSearchQueryBuilder {
    */
   public buildInsertVecForLastChunk(vectorJson: string): SqlStatement {
     return {
-      sql:
-        "INSERT INTO chunks_vec (rowid, embedding) VALUES (last_insert_rowid(), ?)",
+      sql: "INSERT INTO chunks_vec (rowid, embedding) VALUES (last_insert_rowid(), ?)",
       args: [vectorJson],
     };
   }
@@ -138,15 +136,12 @@ export class SqliteSearchQueryBuilder {
    * removed by the chunks_ad trigger. Vec statements are only emitted when
    * the vec0 table exists.
    */
-  public buildDeleteByQuadIds(
-    quadIds: string[],
-  ): SqlStatement[] {
+  public buildDeleteByQuadIds(quadIds: string[]): SqlStatement[] {
     const placeholders = generatePlaceholders(quadIds.length);
     const statements: SqlStatement[] = [];
     if (this.vectorSupported) {
       statements.push({
-        sql:
-          `DELETE FROM chunks_vec WHERE rowid IN (SELECT id FROM chunks WHERE quad_id IN (${placeholders}))`,
+        sql: `DELETE FROM chunks_vec WHERE rowid IN (SELECT id FROM chunks WHERE quad_id IN (${placeholders}))`,
         args: [...quadIds],
       });
     }
@@ -173,9 +168,8 @@ export class SqliteSearchQueryBuilder {
       CHUNKS_TABLE_COLUMNS,
     );
 
-    const whereFilter = whereClauses.length > 0
-      ? `WHERE ${whereClauses.join(" AND ")}`
-      : "";
+    const whereFilter =
+      whereClauses.length > 0 ? `WHERE ${whereClauses.join(" AND ")}` : "";
 
     const hasVector = !!vectorJson && this.vectorSupported;
     const hasQuery = !!request.query && request.query.trim().length > 0;
@@ -238,12 +232,7 @@ export class SqliteSearchQueryBuilder {
     whereFilter: string,
     filterArgs: string[],
   ): SqlStatement {
-    const args: (string | number)[] = [
-      vectorJson,
-      limit,
-      ...filterArgs,
-      limit,
-    ];
+    const args: (string | number)[] = [vectorJson, limit, ...filterArgs, limit];
 
     const sql = `
       WITH vec_matches AS (

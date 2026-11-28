@@ -1,3 +1,4 @@
+import { test } from "node:test";
 import { assertEquals } from "@std/assert";
 import { DataFactory } from "n3";
 import {
@@ -13,7 +14,7 @@ import {
 
 const { quad, namedNode, literal } = DataFactory;
 
-Deno.test("SqliteQuadQueryBuilder - match SQL shape", () => {
+test("SqliteQuadQueryBuilder - match SQL shape", () => {
   const pattern = {
     subject: namedNode("urn:s"),
     predicate: null,
@@ -34,7 +35,7 @@ Deno.test("SqliteQuadQueryBuilder - match SQL shape", () => {
   assertEquals(query.args.at(-1), "100");
 });
 
-Deno.test("SqliteQuadQueryBuilder - match with keyset paging", () => {
+test("SqliteQuadQueryBuilder - match with keyset paging", () => {
   const query = buildMatchQuadsQuery(
     { subject: null, predicate: null, object: null, graph: null },
     { afterKey: ["a", "b", "c", "d"], limit: 50 },
@@ -46,7 +47,7 @@ Deno.test("SqliteQuadQueryBuilder - match with keyset paging", () => {
   assertEquals(query.args.slice(0, 4), ["a", "b", "c", "d"]);
 });
 
-Deno.test("SqliteQuadQueryBuilder - count and bulk insert statements", () => {
+test("SqliteQuadQueryBuilder - count and bulk insert statements", () => {
   const count = buildCountQuadsQuery({
     subject: null,
     predicate: null,
@@ -72,7 +73,7 @@ Deno.test("SqliteQuadQueryBuilder - count and bulk insert statements", () => {
   assertEquals(statements[0].args.length, 10);
 });
 
-Deno.test("SqliteQuadQueryBuilder - presence, deletion, and wipe statements", () => {
+test("SqliteQuadQueryBuilder - presence, deletion, and wipe statements", () => {
   const keys: Array<[string, string, string, string]> = [
     ["a", "b", "c", "d"],
     ["e", "f", "g", "h"],
@@ -93,16 +94,15 @@ Deno.test("SqliteQuadQueryBuilder - presence, deletion, and wipe statements", ()
   );
 
   const wipe = buildWipeAllGraphDataStatements({ vectorSupported: true });
-  assertEquals(wipe.map((s) => s.sql), [
-    "DELETE FROM chunks_vec",
-    "DELETE FROM chunks",
-    "DELETE FROM quads",
-  ]);
+  assertEquals(
+    wipe.map((s) => s.sql),
+    ["DELETE FROM chunks_vec", "DELETE FROM chunks", "DELETE FROM quads"],
+  );
   const keywordOnlyWipe = buildWipeAllGraphDataStatements({
     vectorSupported: false,
   });
-  assertEquals(keywordOnlyWipe.map((s) => s.sql), [
-    "DELETE FROM chunks",
-    "DELETE FROM quads",
-  ]);
+  assertEquals(
+    keywordOnlyWipe.map((s) => s.sql),
+    ["DELETE FROM chunks", "DELETE FROM quads"],
+  );
 });

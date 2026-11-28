@@ -1,9 +1,10 @@
+import { test } from "node:test";
 import { assertEquals } from "@std/assert";
 import { SqliteSearchQueryBuilder } from "./sqlite-search-query-builder.ts";
 
 const builder = new SqliteSearchQueryBuilder(32, { vectorSupported: true });
 
-Deno.test("SqliteSearchQueryBuilder - validates vector dimensions", () => {
+test("SqliteSearchQueryBuilder - validates vector dimensions", () => {
   assertEquals(new SqliteSearchQueryBuilder(32).vectorDimensions, 32);
   try {
     new SqliteSearchQueryBuilder(0);
@@ -13,7 +14,7 @@ Deno.test("SqliteSearchQueryBuilder - validates vector dimensions", () => {
   }
 });
 
-Deno.test("SqliteSearchQueryBuilder - keyword plan with filters and limits", () => {
+test("SqliteSearchQueryBuilder - keyword plan with filters and limits", () => {
   const plan = builder.buildSearchQuery(
     { query: "needle", include: { graphs: ["urn:g"] }, topK: 5 },
     { limit: 5 },
@@ -26,7 +27,7 @@ Deno.test("SqliteSearchQueryBuilder - keyword plan with filters and limits", () 
   }
 });
 
-Deno.test("SqliteSearchQueryBuilder - vector-only plan when no keyword tokens", () => {
+test("SqliteSearchQueryBuilder - vector-only plan when no keyword tokens", () => {
   const plan = builder.buildSearchQuery(
     { query: "!!!" },
     { vectorJson: "[0,0]", limit: 10 },
@@ -40,7 +41,7 @@ Deno.test("SqliteSearchQueryBuilder - vector-only plan when no keyword tokens", 
   }
 });
 
-Deno.test("SqliteSearchQueryBuilder - hybrid plan emits both branches", () => {
+test("SqliteSearchQueryBuilder - hybrid plan emits both branches", () => {
   const plan = builder.buildSearchQuery(
     { query: "needle" },
     { vectorJson: "[0,0]", limit: 10 },
@@ -53,14 +54,14 @@ Deno.test("SqliteSearchQueryBuilder - hybrid plan emits both branches", () => {
   }
 });
 
-Deno.test("SqliteSearchQueryBuilder - none plan for empty query without vector", () => {
+test("SqliteSearchQueryBuilder - none plan for empty query without vector", () => {
   const plan = builder.buildSearchQuery({ query: "" }, { limit: 10 });
   assertEquals(plan.mode, "none");
   const punct = builder.buildSearchQuery({ query: "???" }, { limit: 10 });
   assertEquals(punct.mode, "none");
 });
 
-Deno.test("SqliteSearchQueryBuilder - keyword-only builder never emits vec0 SQL", () => {
+test("SqliteSearchQueryBuilder - keyword-only builder never emits vec0 SQL", () => {
   const keywordOnly = new SqliteSearchQueryBuilder(32, {
     vectorSupported: false,
   });
@@ -85,7 +86,7 @@ Deno.test("SqliteSearchQueryBuilder - keyword-only builder never emits vec0 SQL"
   assertEquals(vecDeletions[0].sql.startsWith("DELETE FROM chunks_vec"), true);
 });
 
-Deno.test("SqliteSearchQueryBuilder - vec insert pairs with the last inserted chunk row", () => {
+test("SqliteSearchQueryBuilder - vec insert pairs with the last inserted chunk row", () => {
   const insert = builder.buildInsertChunk({
     quad_id: "q1",
     subject: "s",

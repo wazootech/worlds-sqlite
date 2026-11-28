@@ -7,6 +7,7 @@
  * on identical data regardless of the underlying store (differential parity
  * between SqliteStore and the engine's MemoryStore).
  */
+import { test } from "node:test";
 import { assertEquals } from "@std/assert";
 import { DataFactory as N3 } from "n3";
 import { WorldsSdk } from "@worlds/sdk";
@@ -27,12 +28,14 @@ const SEED_TURTLE = `
   <urn:acme> a <http://schema.org/Organization> ; <http://schema.org/name> "Acme Corp" .
 `;
 
-const MULTI_HOP_QUERY = "SELECT ?name ?org WHERE { " +
+const MULTI_HOP_QUERY =
+  "SELECT ?name ?org WHERE { " +
   '?a <http://schema.org/name> "Alice" ; <http://schema.org/knows> ?b . ' +
   "?b <http://schema.org/name> ?name ; <http://schema.org/worksFor> ?o . " +
   "?o <http://schema.org/name> ?org }";
 
-const OPTIONAL_FILTER_QUERY = "SELECT ?name ?org WHERE { " +
+const OPTIONAL_FILTER_QUERY =
+  "SELECT ?name ?org WHERE { " +
   "?p a <http://schema.org/Person> ; <http://schema.org/name> ?name . " +
   "OPTIONAL { ?p <http://schema.org/worksFor> ?o . ?o <http://schema.org/name> ?org } . " +
   'FILTER(CONTAINS(LCASE(?name), "a")) } ORDER BY ?name';
@@ -44,10 +47,11 @@ const ASK_QUERY =
 function normalizeBindings(bindings: SparqlBinding[]): unknown {
   return bindings.map((b) =>
     Object.fromEntries(
-      Object.entries(b).map((
-        [key, value],
-      ) => [key, { type: value.type, value: value.value }]),
-    )
+      Object.entries(b).map(([key, value]) => [
+        key,
+        { type: value.type, value: value.value },
+      ]),
+    ),
   );
 }
 
@@ -69,7 +73,7 @@ function assertSelect(response: SparqlResponse): SparqlBinding[] {
   return response.data.results.bindings;
 }
 
-Deno.test("SqliteStore-backed client — import → search → SELECT → ASK → reindex end to end", async () => {
+test("SqliteStore-backed client — import → search → SELECT → ASK → reindex end to end", async () => {
   const store = new SqliteStore({ path: ":memory:" });
   try {
     const client = createWazooClient(store);
@@ -111,7 +115,7 @@ Deno.test("SqliteStore-backed client — import → search → SELECT → ASK �
   }
 });
 
-Deno.test("Differential parity — Wazoo(SqliteStore) vs Wazoo(MemoryStore) on identical data", async () => {
+test("Differential parity — Wazoo(SqliteStore) vs Wazoo(MemoryStore) on identical data", async () => {
   const sqliteStore = new SqliteStore({ path: ":memory:" });
   const memoryStore = new MemoryStore();
   try {
@@ -158,7 +162,7 @@ Deno.test("Differential parity — Wazoo(SqliteStore) vs Wazoo(MemoryStore) on i
   }
 });
 
-Deno.test("SqliteStore-backed client — preloaded store shared across quad + sparql + search facades", async () => {
+test("SqliteStore-backed client — preloaded store shared across quad + sparql + search facades", async () => {
   const store = new SqliteStore({ path: ":memory:" });
   try {
     // Preload directly on the durable store (simulating a hydrated backend),

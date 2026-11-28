@@ -1,3 +1,4 @@
+import { test } from "node:test";
 import { DatabaseSync } from "node:sqlite";
 import { assertEquals, assertMatch } from "@std/assert";
 import { SqliteSchemaBuilder } from "./sqlite-schema-builder.ts";
@@ -7,7 +8,7 @@ import {
   tryLoadVectorExtension,
 } from "../sqlite-test-fixtures.ts";
 
-Deno.test("SqliteSchemaBuilder - validates vector dimensions", () => {
+test("SqliteSchemaBuilder - validates vector dimensions", () => {
   const invalidDimensions = [0, 1537, Number.NaN, -1];
   for (const dimensions of invalidDimensions) {
     let threw = false;
@@ -20,7 +21,7 @@ Deno.test("SqliteSchemaBuilder - validates vector dimensions", () => {
   }
 });
 
-Deno.test("SqliteSchemaBuilder - emits L1 quads table and search tables", () => {
+test("SqliteSchemaBuilder - emits L1 quads table and search tables", () => {
   const builder = new SqliteSchemaBuilder(32, { vectorSupported: true });
   const tables = builder.buildTables().join("\n");
   assertMatch(tables, /CREATE TABLE IF NOT EXISTS quads/);
@@ -37,7 +38,7 @@ Deno.test("SqliteSchemaBuilder - emits L1 quads table and search tables", () => 
   assertEquals(keywordTables.includes("chunks_vec"), false);
 });
 
-Deno.test("SqliteSchemaBuilder - FTS5 external-content table and sync triggers", () => {
+test("SqliteSchemaBuilder - FTS5 external-content table and sync triggers", () => {
   const builder = new SqliteSchemaBuilder(32);
   assertMatch(builder.buildSqliteChunksFtsTable(), /USING fts5/);
   assertMatch(builder.buildSqliteChunksFtsTable(), /content='chunks'/);
@@ -47,7 +48,7 @@ Deno.test("SqliteSchemaBuilder - FTS5 external-content table and sync triggers",
   assertEquals(builder.buildIndexes().length, 4);
 });
 
-Deno.test("initializeSqliteSchema - idempotent and keyword-only without vec", async () => {
+test("initializeSqliteSchema - idempotent and keyword-only without vec", async () => {
   const db = new DatabaseSync(":memory:", { allowExtension: true });
   const connection = createTestSqliteConnectionDriver(db);
   const builder = new SqliteSchemaBuilder(32, { vectorSupported: false });
@@ -55,11 +56,13 @@ Deno.test("initializeSqliteSchema - idempotent and keyword-only without vec", as
   // Run twice — every DDL is CREATE IF NOT EXISTS.
   await initializeSqliteSchema(connection, builder);
 
-  const tables = (await connection.execute<{ name: string }>(
-    {
+  const tables = (
+    await connection.execute<{ name: string }>({
       sql: "SELECT name FROM sqlite_master WHERE type IN ('table', 'trigger')",
-    },
-  )).rows.map((r) => r.name).sort();
+    })
+  ).rows
+    .map((r) => r.name)
+    .sort();
   assertEquals(tables.includes("quads"), true);
   assertEquals(tables.includes("chunks"), true);
   assertEquals(tables.includes("chunks_fts"), true);
@@ -69,19 +72,17 @@ Deno.test("initializeSqliteSchema - idempotent and keyword-only without vec", as
 
   // FTS search works against the created schema.
   await connection.execute({
-    sql:
-      "INSERT INTO chunks (quad_id, subject, predicate, graph, value, fts_value) VALUES (?, ?, ?, ?, ?, ?)",
+    sql: "INSERT INTO chunks (quad_id, subject, predicate, graph, value, fts_value) VALUES (?, ?, ?, ?, ?, ?)",
     args: ["q1", "urn:s", "urn:p", "", "needle text", "needle text"],
   });
   const hits = await connection.execute<{ subject: string }>({
-    sql:
-      "SELECT chunks.subject FROM chunks_fts JOIN chunks ON chunks.id = chunks_fts.rowid WHERE chunks_fts MATCH ?",
+    sql: "SELECT chunks.subject FROM chunks_fts JOIN chunks ON chunks.id = chunks_fts.rowid WHERE chunks_fts MATCH ?",
     args: ["needle"],
   });
   assertEquals(hits.rows.length, 1);
 });
 
-Deno.test("initializeSqliteSchema - creates vec0 table when sqlite-vec loads", async () => {
+test("initializeSqliteSchema - creates vec0 table when sqlite-vec loads", async () => {
   const db = new DatabaseSync(":memory:", { allowExtension: true });
   const vecAvailable = await tryLoadVectorExtension(db);
   const connection = createTestSqliteConnectionDriver(db, {
@@ -92,9 +93,10 @@ Deno.test("initializeSqliteSchema - creates vec0 table when sqlite-vec loads", a
   });
   await initializeSqliteSchema(connection, builder);
 
-  const vecTables = (await connection.execute<{ name: string }>({
-    sql:
-      "SELECT name FROM sqlite_master WHERE type = 'table' AND name = 'chunks_vec'",
-  })).rows;
+  const vecTables = (
+    await connection.execute<{ name: string }>({
+      sql: "SELECT name FROM sqlite_master WHERE type = 'table' AND name = 'chunks_vec'",
+    })
+  ).rows;
   assertEquals(vecTables.length, vecAvailable ? 1 : 0);
 });
