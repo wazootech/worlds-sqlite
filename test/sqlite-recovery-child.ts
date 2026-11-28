@@ -25,8 +25,7 @@ switch (mode) {
       createTransaction: () => store.createTransaction(),
     });
     await engine.execute({
-      query:
-        `INSERT DATA { <http://example.org/s> <http://example.org/p> "v" }`,
+      query: `INSERT DATA { <http://example.org/s> <http://example.org/p> "v" }`,
     });
     process.exit(0);
     break;

@@ -36,8 +36,7 @@ test("createSqliteWorldsSdk - SPARQL INSERT DATA round-trips through the transac
   const sdk = await createSqliteWorldsSdk({ path: ":memory:" });
   try {
     const insertResponse = await sdk.sparql({
-      query:
-        `INSERT DATA { <urn:e2e:subject> <urn:e2e:predicate> "roundtrip-value" }`,
+      query: `INSERT DATA { <urn:e2e:subject> <urn:e2e:predicate> "roundtrip-value" }`,
     });
     assertEquals(insertResponse.kind, "void");
 

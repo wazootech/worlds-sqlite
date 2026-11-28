@@ -58,15 +58,19 @@ export function sameRdfTerm(a: rdfjs.Term, b: rdfjs.Term): boolean {
     case "DefaultGraph":
       return true;
     case "Literal":
-      return a.value === (b as rdfjs.Literal).value &&
+      return (
+        a.value === (b as rdfjs.Literal).value &&
         a.language === (b as rdfjs.Literal).language &&
         (a.direction ?? "") === ((b as rdfjs.Literal).direction ?? "") &&
         (a.datatype?.value ?? "") ===
-          ((b as rdfjs.Literal).datatype?.value ?? "");
+          ((b as rdfjs.Literal).datatype?.value ?? "")
+      );
     case "Quad":
-      return sameRdfTerm(a.subject, (b as rdfjs.Quad).subject) &&
+      return (
+        sameRdfTerm(a.subject, (b as rdfjs.Quad).subject) &&
         sameRdfTerm(a.predicate, (b as rdfjs.Quad).predicate) &&
-        sameRdfTerm(a.object, (b as rdfjs.Quad).object);
+        sameRdfTerm(a.object, (b as rdfjs.Quad).object)
+      );
     default:
       throw new Error(
         `Unsupported RDF term type: ${(a as rdfjs.Term).termType}`,

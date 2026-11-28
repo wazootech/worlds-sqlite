@@ -94,16 +94,15 @@ test("SqliteQuadQueryBuilder - presence, deletion, and wipe statements", () => {
   );
 
   const wipe = buildWipeAllGraphDataStatements({ vectorSupported: true });
-  assertEquals(wipe.map((s) => s.sql), [
-    "DELETE FROM chunks_vec",
-    "DELETE FROM chunks",
-    "DELETE FROM quads",
-  ]);
+  assertEquals(
+    wipe.map((s) => s.sql),
+    ["DELETE FROM chunks_vec", "DELETE FROM chunks", "DELETE FROM quads"],
+  );
   const keywordOnlyWipe = buildWipeAllGraphDataStatements({
     vectorSupported: false,
   });
-  assertEquals(keywordOnlyWipe.map((s) => s.sql), [
-    "DELETE FROM chunks",
-    "DELETE FROM quads",
-  ]);
+  assertEquals(
+    keywordOnlyWipe.map((s) => s.sql),
+    ["DELETE FROM chunks", "DELETE FROM quads"],
+  );
 });

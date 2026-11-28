@@ -100,9 +100,8 @@ export function buildMatchQuadsQuery(
     args.push(...pageOptions.afterKey);
   }
 
-  const whereClause = conditions.length > 0
-    ? `WHERE ${conditions.join(" AND ")}`
-    : "";
+  const whereClause =
+    conditions.length > 0 ? `WHERE ${conditions.join(" AND ")}` : "";
 
   let limitClause = "";
   if (pageOptions?.limit != null) {
@@ -111,20 +110,19 @@ export function buildMatchQuadsQuery(
   }
 
   return {
-    sql:
-      `SELECT skey, pkey, okey, gkey, payload FROM quads ${whereClause} ORDER BY skey, pkey, okey, gkey ASC${limitClause}`,
+    sql: `SELECT skey, pkey, okey, gkey, payload FROM quads ${whereClause} ORDER BY skey, pkey, okey, gkey ASC${limitClause}`,
     args,
   };
 }
 
 /** buildCountQuadsQuery builds a COUNT(*) query for a quad pattern. */
-export function buildCountQuadsQuery(
-  pattern: SqliteQuadPattern,
-): { sql: string; args: (string | null)[] } {
+export function buildCountQuadsQuery(pattern: SqliteQuadPattern): {
+  sql: string;
+  args: (string | null)[];
+} {
   const { conditions, args } = buildSqliteQuadPatternWhereClause(pattern);
-  const whereClause = conditions.length > 0
-    ? `WHERE ${conditions.join(" AND ")}`
-    : "";
+  const whereClause =
+    conditions.length > 0 ? `WHERE ${conditions.join(" AND ")}` : "";
 
   return {
     sql: `SELECT COUNT(*) AS count FROM quads ${whereClause}`,
@@ -136,23 +134,24 @@ export function buildCountQuadsQuery(
  * buildSelectExistingQuadKeys builds a row-value IN presence query over the
  * composite key, chunked by the caller so IN-clause widths stay bounded.
  */
-export function buildSelectExistingQuadKeys(
-  keys: QuadKey[],
-): { sql: string; args: string[] } {
+export function buildSelectExistingQuadKeys(keys: QuadKey[]): {
+  sql: string;
+  args: string[];
+} {
   const rowValues = keys.map(() => "(?, ?, ?, ?)").join(", ");
   const args: string[] = [];
   for (const key of keys) args.push(...key);
   return {
-    sql:
-      `SELECT skey, pkey, okey, gkey FROM quads WHERE (skey, pkey, okey, gkey) IN (${rowValues})`,
+    sql: `SELECT skey, pkey, okey, gkey FROM quads WHERE (skey, pkey, okey, gkey) IN (${rowValues})`,
     args,
   };
 }
 
 /** buildDeleteQuadsByQuadKeys builds a row-value IN deletion over composite keys. */
-export function buildDeleteQuadsByQuadKeys(
-  keys: QuadKey[],
-): { sql: string; args: string[] } {
+export function buildDeleteQuadsByQuadKeys(keys: QuadKey[]): {
+  sql: string;
+  args: string[];
+} {
   const rowValues = keys.map(() => "(?, ?, ?, ?)").join(", ");
   const args: string[] = [];
   for (const key of keys) args.push(...key);
@@ -163,9 +162,10 @@ export function buildDeleteQuadsByQuadKeys(
 }
 
 /** buildInsertQuad builds a single-quad INSERT OR REPLACE statement. */
-export function buildInsertQuad(
-  insertQuadRow: InsertQuadRow,
-): { sql: string; args: (string | null)[] } {
+export function buildInsertQuad(insertQuadRow: InsertQuadRow): {
+  sql: string;
+  args: (string | null)[];
+} {
   return buildBulkInsertQuads([insertQuadRow])[0];
 }
 
@@ -192,9 +192,7 @@ export function buildBulkInsertQuads(
       rowOffset,
       rowOffset + BULK_INSERT_QUAD_ROWS_PER_STATEMENT,
     );
-    const valuePlaceholders = rowBatch
-      .map(() => "(?, ?, ?, ?, ?)")
-      .join(", ");
+    const valuePlaceholders = rowBatch.map(() => "(?, ?, ?, ?, ?)").join(", ");
     const args: (string | null)[] = [];
 
     for (const row of rowBatch) {
@@ -203,7 +201,7 @@ export function buildBulkInsertQuads(
 
     if (
       args.length >
-        BULK_INSERT_QUAD_ROWS_PER_STATEMENT * BULK_INSERT_QUAD_COLUMN_COUNT
+      BULK_INSERT_QUAD_ROWS_PER_STATEMENT * BULK_INSERT_QUAD_COLUMN_COUNT
     ) {
       throw new Error(
         `buildBulkInsertQuads: batch exceeds SQLite host-parameter budget (${args.length})`,
@@ -211,8 +209,7 @@ export function buildBulkInsertQuads(
     }
 
     statements.push({
-      sql:
-        `INSERT OR REPLACE INTO quads (skey, pkey, okey, gkey, payload) VALUES ${valuePlaceholders}`,
+      sql: `INSERT OR REPLACE INTO quads (skey, pkey, okey, gkey, payload) VALUES ${valuePlaceholders}`,
       args,
     });
   }

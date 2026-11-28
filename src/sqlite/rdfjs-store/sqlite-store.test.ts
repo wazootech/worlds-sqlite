@@ -31,9 +31,7 @@ function makeEngine(path: string): WazooSparqlEngine {
   });
 }
 
-function collect(
-  stream: rdfjs.Stream<rdfjs.Quad>,
-): Promise<rdfjs.Quad[]> {
+function collect(stream: rdfjs.Stream<rdfjs.Quad>): Promise<rdfjs.Quad[]> {
   return new Promise((resolve, reject) => {
     const out: rdfjs.Quad[] = [];
     stream.on("data", (q: rdfjs.Quad) => out.push(q));
@@ -58,24 +56,20 @@ test("SqliteStore - round-trips terms with full fidelity", async () => {
   const got = await collect(store.match());
   assertEquals(got.length, 3);
 
-  const langBack = got.find((q) =>
-    q.object.termType === "Literal" &&
-    (q.object as rdfjs.Literal).language === "es"
+  const langBack = got.find(
+    (q) =>
+      q.object.termType === "Literal" &&
+      (q.object as rdfjs.Literal).language === "es",
   );
   assertEquals(langBack !== undefined, true);
-  assertEquals(
-    sameRdfTerm(langBack!.object, langLit),
-    true,
-  );
+  assertEquals(sameRdfTerm(langBack!.object, langLit), true);
 
-  const typedBack = got.find((q) =>
-    q.object.termType === "Literal" &&
-    (q.object as rdfjs.Literal).datatype.value.includes("integer")
+  const typedBack = got.find(
+    (q) =>
+      q.object.termType === "Literal" &&
+      (q.object as rdfjs.Literal).datatype.value.includes("integer"),
   );
-  assertEquals(
-    sameRdfTerm(typedBack!.object, typedLit),
-    true,
-  );
+  assertEquals(sameRdfTerm(typedBack!.object, typedLit), true);
 
   const starBack = got.find((q) => q.object.termType === "Quad");
   assertEquals(starBack !== undefined, true);
@@ -145,10 +139,7 @@ test("SqliteStore - update through createTransaction commits atomically", async 
 
   const store = new SqliteStore({ path });
   assertEquals(store.size, 2);
-  assertEquals(
-    store.countQuads(null, null, null, graphA),
-    1,
-  );
+  assertEquals(store.countQuads(null, null, null, graphA), 1);
   store.close();
 });
 

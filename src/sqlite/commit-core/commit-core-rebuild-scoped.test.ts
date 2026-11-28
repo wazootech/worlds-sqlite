@@ -116,10 +116,15 @@ test("an embedding failure in a scoped rebuild changes nothing", async () => {
   const failing = { embed: () => Promise.reject(new Error("embedding down")) };
   await assertRejects(
     () =>
-      rebuildSqlSearchIndex(store.driver, store.dialect, {
-        ...projection,
-        embeddingService: failing,
-      }, { scope: scopeA }),
+      rebuildSqlSearchIndex(
+        store.driver,
+        store.dialect,
+        {
+          ...projection,
+          embeddingService: failing,
+        },
+        { scope: scopeA },
+      ),
     Error,
     "failed to vectorize",
   );

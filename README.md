@@ -62,14 +62,14 @@ With an import map:
 
 ```html
 <script type="importmap">
-{
-  "imports": {
-    "@worlds/sqlite": "https://esm.sh/jsr/@worlds/sqlite@0.4.0"
+  {
+    "imports": {
+      "@worlds/sqlite": "https://esm.sh/jsr/@worlds/sqlite@0.4.0"
+    }
   }
-}
 </script>
 <script type="module">
-import { SqliteStore } from "@worlds/sqlite";
+  import { SqliteStore } from "@worlds/sqlite";
 </script>
 ```
 

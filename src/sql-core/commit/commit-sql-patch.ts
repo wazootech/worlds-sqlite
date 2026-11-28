@@ -67,10 +67,10 @@ export async function commitSqlPatch<S>(
   const { novelInsertions, novelQuadIds } = novel;
 
   const novelKeys = novelInsertions.map((q, i) =>
-    dialect.keyOf(q, novelQuadIds[i]!)
+    dialect.keyOf(q, novelQuadIds[i]!),
   );
   const deletionKeys = prepared.deletions.map((q, i) =>
-    dialect.keyOf(q, prepared.deletionIds[i]!)
+    dialect.keyOf(q, prepared.deletionIds[i]!),
   );
   const statements: S[] = [
     ...(replacing ? dialect.buildWipe() : []),
@@ -79,10 +79,10 @@ export async function commitSqlPatch<S>(
       : []),
     ...(novelKeys.length
       ? [
-        ...dialect.buildDeletions(novelKeys, novelQuadIds),
-        ...dialect.buildInserts(novelInsertions, novelKeys, novelQuadIds),
-        ...(rows.length ? dialect.buildChunkRows(rows) : []),
-      ]
+          ...dialect.buildDeletions(novelKeys, novelQuadIds),
+          ...dialect.buildInserts(novelInsertions, novelKeys, novelQuadIds),
+          ...(rows.length ? dialect.buildChunkRows(rows) : []),
+        ]
       : []),
   ];
   const limits = limitsFor(driver, options);

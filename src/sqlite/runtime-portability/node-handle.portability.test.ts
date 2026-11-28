@@ -7,15 +7,10 @@
  */
 import { test } from "node:test";
 import { createNodeSqliteHandle } from "@/sqlite/node-sqlite-handle.ts";
-import {
-  runSqliteRuntimePortabilitySuite,
-} from "./sqlite-runtime-portability-suite.ts";
+import { runSqliteRuntimePortabilitySuite } from "./sqlite-runtime-portability-suite.ts";
 
-runSqliteRuntimePortabilitySuite(
-  (name, fn) => test(name, fn),
-  {
-    label: "node:sqlite",
-    makeHandle: () => createNodeSqliteHandle(":memory:"),
-    createHandleFromPath: (path) => createNodeSqliteHandle(path),
-  },
-);
+runSqliteRuntimePortabilitySuite((name, fn) => test(name, fn), {
+  label: "node:sqlite",
+  makeHandle: () => createNodeSqliteHandle(":memory:"),
+  createHandleFromPath: (path) => createNodeSqliteHandle(path),
+});

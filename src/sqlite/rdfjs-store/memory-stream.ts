@@ -80,7 +80,9 @@ export class MemoryStream implements rdfjs.Stream<rdfjs.Quad> {
     if (eventName === "end" && !this._ended) {
       queueMicrotask(() => {
         if (
-          !this._ended && !this._flowing && !this._readStarted &&
+          !this._ended &&
+          !this._flowing &&
+          !this._readStarted &&
           this.listenerCount("data") === 0 &&
           this.listenerCount("readable") === 0
         ) {

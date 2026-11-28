@@ -105,13 +105,14 @@ export async function createSqliteWorldsSdk(
   options: SqliteWorldsSdkOptions,
 ): Promise<SqliteWorldsSdk> {
   const vectorDimensions = options.vectorDimensions ?? 1536;
-  const db = options.db ??
+  const db =
+    options.db ??
     (options.createHandle
       ? options.createHandle(options.path)
       : (await import("./node-sqlite-handle.ts")).createNodeSqliteHandle(
-        options.path,
-        { allowExtension: true },
-      ));
+          options.path,
+          { allowExtension: true },
+        ));
 
   let vectorSupported = false;
   if (options.loadVectorExtension !== false) {
@@ -142,7 +143,8 @@ export async function createSqliteWorldsSdk(
 
   await initializeSqliteSchema(connection, schema);
 
-  const textSplitter = options.textSplitter ??
+  const textSplitter =
+    options.textSplitter ??
     new RecursiveCharacterTextSplitter({ chunkSize: 1000 });
 
   const searchIndex = new SqliteSearchIndex({

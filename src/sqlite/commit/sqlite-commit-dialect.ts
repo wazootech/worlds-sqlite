@@ -94,9 +94,11 @@ export function createSqliteCommitDialect(
         }),
         // The vec row pairs with the chunk row inserted just before it.
         ...(vector
-          ? [builder.buildInsertVecForLastChunk(
-            JSON.stringify(Array.from(vector)),
-          )]
+          ? [
+              builder.buildInsertVecForLastChunk(
+                JSON.stringify(Array.from(vector)),
+              ),
+            ]
           : []),
       ]),
     buildCleanup: buildDeletions,

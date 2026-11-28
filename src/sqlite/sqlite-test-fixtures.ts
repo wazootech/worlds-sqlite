@@ -81,7 +81,8 @@ export async function setupSqliteSchemaForTest(
   connection: SqliteConnectionDriver,
   schemaBuilder?: SqliteSchemaBuilder,
 ): Promise<void> {
-  const builder = schemaBuilder ??
+  const builder =
+    schemaBuilder ??
     new SqliteSchemaBuilder(testVectorDimensions, {
       vectorSupported: connection.hasVectorSupport(),
     });

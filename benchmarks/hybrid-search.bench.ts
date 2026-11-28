@@ -42,13 +42,10 @@ const vectorArray = Array.from({ length: VECTOR_DIMENSIONS }, () => 0);
 vectorArray[0] = 1.0;
 const vectorJsonString = JSON.stringify(vectorArray);
 
-async function insertChunkRow(
-  index: number,
-): Promise<void> {
+async function insertChunkRow(index: number): Promise<void> {
   const text = `Document payload text index ${index} with unique keywords.`;
   const inserted = await connection.execute<{ id: number | bigint }>({
-    sql:
-      "INSERT INTO chunks (quad_id, subject, predicate, graph, value, fts_value) VALUES (?, ?, ?, ?, ?, ?) RETURNING id",
+    sql: "INSERT INTO chunks (quad_id, subject, predicate, graph, value, fts_value) VALUES (?, ?, ?, ?, ?, ?) RETURNING id",
     args: [
       `id-${index}`,
       `urn:entity:${index}`,

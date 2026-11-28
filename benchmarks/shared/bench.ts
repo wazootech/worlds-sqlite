@@ -26,10 +26,7 @@ type Run = () => Promise<number>;
 const registered: { definition: BenchDefinition; run: Run }[] = [];
 
 /** bench registers one bench; runBenches measures everything registered. */
-export function bench(
-  definition: BenchDefinition,
-  fn: () => unknown,
-): void;
+export function bench(definition: BenchDefinition, fn: () => unknown): void;
 export function bench<T>(
   definition: BenchDefinition,
   fn: (input: T) => unknown,

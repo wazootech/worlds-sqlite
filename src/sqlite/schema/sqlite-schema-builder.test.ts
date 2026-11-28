@@ -56,11 +56,13 @@ test("initializeSqliteSchema - idempotent and keyword-only without vec", async (
   // Run twice — every DDL is CREATE IF NOT EXISTS.
   await initializeSqliteSchema(connection, builder);
 
-  const tables = (await connection.execute<{ name: string }>(
-    {
+  const tables = (
+    await connection.execute<{ name: string }>({
       sql: "SELECT name FROM sqlite_master WHERE type IN ('table', 'trigger')",
-    },
-  )).rows.map((r) => r.name).sort();
+    })
+  ).rows
+    .map((r) => r.name)
+    .sort();
   assertEquals(tables.includes("quads"), true);
   assertEquals(tables.includes("chunks"), true);
   assertEquals(tables.includes("chunks_fts"), true);
@@ -70,13 +72,11 @@ test("initializeSqliteSchema - idempotent and keyword-only without vec", async (
 
   // FTS search works against the created schema.
   await connection.execute({
-    sql:
-      "INSERT INTO chunks (quad_id, subject, predicate, graph, value, fts_value) VALUES (?, ?, ?, ?, ?, ?)",
+    sql: "INSERT INTO chunks (quad_id, subject, predicate, graph, value, fts_value) VALUES (?, ?, ?, ?, ?, ?)",
     args: ["q1", "urn:s", "urn:p", "", "needle text", "needle text"],
   });
   const hits = await connection.execute<{ subject: string }>({
-    sql:
-      "SELECT chunks.subject FROM chunks_fts JOIN chunks ON chunks.id = chunks_fts.rowid WHERE chunks_fts MATCH ?",
+    sql: "SELECT chunks.subject FROM chunks_fts JOIN chunks ON chunks.id = chunks_fts.rowid WHERE chunks_fts MATCH ?",
     args: ["needle"],
   });
   assertEquals(hits.rows.length, 1);
@@ -93,9 +93,10 @@ test("initializeSqliteSchema - creates vec0 table when sqlite-vec loads", async 
   });
   await initializeSqliteSchema(connection, builder);
 
-  const vecTables = (await connection.execute<{ name: string }>({
-    sql:
-      "SELECT name FROM sqlite_master WHERE type = 'table' AND name = 'chunks_vec'",
-  })).rows;
+  const vecTables = (
+    await connection.execute<{ name: string }>({
+      sql: "SELECT name FROM sqlite_master WHERE type = 'table' AND name = 'chunks_vec'",
+    })
+  ).rows;
   assertEquals(vecTables.length, vecAvailable ? 1 : 0);
 });

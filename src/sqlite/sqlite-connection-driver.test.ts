@@ -44,7 +44,10 @@ test("SqliteConnectionDriver - batch commits atomically and rolls back on failur
   const rows = await connection.execute<{ v: string }>({
     sql: "SELECT v FROM t ORDER BY v",
   });
-  assertEquals(rows.rows.map((r) => r.v), ["a", "b"]);
+  assertEquals(
+    rows.rows.map((r) => r.v),
+    ["a", "b"],
+  );
 
   // A failing statement rolls the whole batch back.
   await assertRejects(() =>
@@ -52,12 +55,15 @@ test("SqliteConnectionDriver - batch commits atomically and rolls back on failur
       { sql: "INSERT INTO t (v) VALUES (?)", args: ["c"] },
       { sql: "INSERT INTO t (v) VALUES (?)", args: ["d"] },
       { sql: "INSERT INTO missing (v) VALUES (?)", args: ["e"] },
-    ])
+    ]),
   );
   const after = await connection.execute<{ v: string }>({
     sql: "SELECT v FROM t ORDER BY v",
   });
-  assertEquals(after.rows.map((r) => r.v), ["a", "b"]);
+  assertEquals(
+    after.rows.map((r) => r.v),
+    ["a", "b"],
+  );
 });
 
 test("SqliteConnectionDriver - transaction runs fn atomically", async () => {
@@ -71,18 +77,24 @@ test("SqliteConnectionDriver - transaction runs fn atomically", async () => {
   const rows = await connection.execute<{ v: string }>({
     sql: "SELECT v FROM t ORDER BY v",
   });
-  assertEquals(rows.rows.map((r) => r.v), ["x", "y"]);
+  assertEquals(
+    rows.rows.map((r) => r.v),
+    ["x", "y"],
+  );
 
   await assertRejects(() =>
     connection.transaction(async (tx) => {
       await tx.execute({ sql: "INSERT INTO t (v) VALUES (?)", args: ["z"] });
       throw new Error("boom");
-    })
+    }),
   );
   const after = await connection.execute<{ v: string }>({
     sql: "SELECT v FROM t ORDER BY v",
   });
-  assertEquals(after.rows.map((r) => r.v), ["x", "y"]);
+  assertEquals(
+    after.rows.map((r) => r.v),
+    ["x", "y"],
+  );
 });
 
 test("SqliteConnectionDriver - reports vector support flag", () => {

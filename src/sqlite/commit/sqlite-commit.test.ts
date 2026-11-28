@@ -38,7 +38,7 @@ async function setup(
   } = {},
 ) {
   const db = new DatabaseSync(":memory:", { allowExtension: true });
-  const vector = options.vector === true && await tryLoadVectorExtension(db);
+  const vector = options.vector === true && (await tryLoadVectorExtension(db));
   if (options.vector) assert(vector, "sqlite-vec must load");
   const connection = createTestSqliteConnectionDriver(db, {
     vectorSupported: vector,
@@ -125,13 +125,17 @@ test("sqlite commit - replace-mode import wipes all quads and chunks", async () 
   const { connection, store, commit } = await setup();
   await commit({ insertions: [hello] });
   const second = quad(namedNode("urn:c"), namedNode("urn:p"), literal("two"));
-  const summary = await commit({ insertions: [second] }, {
-    importMode: "replace",
-  });
+  const summary = await commit(
+    { insertions: [second] },
+    {
+      importMode: "replace",
+    },
+  );
   assertEquals(summary.novelQuads, 1);
-  assertEquals(store.getQuads().map((q: rdfjs.Quad) => q.subject.value), [
-    "urn:c",
-  ]);
+  assertEquals(
+    store.getQuads().map((q: rdfjs.Quad) => q.subject.value),
+    ["urn:c"],
+  );
   assertEquals(await count(connection, "chunks"), 1);
 });
 
@@ -156,15 +160,14 @@ test("sqlite commit - pairs every vector with its own chunk row in one batch", a
     embeddingService: new FakeEmbeddingService(),
   });
   const quads = ["alpha", "beta", "gamma", "delta"].map((word) =>
-    quad(namedNode(`urn:${word}`), namedNode("urn:p"), literal(`${word} text`))
+    quad(namedNode(`urn:${word}`), namedNode("urn:p"), literal(`${word} text`)),
   );
   const summary = await commit({ insertions: quads });
   assertEquals(summary.chunkRows, 4);
   assertEquals(await count(connection, "chunks"), 4);
   assertEquals(await count(connection, "chunks_vec"), 4);
   const orphans = await connection.execute({
-    sql:
-      "SELECT COUNT(*) AS n FROM chunks LEFT JOIN chunks_vec ON chunks_vec.rowid = chunks.id WHERE chunks_vec.rowid IS NULL",
+    sql: "SELECT COUNT(*) AS n FROM chunks LEFT JOIN chunks_vec ON chunks_vec.rowid = chunks.id WHERE chunks_vec.rowid IS NULL",
   });
   assertEquals(Number(orphans.rows[0]!.n), 0);
 

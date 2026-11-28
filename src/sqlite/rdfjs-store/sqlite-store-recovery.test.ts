@@ -33,11 +33,10 @@ const CHILD_SCRIPT = join(REPO_ROOT, "test", "sqlite-recovery-child.ts");
 function runChild(
   ...args: string[]
 ): Promise<{ code: number; stderr: string }> {
-  const child = spawn(
-    process.execPath,
-    [CHILD_SCRIPT, ...args],
-    { cwd: REPO_ROOT, stdio: ["ignore", "ignore", "pipe"] },
-  );
+  const child = spawn(process.execPath, [CHILD_SCRIPT, ...args], {
+    cwd: REPO_ROOT,
+    stdio: ["ignore", "ignore", "pipe"],
+  });
   let stderr = "";
   child.stderr?.setEncoding("utf8").on("data", (chunk: string) => {
     stderr += chunk;

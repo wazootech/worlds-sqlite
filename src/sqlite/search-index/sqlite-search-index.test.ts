@@ -80,12 +80,10 @@ test("SqliteSearchIndex - Scope Inclusion: limits matches to included subjects",
   const connection = createTestConnection();
   await setupSqliteSchemaForTest(connection);
 
-  for (
-    const [quadId, subject, text] of [
-      ["f1", "urn:person:1", "Loves coding and data"],
-      ["f2", "urn:person:2", "Loves coding and gardening"],
-    ] as const
-  ) {
+  for (const [quadId, subject, text] of [
+    ["f1", "urn:person:1", "Loves coding and data"],
+    ["f2", "urn:person:2", "Loves coding and gardening"],
+  ] as const) {
     await insertChunkRowForTest(
       connection,
       testSearchQueryBuilderFor(connection),

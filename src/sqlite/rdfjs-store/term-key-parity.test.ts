@@ -28,11 +28,7 @@ const corpus = [
   // RDF-star triple terms, including nesting.
   quad(ex("s"), ex("p"), ex("o")),
   quad(ex("s"), ex("p"), literal("v")),
-  quad(
-    ex("s"),
-    ex("p"),
-    quad(ex("a"), ex("b"), ex("c")),
-  ),
+  quad(ex("s"), ex("p"), quad(ex("a"), ex("b"), ex("c"))),
 ];
 
 test("term-key parity — @worlds/sqlite matches @wazoo/sparql-engine on the term corpus", () => {

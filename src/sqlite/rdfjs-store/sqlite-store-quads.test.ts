@@ -55,11 +55,10 @@ test("SqliteStore - match pulls ordered SQLite pages on demand", () => {
     assertEquals(statements.length, 1);
     assertEquals(stream.read()?.subject.value, "urn:b");
     assertEquals(statements.length, 1);
-    assertEquals([...stream].map((q) => q.subject.value), [
-      "urn:c",
-      "urn:d",
-      "urn:e",
-    ]);
+    assertEquals(
+      [...stream].map((q) => q.subject.value),
+      ["urn:c", "urn:d", "urn:e"],
+    );
     assertEquals(statements.length, 3);
   } finally {
     store.close();
@@ -76,10 +75,7 @@ test("SqliteStore - readable match streams can be stopped within the first page"
         stream.once("readable", () => resolve(stream.read()));
       },
     );
-    assertEquals(
-      first?.subject.value,
-      "urn:a",
-    );
+    assertEquals(first?.subject.value, "urn:a");
     stream.destroy();
     assertEquals(stream.read(), null);
     assertEquals(statements.length, 1);
@@ -93,12 +89,13 @@ test("SqliteStore - match emits a deferred SQLite read error", async () => {
   const stream = store.match(null, null, null, graph);
   store.close();
 
-  await assertRejects(() =>
-    new Promise<void>((resolve, reject) => {
-      stream.on("data", () => {});
-      stream.on("end", () => resolve());
-      stream.on("error", reject);
-    })
+  await assertRejects(
+    () =>
+      new Promise<void>((resolve, reject) => {
+        stream.on("data", () => {});
+        stream.on("end", () => resolve());
+        stream.on("error", reject);
+      }),
   );
 });
 
@@ -111,7 +108,10 @@ test("SqliteStore - removeMatches deletes a graph with one filtered statement", 
       statements[0],
       "DELETE FROM quads WHERE pkey = ? AND gkey = ? RETURNING payload",
     );
-    assertEquals(store.getQuads().map((q) => q.subject.value), ["urn:other"]);
+    assertEquals(
+      store.getQuads().map((q) => q.subject.value),
+      ["urn:other"],
+    );
 
     await new Promise<void>((resolve, reject) => {
       removed.on("end", () => resolve());
@@ -128,11 +128,10 @@ test("SqliteStore - removeMatches streams exactly the removed quads", async () =
     const expected = store.getQuads(null, predicate, null, graph);
     const removed: string[] = [];
     await new Promise<void>((resolve, reject) => {
-      store.removeMatches(null, predicate, null, graph)
-        .on(
-          "data",
-          (q) =>
-            removed.push((q as { subject: { value: string } }).subject.value),
+      store
+        .removeMatches(null, predicate, null, graph)
+        .on("data", (q) =>
+          removed.push((q as { subject: { value: string } }).subject.value),
         )
         .on("end", () => resolve())
         .on("error", reject);

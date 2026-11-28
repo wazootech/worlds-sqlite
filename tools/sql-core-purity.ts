@@ -30,7 +30,7 @@ async function collectSqlCoreFiles(directory: string): Promise<string[]> {
   for (const entry of await readdir(directory, { withFileTypes: true })) {
     const entryPath = `${directory}/${entry.name}`;
     if (entry.isDirectory()) {
-      files.push(...await collectSqlCoreFiles(entryPath));
+      files.push(...(await collectSqlCoreFiles(entryPath)));
     } else if (entry.isFile() && entry.name.endsWith(".ts")) {
       files.push(entryPath);
     }
@@ -46,7 +46,7 @@ for (const file of sqlCoreFiles) {
   for (const match of source.matchAll(IMPORT_SPECIFIER_PATTERN)) {
     const specifier = match[1]!;
     const allowed = ALLOWED_SPECIFIER_PATTERNS.some((pattern) =>
-      pattern.test(specifier)
+      pattern.test(specifier),
     );
     if (!allowed) {
       violations.push(`${file}: disallowed import "${specifier}"`);

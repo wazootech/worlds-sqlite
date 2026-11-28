@@ -105,13 +105,11 @@ test("a driver without a complete weight declaration behaves as before", async (
   let calls = 0;
   const counting = (s: FakeStatement) => (calls++, fakeStatementWeight(s));
   const base = { maxAtomicStatements: 4, writeBatchSize: 2 };
-  for (
-    const limits of [
-      base,
-      { ...base, statementWeight: counting }, // no budget
-      { ...base, maxBatchWeight: 1 }, // no estimator
-    ]
-  ) {
+  for (const limits of [
+    base,
+    { ...base, statementWeight: counting }, // no budget
+    { ...base, maxBatchWeight: 1 }, // no estimator
+  ]) {
     const { store, commit } = run(limits, 2);
     await commit();
     assertEquals(sizes(store), [2, 2, 1]);

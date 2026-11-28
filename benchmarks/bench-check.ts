@@ -48,9 +48,10 @@ if (missing.length > 0) {
 // 2. Regression check vs the committed baseline.
 let baseline: Record<string, number> = {};
 try {
-  baseline = JSON.parse(
-    await readFile(BASELINE_PATH, "utf8"),
-  ) as Record<string, number>;
+  baseline = JSON.parse(await readFile(BASELINE_PATH, "utf8")) as Record<
+    string,
+    number
+  >;
 } catch {
   console.warn(
     "No committed baseline found (benchmarks/baseline.json). Run `bun run bench:record`. Skipping regression gate.",
@@ -69,15 +70,15 @@ for (const [name, current] of Object.entries(results)) {
   if (ratio < 0.5) {
     regressions++;
     console.error(
-      `❌ ${name}: ${current.toFixed(0)} ops/s vs baseline ${
-        recorded.toFixed(0)
-      } (${(ratio * 100).toFixed(0)}%)`,
+      `❌ ${name}: ${current.toFixed(0)} ops/s vs baseline ${recorded.toFixed(
+        0,
+      )} (${(ratio * 100).toFixed(0)}%)`,
     );
   } else {
     console.log(
-      `✅ ${name}: ${current.toFixed(0)} ops/s vs baseline ${
-        recorded.toFixed(0)
-      } (${(ratio * 100).toFixed(0)}%)`,
+      `✅ ${name}: ${current.toFixed(0)} ops/s vs baseline ${recorded.toFixed(
+        0,
+      )} (${(ratio * 100).toFixed(0)}%)`,
     );
   }
 }

@@ -77,7 +77,10 @@ test("an embedding failure on the first page changes nothing", async () => {
     "failed to vectorize",
   );
   assertEquals(store.clearCount, 0);
-  assertEquals(store.chunks.map((c) => c.quadId), ["kept"]);
+  assertEquals(
+    store.chunks.map((c) => c.quadId),
+    ["kept"],
+  );
 });
 
 test("a deferred import rebuilds once after the commit and reports it", async () => {

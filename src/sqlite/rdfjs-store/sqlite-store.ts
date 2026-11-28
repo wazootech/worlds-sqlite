@@ -302,9 +302,10 @@ export class SqliteStore implements rdfjs.Store<rdfjs.Quad> {
   public readonly db: AnySyncSqliteHandle;
 
   public constructor(public readonly options: SqliteStoreOptions) {
-    this.db = options.db ??
-      (options.createHandle?.(options.path) ??
-        openNodeSqliteHandle(options.path));
+    this.db =
+      options.db ??
+      options.createHandle?.(options.path) ??
+      openNodeSqliteHandle(options.path);
     // busy_timeout goes first: switching to WAL takes an exclusive lock, and
     // without a timeout already set, a second process opening the same new
     // database fails at once with "database is locked" instead of waiting.
@@ -343,16 +344,17 @@ export class SqliteStore implements rdfjs.Store<rdfjs.Quad> {
     object?: rdfjs.Term,
     graph?: rdfjs.Term,
   ): this {
-    const quad = predicate !== undefined && object !== undefined
-      ? DataFactory.quad(
-        // RDF 1.2 allows any term in any position (literal subjects in
-        // quoted triples); the engine's position types are narrower, so cast.
-        quadOrSubject as rdfjs.Quad_Subject,
-        predicate as rdfjs.Quad_Predicate,
-        object as rdfjs.Quad_Object,
-        graph as rdfjs.Quad_Graph,
-      )
-      : quadOrSubject as rdfjs.Quad;
+    const quad =
+      predicate !== undefined && object !== undefined
+        ? DataFactory.quad(
+            // RDF 1.2 allows any term in any position (literal subjects in
+            // quoted triples); the engine's position types are narrower, so cast.
+            quadOrSubject as rdfjs.Quad_Subject,
+            predicate as rdfjs.Quad_Predicate,
+            object as rdfjs.Quad_Object,
+            graph as rdfjs.Quad_Graph,
+          )
+        : (quadOrSubject as rdfjs.Quad);
     this.insertQuad(quad);
     return this;
   }
@@ -403,9 +405,7 @@ export class SqliteStore implements rdfjs.Store<rdfjs.Quad> {
   ): IterableIterator<rdfjs.Quad> {
     const pageSize = Math.max(
       1,
-      Math.floor(
-        this.options.matchPageSize ?? DEFAULT_SQLITE_MATCH_PAGE_SIZE,
-      ),
+      Math.floor(this.options.matchPageSize ?? DEFAULT_SQLITE_MATCH_PAGE_SIZE),
     );
     let afterKey: QuadKey | undefined;
 
@@ -439,9 +439,7 @@ export class SqliteStore implements rdfjs.Store<rdfjs.Quad> {
       graph,
     });
     const row = this.db.prepare(sql).get(...args) as
-      | { count: number | bigint }
-      | null
-      | undefined;
+      { count: number | bigint } | null | undefined;
     return Number(row?.count ?? 0);
   }
 
@@ -470,9 +468,8 @@ export class SqliteStore implements rdfjs.Store<rdfjs.Quad> {
   }
 
   public deleteGraph(graph: rdfjs.Quad_Graph | string): MemoryStream {
-    const graphTerm = typeof graph === "string"
-      ? DataFactory.namedNode(graph)
-      : graph;
+    const graphTerm =
+      typeof graph === "string" ? DataFactory.namedNode(graph) : graph;
     return this.removeMatches(null, null, null, graphTerm);
   }
 
@@ -487,24 +484,28 @@ export class SqliteStore implements rdfjs.Store<rdfjs.Quad> {
 
   /** insertQuad writes one row (upsert semantics). */
   public insertQuad(quad: rdfjs.Quad): void {
-    this.db.prepare(
-      "INSERT OR REPLACE INTO quads (skey, pkey, okey, gkey, payload)" +
-        " VALUES (?, ?, ?, ?, ?)",
-    ).run(
-      termKey(quad.subject),
-      termKey(quad.predicate),
-      termKey(quad.object),
-      termKey(quad.graph),
-      quadToPayloadJson(quad),
-    );
+    this.db
+      .prepare(
+        "INSERT OR REPLACE INTO quads (skey, pkey, okey, gkey, payload)" +
+          " VALUES (?, ?, ?, ?, ?)",
+      )
+      .run(
+        termKey(quad.subject),
+        termKey(quad.predicate),
+        termKey(quad.object),
+        termKey(quad.graph),
+        quadToPayloadJson(quad),
+      );
   }
 
   /** removeQuadByKey deletes one row by its four-position key. */
   public removeQuadByKey(key: string): void {
     const [skey, pkey, okey, gkey] = key.split("\u0000");
-    this.db.prepare(
-      "DELETE FROM quads WHERE skey = ? AND pkey = ? AND okey = ? AND gkey = ?",
-    ).run(skey, pkey, okey, gkey);
+    this.db
+      .prepare(
+        "DELETE FROM quads WHERE skey = ? AND pkey = ? AND okey = ? AND gkey = ?",
+      )
+      .run(skey, pkey, okey, gkey);
   }
 }
 

@@ -65,42 +65,41 @@ export function runSqliteRuntimePortabilitySuite(
 ): void {
   const { label, makeHandle, createHandleFromPath } = options;
 
-  test(
-    `${label} SqliteStore - round-trips literal and RDF-star terms with fidelity`,
-    () => {
-      const store = new SqliteStore({
-        path: ":memory:",
-        createHandle: createHandleFromPath,
-      });
-      const langLit = literal("hola", "es");
-      const typedLit = literal(
-        "42",
-        namedNode("http://www.w3.org/2001/XMLSchema#integer"),
-      );
-      const starTerm = quad(ex("alice"), ex("knows"), ex("bob"));
-      store.addQuad(quad(ex("alice"), ex("name"), langLit));
-      store.addQuad(quad(ex("alice"), ex("name"), typedLit));
-      store.addQuad(quad(ex("alice"), ex("knows"), starTerm));
+  test(`${label} SqliteStore - round-trips literal and RDF-star terms with fidelity`, () => {
+    const store = new SqliteStore({
+      path: ":memory:",
+      createHandle: createHandleFromPath,
+    });
+    const langLit = literal("hola", "es");
+    const typedLit = literal(
+      "42",
+      namedNode("http://www.w3.org/2001/XMLSchema#integer"),
+    );
+    const starTerm = quad(ex("alice"), ex("knows"), ex("bob"));
+    store.addQuad(quad(ex("alice"), ex("name"), langLit));
+    store.addQuad(quad(ex("alice"), ex("name"), typedLit));
+    store.addQuad(quad(ex("alice"), ex("knows"), starTerm));
 
-      const got = store.getQuads();
-      assert.equal(got.length, 3);
-      const langBack = got.find((q) =>
+    const got = store.getQuads();
+    assert.equal(got.length, 3);
+    const langBack = got.find(
+      (q) =>
         q.object.termType === "Literal" &&
-        (q.object as rdfjs.Literal).language === "es"
-      );
-      assert.equal(langBack !== undefined, true);
-      assert.equal(sameRdfTerm(langBack!.object, langLit), true);
-      const typedBack = got.find((q) =>
+        (q.object as rdfjs.Literal).language === "es",
+    );
+    assert.equal(langBack !== undefined, true);
+    assert.equal(sameRdfTerm(langBack!.object, langLit), true);
+    const typedBack = got.find(
+      (q) =>
         q.object.termType === "Literal" &&
-        (q.object as rdfjs.Literal).datatype.value.includes("integer")
-      );
-      assert.equal(sameRdfTerm(typedBack!.object, typedLit), true);
-      const starBack = got.find((q) => q.object.termType === "Quad");
-      assert.equal(starBack !== undefined, true);
-      assert.equal(sameRdfTerm(starBack!.object, starTerm), true);
-      store.close();
-    },
-  );
+        (q.object as rdfjs.Literal).datatype.value.includes("integer"),
+    );
+    assert.equal(sameRdfTerm(typedBack!.object, typedLit), true);
+    const starBack = got.find((q) => q.object.termType === "Quad");
+    assert.equal(starBack !== undefined, true);
+    assert.equal(sameRdfTerm(starBack!.object, starTerm), true);
+    store.close();
+  });
 
   test(`${label} SqliteStore - quads differing only by graph do not collide`, () => {
     const db = makeHandle();
@@ -223,15 +222,19 @@ export function runSqliteRuntimePortabilitySuite(
     assert.equal(connection.hasVectorSupport(), false);
 
     // The driver reads the store's own table through the SAME handle.
-    const rows = connection.execute<{ payload: string }>({
-      sql: "SELECT payload FROM quads",
-    }).then((result) => result.rows);
+    const rows = connection
+      .execute<{ payload: string }>({
+        sql: "SELECT payload FROM quads",
+      })
+      .then((result) => result.rows);
     // execute is sync-underneath; await the promise it returns.
-    return rows.then((result) => {
-      assert.equal(result.length, 1);
-    }).finally(() => {
-      store.close(); // closes the shared handle, like SqliteWorldsSdk.close()
-    });
+    return rows
+      .then((result) => {
+        assert.equal(result.length, 1);
+      })
+      .finally(() => {
+        store.close(); // closes the shared handle, like SqliteWorldsSdk.close()
+      });
   });
 
   test(`${label} SqliteConnectionDriver - execute returns rows for SELECT and RETURNING`, async () => {
@@ -270,19 +273,25 @@ export function runSqliteRuntimePortabilitySuite(
     const rows = await connection.execute<{ v: string }>({
       sql: "SELECT v FROM t ORDER BY v",
     });
-    assert.deepEqual(rows.rows.map((r) => r.v), ["a", "b"]);
+    assert.deepEqual(
+      rows.rows.map((r) => r.v),
+      ["a", "b"],
+    );
 
     // A failing statement rolls the whole batch back.
     await assert.rejects(() =>
       connection.batch([
         { sql: "INSERT INTO t (v) VALUES (?)", args: ["c"] },
         { sql: "INSERT INTO missing (v) VALUES (?)", args: ["d"] },
-      ])
+      ]),
     );
     const after = await connection.execute<{ v: string }>({
       sql: "SELECT v FROM t ORDER BY v",
     });
-    assert.deepEqual(after.rows.map((r) => r.v), ["a", "b"]);
+    assert.deepEqual(
+      after.rows.map((r) => r.v),
+      ["a", "b"],
+    );
     await connection.close();
   });
 
@@ -297,18 +306,24 @@ export function runSqliteRuntimePortabilitySuite(
     const rows = await connection.execute<{ v: string }>({
       sql: "SELECT v FROM t ORDER BY v",
     });
-    assert.deepEqual(rows.rows.map((r) => r.v), ["x", "y"]);
+    assert.deepEqual(
+      rows.rows.map((r) => r.v),
+      ["x", "y"],
+    );
 
     await assert.rejects(() =>
       connection.transaction(async (tx) => {
         await tx.execute({ sql: "INSERT INTO t (v) VALUES (?)", args: ["z"] });
         throw new Error("boom");
-      })
+      }),
     );
     const after = await connection.execute<{ v: string }>({
       sql: "SELECT v FROM t ORDER BY v",
     });
-    assert.deepEqual(after.rows.map((r) => r.v), ["x", "y"]);
+    assert.deepEqual(
+      after.rows.map((r) => r.v),
+      ["x", "y"],
+    );
     await connection.close();
   });
 
@@ -318,8 +333,9 @@ export function runSqliteRuntimePortabilitySuite(
       false,
     );
     assert.equal(
-      new SqliteConnectionDriver(makeHandle(), { vectorSupported: true })
-        .hasVectorSupport(),
+      new SqliteConnectionDriver(makeHandle(), {
+        vectorSupported: true,
+      }).hasVectorSupport(),
       true,
     );
   });

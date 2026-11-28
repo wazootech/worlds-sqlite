@@ -10,8 +10,7 @@ import { generateSyntheticQuads } from "./synthetic-data.ts";
 export const selectiveSubjectIri = "urn:entity:0";
 
 /** selectiveSparqlQuery exercises a subject-bound BGP (quad index-friendly). */
-export const selectiveSparqlQuery =
-  `SELECT ?p ?o WHERE { <${selectiveSubjectIri}> ?p ?o }`;
+export const selectiveSparqlQuery = `SELECT ?p ?o WHERE { <${selectiveSubjectIri}> ?p ?o }`;
 
 /** fullScanSparqlQuery exercises an unbound triple pattern with a small result cap. */
 export const fullScanSparqlQuery =
@@ -68,9 +67,9 @@ export async function preloadSparqlPerfFixtures(
       source: { kind: "quads", quads: generateSyntheticQuads(quadCount) },
     });
     console.error(
-      `generate + import ${quadCount} quads: ${
-        Math.round(performance.now() - startedAt)
-      }ms`,
+      `generate + import ${quadCount} quads: ${Math.round(
+        performance.now() - startedAt,
+      )}ms`,
     );
     engines.set(quadCount, sdk);
   }
@@ -103,8 +102,7 @@ export function registerSparqlPerfBenchmarks(
       }
       bench(
         {
-          name:
-            `SPARQL Hexastore Perf: ${quadCount} quads | ${queryShape} | sqliteStore`,
+          name: `SPARQL Hexastore Perf: ${quadCount} quads | ${queryShape} | sqliteStore`,
           group: `SPARQL Hexastore Perf (${quadCount})`,
         },
         async () => {

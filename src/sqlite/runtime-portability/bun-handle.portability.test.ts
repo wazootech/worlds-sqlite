@@ -11,9 +11,7 @@
  */
 import { Database } from "bun:sqlite";
 import { test } from "bun:test";
-import {
-  runSqliteRuntimePortabilitySuite,
-} from "./sqlite-runtime-portability-suite.ts";
+import { runSqliteRuntimePortabilitySuite } from "./sqlite-runtime-portability-suite.ts";
 
 runSqliteRuntimePortabilitySuite(test, {
   label: "bun:sqlite",

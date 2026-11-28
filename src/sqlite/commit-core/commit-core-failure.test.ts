@@ -41,11 +41,17 @@ test("a commit at maxAtomicStatements is one batch; one statement over is chunke
   // Per quad: 1 insert + 1 chunk = 2, plus one clean-slate delete for all: 5 statements for 2 quads.
   const atMax = setup({ maxAtomicStatements: 5, writeBatchSize: 2 });
   await atMax.commit([q(1), q(2)]);
-  assertEquals(atMax.store.batches.map((b) => b.length), [5]);
+  assertEquals(
+    atMax.store.batches.map((b) => b.length),
+    [5],
+  );
 
   const over = setup({ maxAtomicStatements: 4, writeBatchSize: 2 });
   await over.commit([q(1), q(2)]);
-  assertEquals(over.store.batches.map((b) => b.length), [2, 2, 1]);
+  assertEquals(
+    over.store.batches.map((b) => b.length),
+    [2, 2, 1],
+  );
   assertEquals(over.store.quads.size, 2);
   assertEquals(over.store.chunks.length, 2);
 });
@@ -115,12 +121,10 @@ test("when the cleanup also fails the commit throws an AggregateError with both 
 
 test("an embedding failure writes nothing on either path", async () => {
   const failing = { embed: () => Promise.reject(new Error("embedding down")) };
-  for (
-    const limits of [
-      { maxAtomicStatements: 10_000, writeBatchSize: 500 },
-      { maxAtomicStatements: 0, writeBatchSize: 1 },
-    ]
-  ) {
+  for (const limits of [
+    { maxAtomicStatements: 10_000, writeBatchSize: 500 },
+    { maxAtomicStatements: 0, writeBatchSize: 1 },
+  ]) {
     const { store, commit } = setup(limits);
     await assertRejects(
       () =>
@@ -135,10 +139,13 @@ test("an embedding failure writes nothing on either path", async () => {
 });
 
 test("the dialect's keyOf is the identity used for lookups and statements", async () => {
-  const { store, commit } = setup({
-    maxAtomicStatements: 100,
-    writeBatchSize: 100,
-  }, "term:");
+  const { store, commit } = setup(
+    {
+      maxAtomicStatements: 100,
+      writeBatchSize: 100,
+    },
+    "term:",
+  );
   await commit([q(1)]);
   const key = [...store.quads.keys()][0]!;
   assert(key.startsWith("term:"));

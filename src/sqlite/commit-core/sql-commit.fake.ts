@@ -97,16 +97,18 @@ export class FakeSqlStore {
       ...this.limits,
       executeBatch: (statements) => {
         this.batches.push([...statements]);
-        const fails = this.failOnBatch === this.batches.length ||
+        const fails =
+          this.failOnBatch === this.batches.length ||
           (this.failInsertOnce &&
             statements.some((s) => s.kind === "insert")) ||
           (this.failCleanupOnce &&
             statements.some((s) => s.kind === "cleanup"));
         if (fails) {
           this.failOnBatch = undefined;
-          this.failInsertOnce = this.failInsertOnce &&
-            !statements.some((s) => s.kind === "insert");
-          this.failCleanupOnce = this.failCleanupOnce &&
+          this.failInsertOnce =
+            this.failInsertOnce && !statements.some((s) => s.kind === "insert");
+          this.failCleanupOnce =
+            this.failCleanupOnce &&
             !statements.some((s) => s.kind === "cleanup");
           return Promise.reject(new Error("injected write failure"));
         }
@@ -130,15 +132,14 @@ export class FakeSqlStore {
       streamQuads: ({ after, pageSize }): Promise<SqlQuadPage> => {
         this.streamCalls++;
         const entries = [...this.quads.entries()].sort(([a], [b]) =>
-          a.localeCompare(b)
+          a.localeCompare(b),
         );
         const start = typeof after === "number" ? after : 0;
-        const quads = entries.slice(start, start + pageSize).map(([, v]) =>
-          v.quad
-        );
-        const next = start + pageSize < entries.length
-          ? start + pageSize
-          : undefined;
+        const quads = entries
+          .slice(start, start + pageSize)
+          .map(([, v]) => v.quad);
+        const next =
+          start + pageSize < entries.length ? start + pageSize : undefined;
         return Promise.resolve({ quads, next });
       },
     };
@@ -190,15 +191,15 @@ export class FakeSqlStore {
         this.chunks = [];
         break;
       case "deleteChunks":
-        this.chunks = this.chunks.filter((c) =>
-          !statement.hashes.includes(c.quadId)
+        this.chunks = this.chunks.filter(
+          (c) => !statement.hashes.includes(c.quadId),
         );
         break;
       case "delete":
       case "cleanup":
         for (const key of statement.keys) this.quads.delete(key);
-        this.chunks = this.chunks.filter((c) =>
-          !statement.hashes.includes(c.quadId)
+        this.chunks = this.chunks.filter(
+          (c) => !statement.hashes.includes(c.quadId),
         );
         break;
       case "insert":

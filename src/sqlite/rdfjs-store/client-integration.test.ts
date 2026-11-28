@@ -28,12 +28,14 @@ const SEED_TURTLE = `
   <urn:acme> a <http://schema.org/Organization> ; <http://schema.org/name> "Acme Corp" .
 `;
 
-const MULTI_HOP_QUERY = "SELECT ?name ?org WHERE { " +
+const MULTI_HOP_QUERY =
+  "SELECT ?name ?org WHERE { " +
   '?a <http://schema.org/name> "Alice" ; <http://schema.org/knows> ?b . ' +
   "?b <http://schema.org/name> ?name ; <http://schema.org/worksFor> ?o . " +
   "?o <http://schema.org/name> ?org }";
 
-const OPTIONAL_FILTER_QUERY = "SELECT ?name ?org WHERE { " +
+const OPTIONAL_FILTER_QUERY =
+  "SELECT ?name ?org WHERE { " +
   "?p a <http://schema.org/Person> ; <http://schema.org/name> ?name . " +
   "OPTIONAL { ?p <http://schema.org/worksFor> ?o . ?o <http://schema.org/name> ?org } . " +
   'FILTER(CONTAINS(LCASE(?name), "a")) } ORDER BY ?name';
@@ -45,10 +47,11 @@ const ASK_QUERY =
 function normalizeBindings(bindings: SparqlBinding[]): unknown {
   return bindings.map((b) =>
     Object.fromEntries(
-      Object.entries(b).map((
-        [key, value],
-      ) => [key, { type: value.type, value: value.value }]),
-    )
+      Object.entries(b).map(([key, value]) => [
+        key,
+        { type: value.type, value: value.value },
+      ]),
+    ),
   );
 }
 

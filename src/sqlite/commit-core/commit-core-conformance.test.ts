@@ -53,9 +53,9 @@ async function runSuite(
   const failed = report.results.filter((r) => !r.ok);
   assert(
     report.ok,
-    `conformance failures: ${
-      failed.map((r) => `${r.name}: ${r.failures.join("; ")}`).join(" | ")
-    }`,
+    `conformance failures: ${failed
+      .map((r) => `${r.name}: ${r.failures.join("; ")}`)
+      .join(" | ")}`,
   );
   const skipped = (report.notes ?? []).filter((note) => /skip/i.test(note));
   assertEquals(skipped, [], "no conformance case may be skipped");
@@ -64,7 +64,7 @@ async function runSuite(
     "the later-write case must run",
   );
   const fired = created.flatMap((store) =>
-    store.laterInjections.map((injection) => ({ store, injection }))
+    store.laterInjections.map((injection) => ({ store, injection })),
   );
   assertEquals(fired.length, 1, "the later write failed exactly once");
   return fired[0]!;

@@ -30,48 +30,41 @@ function createSqliteWorldsSdk(): WorldsSdk {
   });
 }
 
-test(
-  "parity suite - SqliteStore agrees with the in-memory reference on the full corpus",
-  async () => {
-    const report = await runParitySuite({
-      reference: () => createMemoryWorldsSdk(),
-      candidate: () => createSqliteWorldsSdk(),
-      strictSearchOrder: false,
-    });
+test("parity suite - SqliteStore agrees with the in-memory reference on the full corpus", async () => {
+  const report = await runParitySuite({
+    reference: () => createMemoryWorldsSdk(),
+    candidate: () => createSqliteWorldsSdk(),
+    strictSearchOrder: false,
+  });
 
+  assertEquals(
+    report.results.length,
+    parityCorpus.fixtures.length + parityCorpus.replaceCases.length,
+    "every corpus fixture and replace case runs on both stores",
+  );
+  assertEquals(
+    report.ok,
+    true,
+    report.results
+      .map(
+        (r) =>
+          `${r.name}: ${r.failures.join("; ")}` +
+          `${r.notes ? ` [notes: ${r.notes.join("; ")}]` : ""}`,
+      )
+      .join("\n"),
+  );
+
+  // The reference-gated fixtures must be clean on both stores — any
+  // divergence there is a real parity break, not a declared-category note.
+  const referenceGated = report.results.filter(
+    (r) => r.name !== "rdfStarWorld",
+  );
+  for (const result of referenceGated) {
     assertEquals(
-      report.results.length,
-      parityCorpus.fixtures.length + parityCorpus.replaceCases.length,
-      "every corpus fixture and replace case runs on both stores",
-    );
-    assertEquals(
-      report.ok,
+      result.ok,
       true,
-      report.results
-        .map(
-          (r) =>
-            `${r.name}: ${r.failures.join("; ")}` +
-            `${r.notes ? ` [notes: ${r.notes.join("; ")}]` : ""}`,
-        )
-        .join("\n"),
+      `${result.name}: ${result.failures.join("; ")}`,
     );
-
-    // The reference-gated fixtures must be clean on both stores — any
-    // divergence there is a real parity break, not a declared-category note.
-    const referenceGated = report.results.filter(
-      (r) => r.name !== "rdfStarWorld",
-    );
-    for (const result of referenceGated) {
-      assertEquals(
-        result.ok,
-        true,
-        `${result.name}: ${result.failures.join("; ")}`,
-      );
-      assertEquals(
-        result.notes,
-        undefined,
-        `${result.name} must have no notes`,
-      );
-    }
-  },
-);
+    assertEquals(result.notes, undefined, `${result.name} must have no notes`);
+  }
+});

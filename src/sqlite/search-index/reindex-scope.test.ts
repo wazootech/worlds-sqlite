@@ -56,15 +56,18 @@ async function fixture() {
 
 type Db = DatabaseSync;
 const values = (db: Db, graph: string): string[] =>
-  db.prepare("SELECT value FROM chunks WHERE graph = ? ORDER BY value")
-    .all(graph).map((row) => String(row.value));
+  db
+    .prepare("SELECT value FROM chunks WHERE graph = ? ORDER BY value")
+    .all(graph)
+    .map((row) => String(row.value));
 const total = (db: Db): number =>
   Number(db.prepare("SELECT COUNT(*) AS n FROM chunks").get()!.n);
 
 /** tamper marks every chunk row so a refresh (or a survival) is observable. */
 function tamper(db: Db, column: "graph" | "predicate", value: string) {
-  db.prepare(`UPDATE chunks SET value = 'stale' WHERE ${column} = ?`)
-    .run(value);
+  db.prepare(`UPDATE chunks SET value = 'stale' WHERE ${column} = ?`).run(
+    value,
+  );
 }
 
 async function scopedCase(
@@ -78,9 +81,11 @@ async function scopedCase(
   tamper(db, outScope.column, outScope.value);
   const rows = (column: string, value: string) =>
     Number(
-      db.prepare(
-        `SELECT COUNT(*) AS n FROM chunks WHERE ${column} = ? AND value = 'stale'`,
-      ).get(value)!.n,
+      db
+        .prepare(
+          `SELECT COUNT(*) AS n FROM chunks WHERE ${column} = ? AND value = 'stale'`,
+        )
+        .get(value)!.n,
     );
   const outsideBefore = rows(outScope.column, outScope.value);
   const report = await index.reindex(request);

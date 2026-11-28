@@ -15,143 +15,130 @@ import {
 
 const { quad, namedNode, literal } = DataFactory;
 
-test(
-  "rebuildSqliteSearchIndexFromQuads - rebuilds chunks from durable quads and returns counts",
-  async () => {
-    const db = new DatabaseSync(":memory:", { allowExtension: true });
-    const connection = createTestSqliteConnectionDriver(db, {
-      vectorSupported: false,
-    });
-    await setupSqliteSchemaForTest(connection);
+test("rebuildSqliteSearchIndexFromQuads - rebuilds chunks from durable quads and returns counts", async () => {
+  const db = new DatabaseSync(":memory:", { allowExtension: true });
+  const connection = createTestSqliteConnectionDriver(db, {
+    vectorSupported: false,
+  });
+  await setupSqliteSchemaForTest(connection);
 
-    const store = new SqliteStore({ path: ":memory:", db });
-    const quadStore = new SqliteQuadStore({
-      connection,
-      store,
-      searchQueryBuilder: testSearchQueryBuilderFor(connection),
-      searchIndexOnImport: "disabled",
-    });
+  const store = new SqliteStore({ path: ":memory:", db });
+  const quadStore = new SqliteQuadStore({
+    connection,
+    store,
+    searchQueryBuilder: testSearchQueryBuilderFor(connection),
+    searchIndexOnImport: "disabled",
+  });
 
-    await quadStore.import({
-      source: {
-        kind: "quads",
-        quads: [
-          quad(
-            namedNode("urn:a"),
-            namedNode("urn:p"),
-            literal("alpha needle text"),
-          ),
-          quad(
-            namedNode("urn:b"),
-            namedNode("urn:p"),
-            literal("beta unrelated"),
-          ),
-        ],
-      },
-    });
+  await quadStore.import({
+    source: {
+      kind: "quads",
+      quads: [
+        quad(
+          namedNode("urn:a"),
+          namedNode("urn:p"),
+          literal("alpha needle text"),
+        ),
+        quad(namedNode("urn:b"), namedNode("urn:p"), literal("beta unrelated")),
+      ],
+    },
+  });
 
-    const report = await rebuildSqliteSearchIndexFromQuads({
-      connection,
-      searchQueryBuilder: testSearchQueryBuilderFor(connection),
-      textSplitter: sharedTextSplitter,
-    });
-    assertEquals(report.processedQuadCount, 2);
-    assertEquals(report.chunkRowCount, 2);
+  const report = await rebuildSqliteSearchIndexFromQuads({
+    connection,
+    searchQueryBuilder: testSearchQueryBuilderFor(connection),
+    textSplitter: sharedTextSplitter,
+  });
+  assertEquals(report.processedQuadCount, 2);
+  assertEquals(report.chunkRowCount, 2);
 
-    // The rebuilt index is searchable.
-    const searchIndex = new SqliteSearchIndex({
-      connection,
-      searchQueryBuilder: testSearchQueryBuilderFor(connection),
-    });
-    const response = await searchIndex.search({ query: "needle" });
-    assertEquals(response.results?.length, 1);
-    assertEquals(response.results?.[0].subject, "urn:a");
-  },
-);
+  // The rebuilt index is searchable.
+  const searchIndex = new SqliteSearchIndex({
+    connection,
+    searchQueryBuilder: testSearchQueryBuilderFor(connection),
+  });
+  const response = await searchIndex.search({ query: "needle" });
+  assertEquals(response.results?.length, 1);
+  assertEquals(response.results?.[0].subject, "urn:a");
+});
 
-test(
-  "rebuildSqliteSearchIndexFromQuads - respects include/exclude scope",
-  async () => {
-    const db = new DatabaseSync(":memory:", { allowExtension: true });
-    const connection = createTestSqliteConnectionDriver(db, {
-      vectorSupported: false,
-    });
-    await setupSqliteSchemaForTest(connection);
+test("rebuildSqliteSearchIndexFromQuads - respects include/exclude scope", async () => {
+  const db = new DatabaseSync(":memory:", { allowExtension: true });
+  const connection = createTestSqliteConnectionDriver(db, {
+    vectorSupported: false,
+  });
+  await setupSqliteSchemaForTest(connection);
 
-    const store = new SqliteStore({ path: ":memory:", db });
-    const quadStore = new SqliteQuadStore({
-      connection,
-      store,
-      searchQueryBuilder: testSearchQueryBuilderFor(connection),
-      searchIndexOnImport: "disabled",
-    });
+  const store = new SqliteStore({ path: ":memory:", db });
+  const quadStore = new SqliteQuadStore({
+    connection,
+    store,
+    searchQueryBuilder: testSearchQueryBuilderFor(connection),
+    searchIndexOnImport: "disabled",
+  });
 
-    await quadStore.import({
-      source: {
-        kind: "quads",
-        quads: [
-          quad(
-            namedNode("urn:a"),
-            namedNode("urn:p"),
-            literal("alpha needle text"),
-          ),
-          quad(
-            namedNode("urn:b"),
-            namedNode("urn:p"),
-            literal("beta needle text"),
-          ),
-        ],
-      },
-    });
+  await quadStore.import({
+    source: {
+      kind: "quads",
+      quads: [
+        quad(
+          namedNode("urn:a"),
+          namedNode("urn:p"),
+          literal("alpha needle text"),
+        ),
+        quad(
+          namedNode("urn:b"),
+          namedNode("urn:p"),
+          literal("beta needle text"),
+        ),
+      ],
+    },
+  });
 
-    const report = await rebuildSqliteSearchIndexFromQuads({
-      connection,
-      searchQueryBuilder: testSearchQueryBuilderFor(connection),
-      textSplitter: sharedTextSplitter,
-      include: { subjects: ["urn:a"] },
-    });
-    assertEquals(report.processedQuadCount, 2);
-    assertEquals(report.chunkRowCount, 1);
-  },
-);
+  const report = await rebuildSqliteSearchIndexFromQuads({
+    connection,
+    searchQueryBuilder: testSearchQueryBuilderFor(connection),
+    textSplitter: sharedTextSplitter,
+    include: { subjects: ["urn:a"] },
+  });
+  assertEquals(report.processedQuadCount, 2);
+  assertEquals(report.chunkRowCount, 1);
+});
 
-test(
-  "SqliteSearchIndex - reindex rebuilds the entire index",
-  async () => {
-    const db = new DatabaseSync(":memory:", { allowExtension: true });
-    const connection = createTestSqliteConnectionDriver(db, {
-      vectorSupported: false,
-    });
-    await setupSqliteSchemaForTest(connection);
+test("SqliteSearchIndex - reindex rebuilds the entire index", async () => {
+  const db = new DatabaseSync(":memory:", { allowExtension: true });
+  const connection = createTestSqliteConnectionDriver(db, {
+    vectorSupported: false,
+  });
+  await setupSqliteSchemaForTest(connection);
 
-    const store = new SqliteStore({ path: ":memory:", db });
-    const quadStore = new SqliteQuadStore({
-      connection,
-      store,
-      searchQueryBuilder: testSearchQueryBuilderFor(connection),
-      searchIndexOnImport: "disabled",
-    });
+  const store = new SqliteStore({ path: ":memory:", db });
+  const quadStore = new SqliteQuadStore({
+    connection,
+    store,
+    searchQueryBuilder: testSearchQueryBuilderFor(connection),
+    searchIndexOnImport: "disabled",
+  });
 
-    await quadStore.import({
-      source: {
-        kind: "quads",
-        quads: [
-          quad(
-            namedNode("urn:a"),
-            namedNode("urn:p"),
-            literal("alpha needle text"),
-          ),
-        ],
-      },
-    });
+  await quadStore.import({
+    source: {
+      kind: "quads",
+      quads: [
+        quad(
+          namedNode("urn:a"),
+          namedNode("urn:p"),
+          literal("alpha needle text"),
+        ),
+      ],
+    },
+  });
 
-    const searchIndex = new SqliteSearchIndex({
-      connection,
-      searchQueryBuilder: testSearchQueryBuilderFor(connection),
-      textSplitter: sharedTextSplitter,
-    });
-    await searchIndex.reindex();
-    const response = await searchIndex.search({ query: "needle" });
-    assertEquals(response.results?.length, 1);
-  },
-);
+  const searchIndex = new SqliteSearchIndex({
+    connection,
+    searchQueryBuilder: testSearchQueryBuilderFor(connection),
+    textSplitter: sharedTextSplitter,
+  });
+  await searchIndex.reindex();
+  const response = await searchIndex.search({ query: "needle" });
+  assertEquals(response.results?.length, 1);
+});
