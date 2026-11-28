@@ -1,13 +1,14 @@
+import { test } from "node:test";
 import { assertEquals } from "@std/assert";
 import { createRequire } from "node:module";
 import { requireBase } from "@/sqlite/rdfjs-store/require-base.ts";
 
-Deno.test("requireBase keeps a file: module URL", () => {
+test("requireBase keeps a file: module URL", () => {
   const url = new URL("./require-base.ts", import.meta.url).href;
   assertEquals(requireBase(url), url);
 });
 
-Deno.test("requireBase gives a remote (JSR) module a base createRequire accepts", () => {
+test("requireBase gives a remote (JSR) module a base createRequire accepts", () => {
   // jsr: imports resolve to https://jsr.io/..., which createRequire rejects;
   // 0.7.1 and 0.7.2 failed every default `new SqliteStore({ path })` there.
   const base = requireBase(

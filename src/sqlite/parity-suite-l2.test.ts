@@ -16,6 +16,7 @@
  * Search ordering is compared set-wise (strictSearchOrder: false): bm25
  * ranking vs scan order is an engine detail, not a parity contract.
  */
+import { test } from "node:test";
 import { assertEquals } from "@std/assert";
 import { createMemoryWorldsSdk } from "@worlds/sdk/memory";
 import { parityCorpus, runParitySuite } from "@worlds/sdk/testing";
@@ -27,7 +28,7 @@ function createSqliteWorldsSdkForParity() {
   return createSqliteWorldsSdk({ path: ":memory:" });
 }
 
-Deno.test(
+test(
   "parity suite - createSqliteWorldsSdk agrees with the in-memory reference on the corpus",
   async () => {
     const fixtures = parityCorpus.fixtures.filter(

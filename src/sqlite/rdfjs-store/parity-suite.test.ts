@@ -12,6 +12,7 @@
  * Search ordering is compared set-wise (strictSearchOrder: false): scan-based
  * keyword search order is a store implementation detail, not a parity contract.
  */
+import { test } from "node:test";
 import { assertEquals } from "@std/assert";
 import { WorldsSdk } from "@worlds/sdk";
 import { RdfjsQuadStore, RdfjsSearchIndex } from "@worlds/sdk/rdfjs";
@@ -29,7 +30,7 @@ function createSqliteWorldsSdk(): WorldsSdk {
   });
 }
 
-Deno.test(
+test(
   "parity suite - SqliteStore agrees with the in-memory reference on the full corpus",
   async () => {
     const report = await runParitySuite({

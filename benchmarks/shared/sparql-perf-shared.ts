@@ -1,3 +1,5 @@
+import process from "node:process";
+import { bench } from "./bench.ts";
 import { WorldsSdk, type WorldsSdkInterface } from "@worlds/sdk";
 import { RdfjsQuadStore, RdfjsSearchIndex } from "@worlds/sdk/rdfjs";
 import { WazooSparqlEngine } from "@wazoo/sparql-engine";
@@ -33,7 +35,7 @@ export const allPerfQueryShapes = [
  * resolvePerfQueryShapes returns query shapes for quad index perf bench registration.
  */
 export function resolvePerfQueryShapes(): readonly SparqlQueryShape[] {
-  return Deno.env.get("BENCH_HEXASTORE_PERF_FULL_SCAN") === "1"
+  return process.env["BENCH_HEXASTORE_PERF_FULL_SCAN"] === "1"
     ? allPerfQueryShapes
     : standardPerfQueryShapes;
 }
@@ -59,7 +61,7 @@ export async function preloadSparqlPerfFixtures(
 ): Promise<Map<number, WorldsSdkInterface>> {
   const engines = new Map<number, WorldsSdkInterface>();
   for (const quadCount of perfScales) {
-    // Timing logs go to stderr so `deno bench --json` stdout stays parseable.
+    // Timing logs go to stderr so `--json` stdout stays parseable.
     const startedAt = performance.now();
     const sdk = createSqliteWorldsSdkForBench();
     await sdk.import({
@@ -85,7 +87,7 @@ export function sparqlQueryForShape(queryShape: SparqlQueryShape): string {
 }
 
 /**
- * registerSparqlPerfBenchmarks registers execute-only SPARQL Deno.bench entries.
+ * registerSparqlPerfBenchmarks registers execute-only SPARQL benches.
  */
 export function registerSparqlPerfBenchmarks(
   perfScales: readonly number[],
@@ -99,16 +101,16 @@ export function registerSparqlPerfBenchmarks(
       if (!engine) {
         throw new Error(`Missing preloaded SPARQL fixture: ${quadCount}`);
       }
-      Deno.bench({
-        name:
-          `SPARQL Hexastore Perf: ${quadCount} quads | ${queryShape} | sqliteStore`,
-        group: `SPARQL Hexastore Perf (${quadCount})`,
-        async fn(benchContext) {
-          benchContext.start();
-          await engine.sparql({ query });
-          benchContext.end();
+      bench(
+        {
+          name:
+            `SPARQL Hexastore Perf: ${quadCount} quads | ${queryShape} | sqliteStore`,
+          group: `SPARQL Hexastore Perf (${quadCount})`,
         },
-      });
+        async () => {
+          await engine.sparql({ query });
+        },
+      );
     }
   }
 }

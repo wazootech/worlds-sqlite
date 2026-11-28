@@ -1,3 +1,4 @@
+import { test } from "node:test";
 import { DatabaseSync } from "node:sqlite";
 import { assertEquals, assertExists } from "@std/assert";
 import { FakeEmbeddingService } from "@worlds/sdk/search-index/embedding-service";
@@ -34,7 +35,7 @@ function createTestConnection() {
   return connection;
 }
 
-Deno.test("SqliteSearchIndex - basic keyword search maps results", async () => {
+test("SqliteSearchIndex - basic keyword search maps results", async () => {
   const connection = createTestConnection();
   await setupSqliteSchemaForTest(connection);
 
@@ -75,7 +76,7 @@ Deno.test("SqliteSearchIndex - basic keyword search maps results", async () => {
   assertEquals(typeof response.results[0].score, "number");
 });
 
-Deno.test("SqliteSearchIndex - Scope Inclusion: limits matches to included subjects", async () => {
+test("SqliteSearchIndex - Scope Inclusion: limits matches to included subjects", async () => {
   const connection = createTestConnection();
   await setupSqliteSchemaForTest(connection);
 
@@ -122,7 +123,7 @@ Deno.test("SqliteSearchIndex - Scope Inclusion: limits matches to included subje
   assertEquals(filtered.results?.[0].subject, "urn:person:2");
 });
 
-Deno.test("SqliteSearchIndex - Scope Exclusion: suppresses excluded predicates", async () => {
+test("SqliteSearchIndex - Scope Exclusion: suppresses excluded predicates", async () => {
   const connection = createTestConnection();
   await setupSqliteSchemaForTest(connection);
 
@@ -162,7 +163,7 @@ Deno.test("SqliteSearchIndex - Scope Exclusion: suppresses excluded predicates",
   assertEquals(response.results?.[0].predicate, "urn:allowed");
 });
 
-Deno.test("SqliteSearchIndex - keyword-only degradation without embeddingService", async () => {
+test("SqliteSearchIndex - keyword-only degradation without embeddingService", async () => {
   const connection = createTestConnection();
   await setupSqliteSchemaForTest(connection);
 
@@ -199,7 +200,7 @@ Deno.test("SqliteSearchIndex - keyword-only degradation without embeddingService
   assertEquals(response.results?.[0].subject, "urn:target");
 });
 
-Deno.test("SqliteSearchIndex - dangerous FTS5 syntax does not crash", async () => {
+test("SqliteSearchIndex - dangerous FTS5 syntax does not crash", async () => {
   const connection = createTestConnection();
   await setupSqliteSchemaForTest(connection);
   await insertChunkRowForTest(
@@ -231,7 +232,7 @@ Deno.test("SqliteSearchIndex - dangerous FTS5 syntax does not crash", async () =
   }
 });
 
-Deno.test("SqliteSearchIndex - degrades to keyword-only when embedding service throws", async () => {
+test("SqliteSearchIndex - degrades to keyword-only when embedding service throws", async () => {
   const connection = createTestConnection();
   await setupSqliteSchemaForTest(connection);
   await insertChunkRowForTest(
@@ -257,7 +258,7 @@ Deno.test("SqliteSearchIndex - degrades to keyword-only when embedding service t
   assertEquals(response.results?.[0].subject, "urn:fallback");
 });
 
-Deno.test("SqliteSearchIndex - degrades when embedding dimensions do not match", async () => {
+test("SqliteSearchIndex - degrades when embedding dimensions do not match", async () => {
   const connection = createTestConnection();
   await setupSqliteSchemaForTest(connection);
   await insertChunkRowForTest(
@@ -283,7 +284,7 @@ Deno.test("SqliteSearchIndex - degrades when embedding dimensions do not match",
   assertEquals(response.results?.[0].subject, "urn:dim");
 });
 
-Deno.test("SqliteSearchIndex - respects custom result limit", async () => {
+test("SqliteSearchIndex - respects custom result limit", async () => {
   const connection = createTestConnection();
   await setupSqliteSchemaForTest(connection);
 
@@ -311,7 +312,7 @@ Deno.test("SqliteSearchIndex - respects custom result limit", async () => {
   assertEquals(response.results?.length, 2);
 });
 
-Deno.test("SqliteSearchIndex - non-ASCII queries match via unicode61 (parity #21)", async () => {
+test("SqliteSearchIndex - non-ASCII queries match via unicode61 (parity #21)", async () => {
   const connection = createTestConnection();
   await setupSqliteSchemaForTest(connection);
   await insertChunkRowForTest(
@@ -340,7 +341,7 @@ Deno.test("SqliteSearchIndex - non-ASCII queries match via unicode61 (parity #21
 
 // --- Hybrid / vector paths (gated on the sqlite-vec extension) ---
 
-Deno.test("SqliteSearchIndex - hybrid search fuses keyword and vector ranks (vec-gated)", async () => {
+test("SqliteSearchIndex - hybrid search fuses keyword and vector ranks (vec-gated)", async () => {
   const db = new DatabaseSync(":memory:", { allowExtension: true });
   const vecAvailable = await tryLoadVectorExtension(db);
   if (!vecAvailable) {
@@ -390,7 +391,7 @@ Deno.test("SqliteSearchIndex - hybrid search fuses keyword and vector ranks (vec
   assertEquals(response.results[0].subject, "urn:ethan");
 });
 
-Deno.test("SqliteSearchIndex - vector-only search when query has no keyword tokens (vec-gated)", async () => {
+test("SqliteSearchIndex - vector-only search when query has no keyword tokens (vec-gated)", async () => {
   const db = new DatabaseSync(":memory:", { allowExtension: true });
   const vecAvailable = await tryLoadVectorExtension(db);
   if (!vecAvailable) {

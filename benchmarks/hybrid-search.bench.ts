@@ -1,3 +1,4 @@
+import { bench, runBenches } from "./shared/bench.ts";
 import { DatabaseSync } from "node:sqlite";
 import { FakeEmbeddingService } from "@worlds/sdk/search-index/embedding-service";
 import type { EmbeddingService } from "@worlds/sdk/search-index/embedding-service";
@@ -89,32 +90,34 @@ const fallbackSearchIndex = new SqliteSearchIndex({
   searchQueryBuilder: queryBuilder,
 });
 
-Deno.bench({
-  name: "Search: FTS5 Keyword-Only Search (Vectorless Mode)",
-  group: "Hybrid Search Performance",
-  async fn(benchContext) {
-    benchContext.start();
+bench(
+  {
+    name: "Search: FTS5 Keyword-Only Search (Vectorless Mode)",
+    group: "Hybrid Search Performance",
+  },
+  async () => {
     await ftsSearchIndex.search({ query: "unique keywords" });
-    benchContext.end();
   },
-});
+);
 
-Deno.bench({
-  name: "Search: Hybrid RRF Fusion Search (Vector + FTS5)",
-  group: "Hybrid Search Performance",
-  async fn(benchContext) {
-    benchContext.start();
+bench(
+  {
+    name: "Search: Hybrid RRF Fusion Search (Vector + FTS5)",
+    group: "Hybrid Search Performance",
+  },
+  async () => {
     await hybridSearchIndex.search({ query: "unique keywords" });
-    benchContext.end();
   },
-});
+);
 
-Deno.bench({
-  name: "Search: Graceful Degradation (Fallback to FTS5 on Error)",
-  group: "Hybrid Search Performance",
-  async fn(benchContext) {
-    benchContext.start();
-    await fallbackSearchIndex.search({ query: "unique keywords" });
-    benchContext.end();
+bench(
+  {
+    name: "Search: Graceful Degradation (Fallback to FTS5 on Error)",
+    group: "Hybrid Search Performance",
   },
-});
+  async () => {
+    await fallbackSearchIndex.search({ query: "unique keywords" });
+  },
+);
+
+await runBenches();

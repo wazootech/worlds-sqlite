@@ -1,3 +1,7 @@
+import { mkdtempSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
+import { test } from "node:test";
 import { assertEquals, assertRejects } from "@std/assert";
 import type * as rdfjs from "@rdfjs/types";
 import { DataFactory } from "n3";
@@ -15,7 +19,7 @@ const graphA = ex("g/a");
 const graphB = ex("g/b");
 
 function tempDbPath(): string {
-  const dir = Deno.makeTempDirSync();
+  const dir = mkdtempSync(join(tmpdir(), "sqlite-store-"));
   return `${dir}/test.sqlite`;
 }
 
@@ -38,7 +42,7 @@ function collect(
   });
 }
 
-Deno.test("SqliteStore - round-trips terms with full fidelity", async () => {
+test("SqliteStore - round-trips terms with full fidelity", async () => {
   const path = tempDbPath();
   const store = new SqliteStore({ path });
   const langLit = literal("hola", "es");
@@ -79,7 +83,7 @@ Deno.test("SqliteStore - round-trips terms with full fidelity", async () => {
   store.close();
 });
 
-Deno.test("SqliteStore - quads differing only by graph do not collide", () => {
+test("SqliteStore - quads differing only by graph do not collide", () => {
   const store = new SqliteStore({ path: ":memory:" });
   store.addQuad(quad(alice, name, literal("A"), graphA));
   store.addQuad(quad(alice, name, literal("A"), graphB));
@@ -96,7 +100,7 @@ Deno.test("SqliteStore - quads differing only by graph do not collide", () => {
   store.close();
 });
 
-Deno.test("SqliteStore - data persists across store reopen", async () => {
+test("SqliteStore - data persists across store reopen", async () => {
   const path = tempDbPath();
   const engine = makeEngine(path);
   await engine.execute({
@@ -130,7 +134,7 @@ Deno.test("SqliteStore - data persists across store reopen", async () => {
   store2.close();
 });
 
-Deno.test("SqliteStore - update through createTransaction commits atomically", async () => {
+test("SqliteStore - update through createTransaction commits atomically", async () => {
   const path = tempDbPath();
   const engine = makeEngine(path);
   await engine.execute({
@@ -148,7 +152,7 @@ Deno.test("SqliteStore - update through createTransaction commits atomically", a
   store.close();
 });
 
-Deno.test("SqliteStore - failed commit rolls back every buffered write", async () => {
+test("SqliteStore - failed commit rolls back every buffered write", async () => {
   const path = tempDbPath();
   const store = new SqliteStore({
     path,
@@ -181,7 +185,7 @@ Deno.test("SqliteStore - failed commit rolls back every buffered write", async (
   store.close();
 });
 
-Deno.test("SqliteStore - transaction rollback discards buffered writes", () => {
+test("SqliteStore - transaction rollback discards buffered writes", () => {
   const store = new SqliteStore({ path: ":memory:" });
   const txn = store.createTransaction();
   txn.add(quad(alice, name, literal("Alice")));
@@ -191,7 +195,7 @@ Deno.test("SqliteStore - transaction rollback discards buffered writes", () => {
   store.close();
 });
 
-Deno.test("SqliteStore - add then delete of the same quad nets to nothing", async () => {
+test("SqliteStore - add then delete of the same quad nets to nothing", async () => {
   const store = new SqliteStore({ path: ":memory:" });
   const txn = store.createTransaction();
   txn.add(quad(alice, name, literal("Alice")));
@@ -207,7 +211,7 @@ Deno.test("SqliteStore - add then delete of the same quad nets to nothing", asyn
   store.close();
 });
 
-Deno.test("SqliteStore - deleteGraph clears exactly one graph", () => {
+test("SqliteStore - deleteGraph clears exactly one graph", () => {
   const store = new SqliteStore({ path: ":memory:" });
   store.addQuad(quad(alice, name, literal("A"), graphA));
   store.addQuad(quad(alice, name, literal("A"), graphB));
@@ -218,7 +222,7 @@ Deno.test("SqliteStore - deleteGraph clears exactly one graph", () => {
   store.close();
 });
 
-Deno.test("SqliteStore - getQuads pages across matchPageSize without skips or duplicates", async () => {
+test("SqliteStore - getQuads pages across matchPageSize without skips or duplicates", async () => {
   const store = new SqliteStore({ path: ":memory:", matchPageSize: 7 });
   for (let index = 0; index < 20; index++) {
     store.addQuad(quad(ex(`s${index}`), name, literal(`value-${index}`)));

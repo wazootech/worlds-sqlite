@@ -1,3 +1,4 @@
+import { test } from "node:test";
 import { DatabaseSync } from "node:sqlite";
 import { assert, assertEquals, assertRejects } from "@std/assert";
 import { DataFactory } from "n3";
@@ -192,7 +193,7 @@ async function createSubject(
   return (await createFixture(options)).subject;
 }
 
-Deno.test("sqlite commit path passes the shared conformance suite", async () => {
+test("sqlite commit path passes the shared conformance suite", async () => {
   const report = await runCommitConformanceSuite({
     create: createSubject,
     contract: sqliteContract,
@@ -210,7 +211,7 @@ Deno.test("sqlite commit path passes the shared conformance suite", async () => 
   );
 });
 
-Deno.test("sqlite failLaterWrite lands on a chunk write after the quad writes", async () => {
+test("sqlite failLaterWrite lands on a chunk write after the quad writes", async () => {
   const { subject, connection } = await createFixture({
     searchIndexOnImport: "incremental",
     embeddingService: new FakeEmbeddingService(),

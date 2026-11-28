@@ -1,9 +1,10 @@
 // Child-process helper for the SqliteStore crash-recovery suite
 // (src/sqlite/rdfjs-store/sqlite-store-recovery.test.ts). Each mode simulates
-// a different failure point from inside a fresh Deno process; the parent test
+// a different failure point from inside a fresh process; the parent test
 // reopens the database file and asserts what survived.
 //
-// Usage: deno run --allow-all test/sqlite-recovery-child.ts <mode> <dbPath> [tag]
+// Usage: bun test/sqlite-recovery-child.ts <mode> <dbPath> [tag]
+import process from "node:process";
 import { DatabaseSync } from "node:sqlite";
 import { SqliteStore } from "@/sqlite/rdfjs-store/sqlite-store.ts";
 import { DataFactory } from "n3";
@@ -11,7 +12,7 @@ import { WazooSparqlEngine } from "@wazoo/sparql-engine";
 
 const { namedNode, literal, quad } = DataFactory;
 
-const [mode, path, tag] = Deno.args;
+const [mode = "", path = "", tag = ""] = process.argv.slice(2);
 
 switch (mode) {
   case "commit-exit": {
@@ -27,7 +28,7 @@ switch (mode) {
       query:
         `INSERT DATA { <http://example.org/s> <http://example.org/p> "v" }`,
     });
-    Deno.exit(0);
+    process.exit(0);
     break;
   }
   case "buffered-exit": {
@@ -43,7 +44,7 @@ switch (mode) {
         literal("v"),
       ),
     );
-    Deno.exit(1);
+    process.exit(1);
     break;
   }
   case "raw-mid-transaction": {
@@ -58,7 +59,7 @@ switch (mode) {
         "INSERT INTO quads (skey, pkey, okey, gkey, payload) " +
         "VALUES ('k', 'k', 'k', 'k', '{}');",
     );
-    Deno.exit(1);
+    process.exit(1);
     break;
   }
   case "concurrent-writer": {
@@ -78,11 +79,11 @@ switch (mode) {
           await new Promise((resolve) => setTimeout(resolve, 5));
         }
         store.close();
-        Deno.exit(0);
+        process.exit(0);
       } catch (error) {
         if (attempt === 2) {
           console.error(error);
-          Deno.exit(1);
+          process.exit(1);
         }
         await new Promise((resolve) => setTimeout(resolve, 100));
       }

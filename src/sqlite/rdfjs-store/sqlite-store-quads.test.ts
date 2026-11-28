@@ -1,3 +1,4 @@
+import { test } from "node:test";
 import { assertEquals, assertMatch, assertRejects } from "@std/assert";
 import { DatabaseSync } from "node:sqlite";
 import { DataFactory } from "n3";
@@ -31,7 +32,7 @@ function seedStore() {
   return { store, statements };
 }
 
-Deno.test("SqliteStore - counts a graph larger than a page with one aggregate", () => {
+test("SqliteStore - counts a graph larger than a page with one aggregate", () => {
   const { store, statements } = seedStore();
   try {
     assertEquals(store.countQuads(null, predicate, null, graph), 5);
@@ -45,7 +46,7 @@ Deno.test("SqliteStore - counts a graph larger than a page with one aggregate", 
   }
 });
 
-Deno.test("SqliteStore - match pulls ordered SQLite pages on demand", () => {
+test("SqliteStore - match pulls ordered SQLite pages on demand", () => {
   const { store, statements } = seedStore();
   try {
     const stream = store.match(null, null, null, graph);
@@ -65,7 +66,7 @@ Deno.test("SqliteStore - match pulls ordered SQLite pages on demand", () => {
   }
 });
 
-Deno.test("SqliteStore - readable match streams can be stopped within the first page", async () => {
+test("SqliteStore - readable match streams can be stopped within the first page", async () => {
   const { store, statements } = seedStore();
   try {
     const stream = store.match(null, null, null, graph);
@@ -87,7 +88,7 @@ Deno.test("SqliteStore - readable match streams can be stopped within the first 
   }
 });
 
-Deno.test("SqliteStore - match emits a deferred SQLite read error", async () => {
+test("SqliteStore - match emits a deferred SQLite read error", async () => {
   const { store } = seedStore();
   const stream = store.match(null, null, null, graph);
   store.close();
@@ -101,7 +102,7 @@ Deno.test("SqliteStore - match emits a deferred SQLite read error", async () => 
   );
 });
 
-Deno.test("SqliteStore - removeMatches deletes a graph with one filtered statement", async () => {
+test("SqliteStore - removeMatches deletes a graph with one filtered statement", async () => {
   const { store, statements } = seedStore();
   try {
     const removed = store.removeMatches(null, predicate, null, graph);
@@ -121,7 +122,7 @@ Deno.test("SqliteStore - removeMatches deletes a graph with one filtered stateme
   }
 });
 
-Deno.test("SqliteStore - removeMatches streams exactly the removed quads", async () => {
+test("SqliteStore - removeMatches streams exactly the removed quads", async () => {
   const { store } = seedStore();
   try {
     const expected = store.getQuads(null, predicate, null, graph);
@@ -144,7 +145,7 @@ Deno.test("SqliteStore - removeMatches streams exactly the removed quads", async
   }
 });
 
-Deno.test("SqliteStore - removeMatches deletes even if the stream is ignored", () => {
+test("SqliteStore - removeMatches deletes even if the stream is ignored", () => {
   const { store } = seedStore();
   try {
     store.deleteGraph(graph);

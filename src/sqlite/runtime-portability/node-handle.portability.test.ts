@@ -5,13 +5,14 @@
  * lives in ./bun-handle.portability.test.ts (excluded from `deno test`
  * discovery via deno.json; run under `bun test` in CI).
  */
+import { test } from "node:test";
 import { createNodeSqliteHandle } from "@/sqlite/node-sqlite-handle.ts";
 import {
   runSqliteRuntimePortabilitySuite,
 } from "./sqlite-runtime-portability-suite.ts";
 
 runSqliteRuntimePortabilitySuite(
-  (name, fn) => Deno.test(name, fn),
+  (name, fn) => test(name, fn),
   {
     label: "node:sqlite",
     makeHandle: () => createNodeSqliteHandle(":memory:"),

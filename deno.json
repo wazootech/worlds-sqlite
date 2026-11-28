@@ -22,6 +22,7 @@
     "@std/path": "jsr:@std/path@^1.1.6",
     "@langchain/textsplitters": "npm:@langchain/textsplitters@^1.0.1",
     "sqlite-vec": "npm:sqlite-vec@^0.1.9",
+    "mitata": "npm:mitata@1.0.34",
     "@wazoo/sparql-engine": "jsr:@wazoo/sparql-engine@^0.5.0",
     "@wazoo/sparql-engine/term": "jsr:@wazoo/sparql-engine@^0.5.0/term",
     "@worlds/sdk": "jsr:@worlds/sdk@^0.11.0"
@@ -51,8 +52,8 @@
     "test": "deno test --allow-all",
     "publish:dry": "deno publish --dry-run --allow-dirty",
     "examples:check": "deno test --allow-all tools/run-examples.ts",
-    "sql-core:purity": "deno run --allow-read tools/sql-core-purity.ts",
-    "bench": "deno bench --allow-all benchmarks/",
+    "sql-core:purity": "deno run --allow-read --allow-env tools/sql-core-purity.ts",
+    "bench": "deno run -A benchmarks/bench-check.ts",
     "bench:record": "deno run -A benchmarks/bench-record.ts",
     "bench:check": "deno run -A benchmarks/bench-check.ts",
     "ci": {

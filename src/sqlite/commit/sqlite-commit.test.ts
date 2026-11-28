@@ -1,3 +1,4 @@
+import { test } from "node:test";
 import { DatabaseSync } from "node:sqlite";
 import { assert, assertEquals, assertRejects } from "@std/assert";
 import { DataFactory } from "n3";
@@ -86,7 +87,7 @@ const hello = quad(
   literal("hello world"),
 );
 
-Deno.test("sqlite commit - persists novel insertions and writes their chunks", async () => {
+test("sqlite commit - persists novel insertions and writes their chunks", async () => {
   const { connection, store, commit } = await setup();
   const summary = await commit({ insertions: [hello], deletions: [] });
   assertEquals(summary.novelQuads, 1);
@@ -96,14 +97,14 @@ Deno.test("sqlite commit - persists novel insertions and writes their chunks", a
   assertEquals(await count(connection, "chunks"), 1);
 });
 
-Deno.test("sqlite commit - suppresses redundant re-inserts (idempotency guard)", async () => {
+test("sqlite commit - suppresses redundant re-inserts (idempotency guard)", async () => {
   const { store, commit } = await setup();
   assertEquals((await commit({ insertions: [hello] })).novelQuads, 1);
   assertEquals((await commit({ insertions: [hello] })).novelQuads, 0);
   assertEquals(store.getQuads().length, 1);
 });
 
-Deno.test("sqlite commit - delete then re-insert in one patch counts as novel", async () => {
+test("sqlite commit - delete then re-insert in one patch counts as novel", async () => {
   const { connection, store, commit } = await setup();
   await commit({ insertions: [hello] });
   const summary = await commit({ insertions: [hello], deletions: [hello] });
@@ -112,7 +113,7 @@ Deno.test("sqlite commit - delete then re-insert in one patch counts as novel", 
   assertEquals(await count(connection, "chunks"), 1);
 });
 
-Deno.test("sqlite commit - deletion sweeps durable quads and their chunks", async () => {
+test("sqlite commit - deletion sweeps durable quads and their chunks", async () => {
   const { connection, store, commit } = await setup();
   await commit({ insertions: [hello] });
   await commit({ deletions: [hello] });
@@ -120,7 +121,7 @@ Deno.test("sqlite commit - deletion sweeps durable quads and their chunks", asyn
   assertEquals(await count(connection, "chunks"), 0);
 });
 
-Deno.test("sqlite commit - replace-mode import wipes all quads and chunks", async () => {
+test("sqlite commit - replace-mode import wipes all quads and chunks", async () => {
   const { connection, store, commit } = await setup();
   await commit({ insertions: [hello] });
   const second = quad(namedNode("urn:c"), namedNode("urn:p"), literal("two"));
@@ -134,7 +135,7 @@ Deno.test("sqlite commit - replace-mode import wipes all quads and chunks", asyn
   assertEquals(await count(connection, "chunks"), 1);
 });
 
-Deno.test("sqlite commit - respects include boundaries", async () => {
+test("sqlite commit - respects include boundaries", async () => {
   const { store, commit } = await setup({ include: { subjects: ["urn:a"] } });
   const dropped = quad(namedNode("urn:x"), namedNode("urn:p"), literal("no"));
   const summary = await commit({ insertions: [hello, dropped] });
@@ -142,14 +143,14 @@ Deno.test("sqlite commit - respects include boundaries", async () => {
   assertEquals(store.getQuads().length, 1);
 });
 
-Deno.test("sqlite commit - without a textSplitter no chunks are written", async () => {
+test("sqlite commit - without a textSplitter no chunks are written", async () => {
   const { connection, store, commit } = await setup({ projection: false });
   await commit({ insertions: [hello] });
   assertEquals(store.getQuads().length, 1);
   assertEquals(await count(connection, "chunks"), 0);
 });
 
-Deno.test("sqlite commit - pairs every vector with its own chunk row in one batch", async () => {
+test("sqlite commit - pairs every vector with its own chunk row in one batch", async () => {
   const { connection, commit } = await setup({
     vector: true,
     embeddingService: new FakeEmbeddingService(),
@@ -172,7 +173,7 @@ Deno.test("sqlite commit - pairs every vector with its own chunk row in one batc
   assertEquals(await count(connection, "chunks_vec"), 2);
 });
 
-Deno.test("sqlite commit - an embedding failure throws and writes nothing", async () => {
+test("sqlite commit - an embedding failure throws and writes nothing", async () => {
   const { connection, store, commit } = await setup({
     vector: true,
     embeddingService: new FailingEmbeddingService(),
@@ -182,7 +183,7 @@ Deno.test("sqlite commit - an embedding failure throws and writes nothing", asyn
   assertEquals(await count(connection, "chunks"), 0);
 });
 
-Deno.test("sqlite commit - a failed write rolls back quads and chunks together", async () => {
+test("sqlite commit - a failed write rolls back quads and chunks together", async () => {
   const { connection, store, commit } = await setup();
   await commit({ insertions: [hello] });
   // With the FTS table gone, the chunk insert fails after the quad insert ran

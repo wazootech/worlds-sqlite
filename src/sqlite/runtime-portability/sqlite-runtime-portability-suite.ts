@@ -6,7 +6,7 @@
  *
  * The body is deliberately runtime-agnostic:
  * - it never imports Deno or bun APIs — tests are registered through the
- *   injected registrar (Deno.test on Deno, bun:test's `test` on Bun);
+ *   injected registrar (node:test's or bun:test's `test`);
  * - it asserts with node:assert (a zero-dependency builtin on Node, Bun, and
  *   Deno's node-compat layer) instead of @std/assert, keeping the Bun CI job
  *   free of jsr-only test dependencies;

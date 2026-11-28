@@ -1,3 +1,4 @@
+import { test } from "node:test";
 import { DatabaseSync } from "node:sqlite";
 import { assertEquals } from "@std/assert";
 import { DataFactory } from "n3";
@@ -95,7 +96,7 @@ async function scopedCase(
   db.close();
 }
 
-Deno.test("sqlite reindex - include keeps out-of-scope chunk rows and refreshes in-scope", async () => {
+test("sqlite reindex - include keeps out-of-scope chunk rows and refreshes in-scope", async () => {
   await scopedCase(
     { include: { graphs: [gA.value] } },
     { column: "graph", value: gA.value },
@@ -104,7 +105,7 @@ Deno.test("sqlite reindex - include keeps out-of-scope chunk rows and refreshes 
   );
 });
 
-Deno.test("sqlite reindex - exclude keeps excluded chunk rows and refreshes the rest", async () => {
+test("sqlite reindex - exclude keeps excluded chunk rows and refreshes the rest", async () => {
   await scopedCase(
     { exclude: { predicates: [pY.value] } },
     { column: "predicate", value: pX.value },
@@ -113,7 +114,7 @@ Deno.test("sqlite reindex - exclude keeps excluded chunk rows and refreshes the 
   );
 });
 
-Deno.test("sqlite reindex - a request with no criteria is unscoped and rebuilds everything", async () => {
+test("sqlite reindex - a request with no criteria is unscoped and rebuilds everything", async () => {
   const { db, index } = await fixture();
   tamper(db, "graph", gA.value);
   tamper(db, "graph", gB.value);
@@ -124,7 +125,7 @@ Deno.test("sqlite reindex - a request with no criteria is unscoped and rebuilds 
   db.close();
 });
 
-Deno.test("sqlite reindex - unscoped reindex drops the stale chunk row of a deleted quad", async () => {
+test("sqlite reindex - unscoped reindex drops the stale chunk row of a deleted quad", async () => {
   const { db, index } = await fixture();
   db.prepare(
     "INSERT INTO chunks (quad_id, subject, predicate, graph, value, fts_value) VALUES ('gone', 's', 'p', 'g', 'ghost', 'ghost')",

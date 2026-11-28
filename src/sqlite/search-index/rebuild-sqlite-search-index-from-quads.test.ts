@@ -1,3 +1,4 @@
+import { test } from "node:test";
 import { DatabaseSync } from "node:sqlite";
 import { assertEquals } from "@std/assert";
 import { DataFactory } from "n3";
@@ -14,7 +15,7 @@ import {
 
 const { quad, namedNode, literal } = DataFactory;
 
-Deno.test(
+test(
   "rebuildSqliteSearchIndexFromQuads - rebuilds chunks from durable quads and returns counts",
   async () => {
     const db = new DatabaseSync(":memory:", { allowExtension: true });
@@ -68,7 +69,7 @@ Deno.test(
   },
 );
 
-Deno.test(
+test(
   "rebuildSqliteSearchIndexFromQuads - respects include/exclude scope",
   async () => {
     const db = new DatabaseSync(":memory:", { allowExtension: true });
@@ -114,7 +115,7 @@ Deno.test(
   },
 );
 
-Deno.test(
+test(
   "SqliteSearchIndex - reindex rebuilds the entire index",
   async () => {
     const db = new DatabaseSync(":memory:", { allowExtension: true });

@@ -1,3 +1,4 @@
+import { runBenches } from "./shared/bench.ts";
 import {
   preloadSparqlPerfFixtures,
   registerSparqlPerfBenchmarks,
@@ -12,3 +13,5 @@ const largePerfScales = [100_000, 250_000] as const;
 const engines = await preloadSparqlPerfFixtures(largePerfScales);
 
 registerSparqlPerfBenchmarks(largePerfScales, engines);
+
+await runBenches();

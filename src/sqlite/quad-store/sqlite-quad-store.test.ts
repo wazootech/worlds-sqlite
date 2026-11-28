@@ -1,3 +1,4 @@
+import { test } from "node:test";
 import { DatabaseSync } from "node:sqlite";
 import { assertEquals } from "@std/assert";
 import { DataFactory } from "n3";
@@ -33,7 +34,7 @@ async function createQuadStore(
   return { db, connection, store, quadStore };
 }
 
-Deno.test("SqliteQuadStore - import merges quads and export round-trips", async () => {
+test("SqliteQuadStore - import merges quads and export round-trips", async () => {
   const { db, quadStore } = await createQuadStore();
   try {
     await quadStore.import({
@@ -56,7 +57,7 @@ Deno.test("SqliteQuadStore - import merges quads and export round-trips", async 
   }
 });
 
-Deno.test("SqliteQuadStore - import with replace mode fully replaces the world", async () => {
+test("SqliteQuadStore - import with replace mode fully replaces the world", async () => {
   const { db, quadStore } = await createQuadStore();
   try {
     await quadStore.import({
@@ -83,7 +84,7 @@ Deno.test("SqliteQuadStore - import with replace mode fully replaces the world",
   }
 });
 
-Deno.test("SqliteQuadStore - incremental import projects search chunks", async () => {
+test("SqliteQuadStore - incremental import projects search chunks", async () => {
   const { db, connection, quadStore } = await createQuadStore("incremental");
   try {
     await quadStore.import({
@@ -106,7 +107,7 @@ Deno.test("SqliteQuadStore - incremental import projects search chunks", async (
   }
 });
 
-Deno.test("SqliteQuadStore - deferred import skips per-quad projection then reindexes all", async () => {
+test("SqliteQuadStore - deferred import skips per-quad projection then reindexes all", async () => {
   const { db, connection, quadStore } = await createQuadStore("deferred");
   try {
     await quadStore.import({
@@ -133,7 +134,7 @@ Deno.test("SqliteQuadStore - deferred import skips per-quad projection then rein
   }
 });
 
-Deno.test("SqliteQuadStore - disabled import stores quads but no chunks until reindex", async () => {
+test("SqliteQuadStore - disabled import stores quads but no chunks until reindex", async () => {
   const { db, connection, quadStore } = await createQuadStore("disabled");
   try {
     await quadStore.import({
@@ -161,7 +162,7 @@ Deno.test("SqliteQuadStore - disabled import stores quads but no chunks until re
   }
 });
 
-Deno.test("SqliteQuadStore - createTransaction routes SPARQL-style patches through commit", async () => {
+test("SqliteQuadStore - createTransaction routes SPARQL-style patches through commit", async () => {
   const { db, connection, quadStore } = await createQuadStore();
   try {
     const tx = quadStore.createTransaction();

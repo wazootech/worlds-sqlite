@@ -1,7 +1,8 @@
+import { test } from "node:test";
 import { assertEquals } from "@std/assert";
 import { buildChunkFtsValue } from "./fts-value.ts";
 
-Deno.test("buildChunkFtsValue - indexes only the object-derived value text", () => {
+test("buildChunkFtsValue - indexes only the object-derived value text", () => {
   assertEquals(
     buildChunkFtsValue({
       quad_id: "q1",
@@ -14,7 +15,7 @@ Deno.test("buildChunkFtsValue - indexes only the object-derived value text", () 
   );
 });
 
-Deno.test("buildChunkFtsValue - never leaks subject or predicate IRIs (parity #22)", () => {
+test("buildChunkFtsValue - never leaks subject or predicate IRIs (parity #22)", () => {
   const fts = buildChunkFtsValue({
     quad_id: "q1",
     subject: "urn:secret:subject",

@@ -7,6 +7,7 @@
  * on identical data regardless of the underlying store (differential parity
  * between SqliteStore and the engine's MemoryStore).
  */
+import { test } from "node:test";
 import { assertEquals } from "@std/assert";
 import { DataFactory as N3 } from "n3";
 import { WorldsSdk } from "@worlds/sdk";
@@ -69,7 +70,7 @@ function assertSelect(response: SparqlResponse): SparqlBinding[] {
   return response.data.results.bindings;
 }
 
-Deno.test("SqliteStore-backed client — import → search → SELECT → ASK → reindex end to end", async () => {
+test("SqliteStore-backed client — import → search → SELECT → ASK → reindex end to end", async () => {
   const store = new SqliteStore({ path: ":memory:" });
   try {
     const client = createWazooClient(store);
@@ -111,7 +112,7 @@ Deno.test("SqliteStore-backed client — import → search → SELECT → ASK �
   }
 });
 
-Deno.test("Differential parity — Wazoo(SqliteStore) vs Wazoo(MemoryStore) on identical data", async () => {
+test("Differential parity — Wazoo(SqliteStore) vs Wazoo(MemoryStore) on identical data", async () => {
   const sqliteStore = new SqliteStore({ path: ":memory:" });
   const memoryStore = new MemoryStore();
   try {
@@ -158,7 +159,7 @@ Deno.test("Differential parity — Wazoo(SqliteStore) vs Wazoo(MemoryStore) on i
   }
 });
 
-Deno.test("SqliteStore-backed client — preloaded store shared across quad + sparql + search facades", async () => {
+test("SqliteStore-backed client — preloaded store shared across quad + sparql + search facades", async () => {
   const store = new SqliteStore({ path: ":memory:" });
   try {
     // Preload directly on the durable store (simulating a hydrated backend),

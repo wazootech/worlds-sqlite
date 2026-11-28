@@ -1,7 +1,8 @@
+import { test } from "node:test";
 import { assertEquals } from "@std/assert";
 import { buildSearchResultId } from "./search-result-id.ts";
 
-Deno.test("buildSearchResultId - stable across identical discovery facts", async () => {
+test("buildSearchResultId - stable across identical discovery facts", async () => {
   const first = await buildSearchResultId({
     subject: "urn:ethan",
     predicate: "urn:name",
@@ -17,7 +18,7 @@ Deno.test("buildSearchResultId - stable across identical discovery facts", async
   assertEquals(first, second);
 });
 
-Deno.test("buildSearchResultId - differs across texts and graphs", async () => {
+test("buildSearchResultId - differs across texts and graphs", async () => {
   const base = await buildSearchResultId({
     subject: "urn:ethan",
     predicate: "urn:name",

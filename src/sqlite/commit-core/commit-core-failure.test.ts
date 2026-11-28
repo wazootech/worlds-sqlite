@@ -1,3 +1,4 @@
+import { test } from "node:test";
 import { assert, assertEquals, assertRejects } from "@std/assert";
 import { DataFactory } from "n3";
 import { RecursiveCharacterTextSplitter } from "@langchain/textsplitters";
@@ -36,7 +37,7 @@ function setup(limits: FakeLimits, keyPrefix = "") {
   return { store, commit };
 }
 
-Deno.test("a commit at maxAtomicStatements is one batch; one statement over is chunked", async () => {
+test("a commit at maxAtomicStatements is one batch; one statement over is chunked", async () => {
   // Per quad: 1 insert + 1 chunk = 2, plus one clean-slate delete for all: 5 statements for 2 quads.
   const atMax = setup({ maxAtomicStatements: 5, writeBatchSize: 2 });
   await atMax.commit([q(1), q(2)]);
@@ -49,7 +50,7 @@ Deno.test("a commit at maxAtomicStatements is one batch; one statement over is c
   assertEquals(over.store.chunks.length, 2);
 });
 
-Deno.test("per-commit options can lower the driver's limits but never raise them", async () => {
+test("per-commit options can lower the driver's limits but never raise them", async () => {
   const lowered = setup({ maxAtomicStatements: 100, writeBatchSize: 100 });
   await lowered.commit([q(1)], { maxAtomicStatements: 1, writeBatchSize: 1 });
   assertEquals(lowered.store.batches.length, 3); // delete, insert, chunk
@@ -62,7 +63,7 @@ Deno.test("per-commit options can lower the driver's limits but never raise them
   assertEquals(raised.store.batches.length, 3);
 });
 
-Deno.test("a failure in the first fallback batch writes nothing and runs no cleanup", async () => {
+test("a failure in the first fallback batch writes nothing and runs no cleanup", async () => {
   const { store, commit } = setup({
     maxAtomicStatements: 1,
     writeBatchSize: 100,
@@ -78,7 +79,7 @@ Deno.test("a failure in the first fallback batch writes nothing and runs no clea
   assertEquals(store.quads.size, 0);
 });
 
-Deno.test("a later fallback failure cleans up the novel quads already written", async () => {
+test("a later fallback failure cleans up the novel quads already written", async () => {
   const { store, commit } = setup({
     maxAtomicStatements: 1,
     writeBatchSize: 1,
@@ -99,7 +100,7 @@ Deno.test("a later fallback failure cleans up the novel quads already written", 
   assertEquals(store.chunks.length, 0);
 });
 
-Deno.test("when the cleanup also fails the commit throws an AggregateError with both errors", async () => {
+test("when the cleanup also fails the commit throws an AggregateError with both errors", async () => {
   const { store, commit } = setup({
     maxAtomicStatements: 1,
     writeBatchSize: 1,
@@ -112,7 +113,7 @@ Deno.test("when the cleanup also fails the commit throws an AggregateError with 
   assert(error.message.includes("may be inconsistent"));
 });
 
-Deno.test("an embedding failure writes nothing on either path", async () => {
+test("an embedding failure writes nothing on either path", async () => {
   const failing = { embed: () => Promise.reject(new Error("embedding down")) };
   for (
     const limits of [
@@ -133,7 +134,7 @@ Deno.test("an embedding failure writes nothing on either path", async () => {
   }
 });
 
-Deno.test("the dialect's keyOf is the identity used for lookups and statements", async () => {
+test("the dialect's keyOf is the identity used for lookups and statements", async () => {
   const { store, commit } = setup({
     maxAtomicStatements: 100,
     writeBatchSize: 100,
@@ -149,7 +150,7 @@ Deno.test("the dialect's keyOf is the identity used for lookups and statements",
   assertEquals(store.executed("insert").length, before);
 });
 
-Deno.test("without a projection option no chunk rows are written", async () => {
+test("without a projection option no chunk rows are written", async () => {
   const { store, commit } = setup({
     maxAtomicStatements: 100,
     writeBatchSize: 100,
@@ -159,7 +160,7 @@ Deno.test("without a projection option no chunk rows are written", async () => {
   assertEquals(summary.novelQuads, 1);
 });
 
-Deno.test("afterWrite runs once, after the write, with the summary", async () => {
+test("afterWrite runs once, after the write, with the summary", async () => {
   const { store, commit } = setup({
     maxAtomicStatements: 100,
     writeBatchSize: 100,
@@ -175,7 +176,7 @@ Deno.test("afterWrite runs once, after the write, with the summary", async () =>
   assertEquals(seen, [2], "the write was durable before the hook ran");
 });
 
-Deno.test("deletions apply before the insertions of the same patch", async () => {
+test("deletions apply before the insertions of the same patch", async () => {
   const { store, commit } = setup({
     maxAtomicStatements: 100,
     writeBatchSize: 100,

@@ -1,3 +1,4 @@
+import { test } from "node:test";
 import { assert, assertEquals, assertRejects } from "@std/assert";
 import { DataFactory } from "n3";
 import { RecursiveCharacterTextSplitter } from "@langchain/textsplitters";
@@ -33,7 +34,7 @@ async function seeded(count: number) {
   return store;
 }
 
-Deno.test("a rebuild pages the stored quads, clears chunks once, and writes every chunk", async () => {
+test("a rebuild pages the stored quads, clears chunks once, and writes every chunk", async () => {
   const store = await seeded(5);
   store.chunks.push({ quadId: "stale", text: "stale", vectorized: false });
   const written = await rebuildSqlSearchIndex(
@@ -51,7 +52,7 @@ Deno.test("a rebuild pages the stored quads, clears chunks once, and writes ever
   assert(!store.chunks.some((c) => c.quadId === "stale"));
 });
 
-Deno.test("rebuilding an empty store clears the chunk rows and writes none", async () => {
+test("rebuilding an empty store clears the chunk rows and writes none", async () => {
   const store = new FakeSqlStore(limits);
   store.chunks.push({ quadId: "stale", text: "stale", vectorized: false });
   assertEquals(
@@ -62,7 +63,7 @@ Deno.test("rebuilding an empty store clears the chunk rows and writes none", asy
   assertEquals(store.clearCount, 1);
 });
 
-Deno.test("an embedding failure on the first page changes nothing", async () => {
+test("an embedding failure on the first page changes nothing", async () => {
   const store = await seeded(3);
   store.chunks.push({ quadId: "kept", text: "kept", vectorized: false });
   const failing = { embed: () => Promise.reject(new Error("embedding down")) };
@@ -79,7 +80,7 @@ Deno.test("an embedding failure on the first page changes nothing", async () => 
   assertEquals(store.chunks.map((c) => c.quadId), ["kept"]);
 });
 
-Deno.test("a deferred import rebuilds once after the commit and reports it", async () => {
+test("a deferred import rebuilds once after the commit and reports it", async () => {
   const store = new FakeSqlStore(limits);
   const summary = await commitSqlPatch(
     { insertions: [q(1), q(2), q(3)], deletions: [] },
@@ -98,7 +99,7 @@ Deno.test("a deferred import rebuilds once after the commit and reports it", asy
   assertEquals(store.chunks.length, 3);
 });
 
-Deno.test("the backend's own default mode applies when the option is unset", async () => {
+test("the backend's own default mode applies when the option is unset", async () => {
   const store = new FakeSqlStore(limits);
   const summary = await commitSqlPatch(
     { insertions: [q(1)], deletions: [] },

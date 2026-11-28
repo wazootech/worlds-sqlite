@@ -1,3 +1,4 @@
+import { test } from "node:test";
 import { assert, assertEquals, assertRejects } from "@std/assert";
 import { DataFactory } from "n3";
 import { RecursiveCharacterTextSplitter } from "@langchain/textsplitters";
@@ -42,7 +43,7 @@ async function seeded() {
   return store;
 }
 
-Deno.test("a scoped rebuild replaces only the in-scope rows and clears nothing", async () => {
+test("a scoped rebuild replaces only the in-scope rows and clears nothing", async () => {
   const store = await seeded();
   const outside = store.chunks.filter((c) => c.text.startsWith("b"));
   store.chunks = store.chunks.filter((c) => !c.text.startsWith("a"));
@@ -60,7 +61,7 @@ Deno.test("a scoped rebuild replaces only the in-scope rows and clears nothing",
   assert(store.chunks.some((c) => c.quadId === "stale-in-scope"));
 });
 
-Deno.test("a scoped rebuild does not duplicate rows that already exist", async () => {
+test("a scoped rebuild does not duplicate rows that already exist", async () => {
   const store = await seeded();
   await rebuildSqlSearchIndex(store.driver, store.dialect, projection, {
     scope: scopeA,
@@ -68,7 +69,7 @@ Deno.test("a scoped rebuild does not duplicate rows that already exist", async (
   assertEquals(store.chunks.length, 5);
 });
 
-Deno.test("an exclude scope rebuilds everything but the excluded quads", async () => {
+test("an exclude scope rebuilds everything but the excluded quads", async () => {
   const store = await seeded();
   store.chunks = [];
   const result = await rebuildSqlSearchIndexWithCounts(
@@ -81,7 +82,7 @@ Deno.test("an exclude scope rebuilds everything but the excluded quads", async (
   assert(store.chunks.every((c) => c.text.startsWith("b")));
 });
 
-Deno.test("a scope with no criteria is a full rebuild that clears all", async () => {
+test("a scope with no criteria is a full rebuild that clears all", async () => {
   const store = await seeded();
   store.chunks.push({ quadId: "stale", text: "stale", vectorized: false });
   const result = await rebuildSqlSearchIndexWithCounts(
@@ -95,7 +96,7 @@ Deno.test("a scope with no criteria is a full rebuild that clears all", async ()
   assert(!store.chunks.some((c) => c.quadId === "stale"));
 });
 
-Deno.test("a scope that matches nothing writes nothing and clears nothing", async () => {
+test("a scope that matches nothing writes nothing and clears nothing", async () => {
   const store = await seeded();
   const before = [...store.chunks];
   const result = await rebuildSqlSearchIndexWithCounts(
@@ -109,7 +110,7 @@ Deno.test("a scope that matches nothing writes nothing and clears nothing", asyn
   assertEquals(store.chunks, before);
 });
 
-Deno.test("an embedding failure in a scoped rebuild changes nothing", async () => {
+test("an embedding failure in a scoped rebuild changes nothing", async () => {
   const store = await seeded();
   const before = [...store.chunks];
   const failing = { embed: () => Promise.reject(new Error("embedding down")) };
@@ -125,7 +126,7 @@ Deno.test("an embedding failure in a scoped rebuild changes nothing", async () =
   assertEquals(store.chunks, before);
 });
 
-Deno.test("a scoped rebuild needs a dialect that can delete chunks by quad", async () => {
+test("a scoped rebuild needs a dialect that can delete chunks by quad", async () => {
   const store = await seeded();
   const { buildDeleteChunks: _omitted, ...dialect } = store.dialect;
   await assertRejects(
@@ -139,7 +140,7 @@ Deno.test("a scoped rebuild needs a dialect that can delete chunks by quad", asy
   assertEquals(store.batches.length, 1, "only the seeding commit wrote");
 });
 
-Deno.test("rebuildSqlSearchIndex still returns the chunk row count and clears all", async () => {
+test("rebuildSqlSearchIndex still returns the chunk row count and clears all", async () => {
   const store = await seeded();
   assertEquals(
     await rebuildSqlSearchIndex(store.driver, store.dialect, projection),
