@@ -1,7 +1,7 @@
 {
   "name": "@worlds/sqlite",
   "description": "Synchronous SQLite-family durable backend for the Worlds client (developer-supplied node:sqlite / bun:sqlite handle) \u2014 RDF/JS quad primitive packaged with the worlds impl.",
-  "version": "0.8.2",
+  "version": "0.8.3",
   "license": "WTFPL",
   "exports": {
     ".": "./src/mod.ts",
